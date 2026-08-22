@@ -36,6 +36,12 @@ npm test
 
 La aplicación de desarrollo queda disponible normalmente en http://localhost:5173.
 
+En Windows también puedes abrir `ABRIR-TRAIOT.cmd` con doble clic. El archivo inicia Vite,
+abre http://127.0.0.1:5173 en el navegador y mantiene la consola visible para poder detenerlo
+con Ctrl+C. No abras `index.html` directamente: el navegador no puede transformar por sí solo
+los módulos TypeScript de Vite. Este servidor entrega únicamente el frontend y no reemplaza el
+backend previsto en Google Apps Script.
+
 ## Estructura actual
 
 ~~~text
