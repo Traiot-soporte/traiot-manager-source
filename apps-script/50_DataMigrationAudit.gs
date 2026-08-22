@@ -35,6 +35,11 @@ function buildDataMigrationAudit_() {
 
   summary.safeToPopulateUuids = summary.invalidUuids === 0 && summary.duplicateUuids === 0;
   summary.safeToPopulateRelations = summary.relationsUnresolved === 0 && summary.relationsAmbiguous === 0;
+  summary.safeToPopulateExactRelations =
+    summary.uuidsToAssign === 0 &&
+    summary.invalidUuids === 0 &&
+    summary.duplicateUuids === 0 &&
+    summary.relationsAmbiguous === 0;
 
   return {
     mode: 'data-migration-dry-run',

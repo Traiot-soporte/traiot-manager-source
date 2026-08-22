@@ -105,3 +105,13 @@ function poblarIdentificadores() {
   console.log(JSON.stringify(result, null, 2));
   return result;
 }
+
+/**
+ * Puebla solamente relaciones con una coincidencia unica y verificable.
+ * Los textos originales y las relaciones no resueltas permanecen intactos.
+ */
+function poblarRelacionesExactas() {
+  var result = migrateExactRelations_();
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}

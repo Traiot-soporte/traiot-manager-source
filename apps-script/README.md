@@ -26,6 +26,9 @@ Sheets/Drive. No existe un servidor backend local.
 - `poblarIdentificadores()`: asigna UUID y completa `_updatedAt` y `_deleted`
   en las filas existentes. Conserva valores validos, puede reanudarse y exige
   que el respaldo estructural registrado siga disponible.
+- `poblarRelacionesExactas()`: completa solamente referencias con una
+  coincidencia unica. No sobrescribe referencias existentes incompatibles ni
+  altera el texto original de una relacion pendiente.
 
 El endpoint `preflight` compara los encabezados reales con la metadata generada
 desde `src/schema`, distingue las tres tablas nuevas pendientes y bloquea una
@@ -46,6 +49,11 @@ La migracion de identificadores procesa solamente las 13 tablas originales y
 no modifica sus columnas heredadas. Tampoco completa campos obligatorios vacios
 ni relaciones que no puedan resolverse exactamente; esos datos permanecen
 disponibles para una conciliacion posterior.
+
+La migracion parcial de relaciones se bloquea si encuentra ambiguedades, UUID
+invalidos o una referencia tecnica existente que contradiga la coincidencia
+actual. Al finalizar vuelve a construir el plan para confirmar que no quede
+ninguna coincidencia exacta pendiente de escritura.
 
 ## Seguridad
 
