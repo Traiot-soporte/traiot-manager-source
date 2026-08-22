@@ -21,7 +21,7 @@ export function DashboardView(props: CollectionViewProps) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map(({ icon: Icon, label, value }) => (
           <article className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm" key={label}>
-            <span className="grid size-11 place-items-center rounded-2xl bg-mint-100 text-mint-600"><Icon className="size-5" /></span>
+            <span className="grid size-11 place-items-center rounded-2xl bg-brand-100 text-brand-600"><Icon className="size-5" /></span>
             <p className="mt-5 text-3xl font-black text-ink-950">{value}</p>
             <p className="mt-1 text-xs font-black uppercase tracking-wide text-ink-800/45">{label}</p>
           </article>

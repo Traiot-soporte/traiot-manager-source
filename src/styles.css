@@ -2,21 +2,21 @@
 
 @theme {
   --font-sans: "Aptos", "Segoe UI", system-ui, sans-serif;
-  --color-ink-950: #071c1b;
-  --color-ink-900: #0d2927;
-  --color-ink-800: #173c38;
-  --color-mint-50: #effcf8;
-  --color-mint-100: #d9f7ee;
-  --color-mint-400: #38c99d;
-  --color-mint-500: #1aae82;
-  --color-mint-600: #118565;
+  --color-ink-950: #191919;
+  --color-ink-900: #292321;
+  --color-ink-800: #493733;
+  --color-brand-50: #fff5f1;
+  --color-brand-100: #fce1d8;
+  --color-brand-400: #ed8b70;
+  --color-brand-500: #e77c60;
+  --color-brand-600: #b94639;
   --color-sun-400: #f6bf47;
 }
 
 :root {
   font-family: var(--font-sans);
-  color: #102a28;
-  background: #f4f7f6;
+  color: #332723;
+  background: #f7f3f1;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -42,4 +42,3 @@ button,
 a {
   touch-action: manipulation;
 }
-

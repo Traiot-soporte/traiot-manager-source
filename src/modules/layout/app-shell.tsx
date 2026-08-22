@@ -22,7 +22,7 @@ export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#f4f7f6]">
+    <div className="min-h-screen bg-[#f7f3f1]">
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-[286px] border-r border-white/10 bg-ink-950 text-white transition-transform lg:translate-x-0',
@@ -36,7 +36,7 @@ export function AppShell() {
             onClick={() => setMenuOpen(false)}
             to="/"
           >
-            <span className="grid size-10 place-items-center rounded-2xl bg-mint-400 font-black text-ink-950">
+            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 font-black text-ink-950">
               T
             </span>
             <span>
@@ -74,7 +74,7 @@ export function AppShell() {
               className={({ isActive }) =>
                 cn(
                   'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/65 transition hover:bg-white/5 hover:text-white',
-                  isActive && 'bg-mint-400 text-ink-950 hover:bg-mint-400 hover:text-ink-950',
+                  isActive && 'bg-brand-400 text-ink-950 hover:bg-brand-400 hover:text-ink-950',
                 )
               }
               key={table.name}
@@ -98,7 +98,7 @@ export function AppShell() {
       )}
 
       <div className="lg:pl-[286px]">
-        <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-black/5 bg-[#f4f7f6]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-black/5 bg-[#f7f3f1]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <button
             aria-label="Abrir menú"
             className="grid min-h-11 min-w-11 place-items-center rounded-xl border border-black/10 bg-white lg:hidden"

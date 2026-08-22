@@ -43,13 +43,13 @@ export function RecordFormPage() {
 
   return (
     <div className="space-y-6">
-      <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-mint-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
-      <header className="rounded-3xl bg-ink-950 p-6 text-white sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-mint-400">{editing ? 'Edición' : 'Nuevo registro'}</p><h1 className="mt-2 text-2xl font-black sm:text-3xl">{editing ? 'Editar ' + table.name : 'Crear en ' + table.name}</h1><p className="mt-2 text-sm text-white/55">Formulario generado desde la metadata de {table.columns.length} campos.</p></header>
+      <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
+      <header className="rounded-3xl bg-ink-950 p-6 text-white sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-brand-400">{editing ? 'Edición' : 'Nuevo registro'}</p><h1 className="mt-2 text-2xl font-black sm:text-3xl">{editing ? 'Editar ' + table.name : 'Crear en ' + table.name}</h1><p className="mt-2 text-sm text-white/55">Formulario generado desde la metadata de {table.columns.length} campos.</p></header>
       <FormView cancelTo={cancelTo} initialRow={row.data} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
     </div>
   )
 }
 
 function FormMessage({ text, to }: { readonly text: string; readonly to: string }) {
-  return <section className="rounded-3xl bg-white p-8"><h1 className="text-xl font-black text-ink-950">{text}</h1><Link className="mt-5 inline-flex min-h-11 items-center text-sm font-bold text-mint-600" to={to}>Volver</Link></section>
+  return <section className="rounded-3xl bg-white p-8"><h1 className="text-xl font-black text-ink-950">{text}</h1><Link className="mt-5 inline-flex min-h-11 items-center text-sm font-bold text-brand-600" to={to}>Volver</Link></section>
 }

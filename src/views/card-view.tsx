@@ -16,7 +16,7 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
             <h2 className="text-lg font-black text-ink-950">{getRowTitle(table, row)}</h2>
             <Link
               aria-label={'Abrir ' + getRowTitle(table, row)}
-              className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-mint-100 text-mint-600 group-hover:bg-ink-950 group-hover:text-white"
+              className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-brand-100 text-brand-600 group-hover:bg-ink-950 group-hover:text-white"
               to={basePath + '/' + encodeURIComponent(String(row._uuid))}
             >
               <ArrowUpRight className="size-5" />

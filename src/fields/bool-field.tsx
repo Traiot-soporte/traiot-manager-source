@@ -12,7 +12,7 @@ export function BoolField({ column, disabled, error, onChange, value }: FieldCom
       >
         <input
           checked={value === true}
-          className="size-5 accent-mint-600"
+          className="size-5 accent-brand-600"
           disabled={disabled}
           id={inputId}
           onChange={(event) => onChange(event.target.checked)}

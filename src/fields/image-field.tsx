@@ -40,7 +40,7 @@ export function ImageField({ column, disabled, error, onChange, value }: FieldCo
         </div>
       )}
       <label
-        className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-mint-500 bg-mint-50 px-4 text-sm font-black text-mint-600"
+        className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-brand-500 bg-brand-50 px-4 text-sm font-black text-brand-600"
         htmlFor={inputId}
       >
         <ImagePlus className="size-5" />

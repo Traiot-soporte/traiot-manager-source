@@ -22,7 +22,7 @@ export function ColorField({ column, disabled, error, onChange, value }: FieldCo
         <span
           aria-hidden="true"
           className="size-11 shrink-0 rounded-xl border border-black/15"
-          style={{ backgroundColor: colorMap[stringValue] ?? '#f4f7f6' }}
+          style={{ backgroundColor: colorMap[stringValue] ?? '#f7f3f1' }}
         />
         <select
           className={inputClassName}

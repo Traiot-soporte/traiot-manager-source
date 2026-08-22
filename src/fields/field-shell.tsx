@@ -9,7 +9,7 @@ interface FieldShellProps extends PropsWithChildren {
 }
 
 export const inputClassName =
-  'min-h-12 w-full rounded-xl border border-black/10 bg-white px-3.5 text-base text-ink-950 outline-none transition placeholder:text-ink-800/30 focus:border-mint-500 focus:ring-4 focus:ring-mint-100 disabled:cursor-not-allowed disabled:bg-black/5 disabled:text-ink-800/45'
+  'min-h-12 w-full rounded-xl border border-black/10 bg-white px-3.5 text-base text-ink-950 outline-none transition placeholder:text-ink-800/30 focus:border-brand-500 focus:ring-4 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-black/5 disabled:text-ink-800/45'
 
 export function FieldShell({ children, column, error, inputId }: FieldShellProps) {
   return (

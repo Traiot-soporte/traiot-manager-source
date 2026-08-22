@@ -31,14 +31,14 @@ export function CalendarView({ basePath, rows, table }: CollectionViewProps) {
       {days.map(([day, dayRows]) => (
         <section className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm" key={day}>
           <header className="flex items-center gap-3 bg-ink-950 px-5 py-4 text-white">
-            <CalendarDays className="size-5 text-mint-400" />
+            <CalendarDays className="size-5 text-brand-400" />
             <h2 className="font-black capitalize">{new Intl.DateTimeFormat('es-MX', { dateStyle: 'long', timeZone: 'America/Mexico_City' }).format(new Date(day + 'T12:00:00-06:00'))}</h2>
           </header>
           <div className="divide-y divide-black/5">
             {dayRows.map((row) => (
-              <Link className="flex min-h-14 items-center justify-between gap-4 px-5 py-3 text-sm font-bold text-ink-800 hover:bg-mint-50" key={String(row._uuid)} to={basePath + '/' + encodeURIComponent(String(row._uuid))}>
+              <Link className="flex min-h-14 items-center justify-between gap-4 px-5 py-3 text-sm font-bold text-ink-800 hover:bg-brand-50" key={String(row._uuid)} to={basePath + '/' + encodeURIComponent(String(row._uuid))}>
                 <span>{getRowTitle(table, row)}</span>
-                <span className="text-mint-600">Abrir</span>
+                <span className="text-brand-600">Abrir</span>
               </Link>
             ))}
           </div>

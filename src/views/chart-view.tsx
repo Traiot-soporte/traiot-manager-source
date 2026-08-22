@@ -30,7 +30,7 @@ export function ChartView({ rows, table }: CollectionViewProps) {
             <XAxis angle={-20} dataKey="name" height={70} interval={0} textAnchor="end" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals={false} width={36} />
             <Tooltip />
-            <Bar dataKey="total" fill="#1aae82" name="Registros" radius={[8, 8, 0, 0]} />
+            <Bar dataKey="total" fill="#e77c60" name="Registros" radius={[8, 8, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

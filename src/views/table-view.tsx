@@ -26,7 +26,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
           </thead>
           <tbody className="divide-y divide-black/5">
             {rows.map((row) => (
-              <tr className="transition hover:bg-mint-50" key={String(row._uuid)}>
+              <tr className="transition hover:bg-brand-50" key={String(row._uuid)}>
                 {columns.map((column, index) => (
                   <td className={index === 0 ? 'px-4 py-4 text-sm font-black text-ink-950' : 'px-4 py-4 text-sm font-medium text-ink-800/75'} key={column.name}>
                     <CellDisplay column={column} value={row[column.name]} />
@@ -35,7 +35,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
                 <td className="px-2">
                   <Link
                     aria-label={'Abrir ' + getRowTitle(table, row)}
-                    className="grid min-h-11 min-w-11 place-items-center rounded-xl text-mint-600 hover:bg-mint-100"
+                    className="grid min-h-11 min-w-11 place-items-center rounded-xl text-brand-600 hover:bg-brand-100"
                     to={basePath + '/' + encodeURIComponent(String(row._uuid))}
                   >
                     <ChevronRight className="size-5" />

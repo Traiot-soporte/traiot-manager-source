@@ -12,11 +12,11 @@ export function DeckView({ basePath, rows, table }: CollectionViewProps) {
     <div className="space-y-3">
       {rows.map((row) => (
         <Link
-          className="flex min-h-24 items-center gap-4 rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:border-mint-400 hover:shadow-md sm:p-5"
+          className="flex min-h-24 items-center gap-4 rounded-3xl border border-black/5 bg-white p-4 shadow-sm transition hover:border-brand-400 hover:shadow-md sm:p-5"
           key={String(row._uuid)}
           to={basePath + '/' + encodeURIComponent(String(row._uuid))}
         >
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink-950 text-lg font-black text-mint-400">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink-950 text-lg font-black text-brand-400">
             {getRowTitle(table, row).slice(0, 1).toUpperCase()}
           </span>
           <span className="min-w-0 flex-1">
@@ -27,7 +27,7 @@ export function DeckView({ basePath, rows, table }: CollectionViewProps) {
               ))}
             </span>
           </span>
-          <ChevronRight className="size-5 shrink-0 text-mint-600" />
+          <ChevronRight className="size-5 shrink-0 text-brand-600" />
         </Link>
       ))}
     </div>

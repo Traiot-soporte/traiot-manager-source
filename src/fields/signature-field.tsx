@@ -23,7 +23,7 @@ export function SignatureField({ column, disabled, error, onChange, value }: Fie
 
     const signature = new SignaturePad(canvas, {
       backgroundColor: 'rgb(255, 255, 255)',
-      penColor: 'rgb(7, 28, 27)',
+      penColor: 'rgb(25, 25, 25)',
       minWidth: 1,
       maxWidth: 3,
     })

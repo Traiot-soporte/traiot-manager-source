@@ -32,9 +32,9 @@ export function DashboardPage() {
   return (
     <div className="space-y-8">
       <section className="relative overflow-hidden rounded-[2rem] bg-ink-950 px-6 py-8 text-white sm:px-10 sm:py-10">
-        <div className="absolute -right-16 -top-20 size-64 rounded-full bg-mint-400/20 blur-3xl" />
+        <div className="absolute -right-16 -top-20 size-64 rounded-full bg-brand-400/20 blur-3xl" />
         <div className="relative max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-mint-400">
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-400">
             Operación GPS · IoT
           </p>
           <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">
@@ -68,7 +68,7 @@ export function DashboardPage() {
           <section key={moduleName}>
             <div className="mb-4 flex items-end justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-mint-600">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-600">
                   Módulo
                 </p>
                 <h2 className="mt-1 text-2xl font-black text-ink-950">{moduleName}</h2>
@@ -85,15 +85,15 @@ export function DashboardPage() {
 
                 return (
                   <Link
-                    className="group min-h-44 rounded-3xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-ink-950/8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-mint-600"
+                    className="group min-h-44 rounded-3xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-ink-950/8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
                     key={summary.name}
                     to={'/tablas/' + encodeURIComponent(summary.name)}
                   >
                     <div className="flex items-start justify-between">
-                      <span className="grid size-12 place-items-center rounded-2xl bg-mint-100 text-mint-600">
+                      <span className="grid size-12 place-items-center rounded-2xl bg-brand-100 text-brand-600">
                         <TableIcon className="size-6" name={summary.icon} />
                       </span>
-                      <ArrowRight className="size-5 text-ink-800/25 transition group-hover:translate-x-1 group-hover:text-mint-600" />
+                      <ArrowRight className="size-5 text-ink-800/25 transition group-hover:translate-x-1 group-hover:text-brand-600" />
                     </div>
                     <h3 className="mt-5 text-lg font-black text-ink-950">{summary.name}</h3>
                     <p className="mt-1 line-clamp-2 text-sm leading-5 text-ink-800/55">
@@ -124,7 +124,7 @@ interface MetricProps {
 function Metric({ icon: Icon, label, value }: MetricProps) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <Icon className="size-5 text-mint-400" />
+      <Icon className="size-5 text-brand-400" />
       <p className="mt-3 text-xs font-bold text-white/45">{label}</p>
       <p className="mt-1 text-sm font-black text-white">{value}</p>
     </div>

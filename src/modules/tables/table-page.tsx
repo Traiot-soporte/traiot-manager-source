@@ -56,19 +56,19 @@ export function TablePage() {
         <div className="p-6 sm:p-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
             <div className="flex gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-ink-950 text-mint-400"><TableIcon className="size-7" name={table.icon} /></span>
+              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-ink-950 text-brand-400"><TableIcon className="size-7" name={table.icon} /></span>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-mint-600">{table.module}</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-600">{table.module}</p>
                 <h1 className="mt-1 text-2xl font-black text-ink-950 sm:text-3xl">{table.name}</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-800/55">{table.description}</p>
               </div>
             </div>
-            <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-mint-500 px-5 text-sm font-black text-ink-950 transition hover:bg-mint-400" to={basePath + '/nuevo'}>
+            <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-ink-950 transition hover:bg-brand-400" to={basePath + '/nuevo'}>
               <Plus className="size-5" /> Nuevo registro
             </Link>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3 border-t border-black/5 bg-mint-50 px-6 py-3 text-xs font-bold text-mint-600 sm:px-8">
+        <div className="flex flex-wrap items-center gap-3 border-t border-black/5 bg-brand-50 px-6 py-3 text-xs font-bold text-brand-600 sm:px-8">
           <span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>MockRepository</span>
         </div>
       </section>
@@ -77,7 +77,7 @@ export function TablePage() {
         <label className="relative block w-full xl:max-w-md">
           <span className="sr-only">Buscar registros</span>
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-800/35" />
-          <input className="min-h-12 w-full rounded-2xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-mint-500 focus:ring-4 focus:ring-mint-100" onChange={(event) => setSearch(event.target.value)} placeholder="Buscar en todos los campos…" type="search" value={search} />
+          <input className="min-h-12 w-full rounded-2xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" onChange={(event) => setSearch(event.target.value)} placeholder="Buscar en todos los campos…" type="search" value={search} />
         </label>
         <ViewSwitcher onChange={changeView} value={view} />
       </div>
@@ -112,5 +112,5 @@ function StatusMessage({ error = false, text }: { readonly error?: boolean; read
 }
 
 function MissingTable() {
-  return <section className="rounded-3xl bg-white p-8"><h1 className="text-2xl font-black text-ink-950">Tabla no encontrada</h1><Link className="mt-5 inline-flex min-h-11 items-center text-sm font-bold text-mint-600" to="/">Volver al resumen</Link></section>
+  return <section className="rounded-3xl bg-white p-8"><h1 className="text-2xl font-black text-ink-950">Tabla no encontrada</h1><Link className="mt-5 inline-flex min-h-11 items-center text-sm font-bold text-brand-600" to="/">Volver al resumen</Link></section>
 }

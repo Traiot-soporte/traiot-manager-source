@@ -10,7 +10,7 @@ export function EnumListField({ column, disabled, error, onChange, value }: Fiel
       <FieldShell column={column} error={error} inputId={inputId}>
         <textarea
           aria-describedby={error ? inputId + '-error' : undefined}
-          className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-ink-800 outline-none focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
+          className="min-h-28 w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-ink-800 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
           disabled={disabled}
           id={inputId}
           onChange={(event) =>
@@ -40,12 +40,12 @@ export function EnumListField({ column, disabled, error, onChange, value }: Fiel
       >
         {column.values.map((option) => (
           <label
-            className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-ink-800 hover:bg-mint-50"
+            className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-ink-800 hover:bg-brand-50"
             key={option}
           >
             <input
               checked={selected.includes(option)}
-              className="mt-0.5 size-5 accent-mint-600"
+              className="mt-0.5 size-5 accent-brand-600"
               disabled={disabled}
               onChange={() => toggle(option)}
               type="checkbox"

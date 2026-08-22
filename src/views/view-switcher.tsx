@@ -25,7 +25,7 @@ export function ViewSwitcher({ onChange, value }: ViewSwitcherProps) {
           aria-pressed={value === kind}
           className={cn(
             'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-xs font-black transition',
-            value === kind ? 'bg-ink-950 text-white' : 'text-ink-800/55 hover:bg-mint-50 hover:text-mint-600',
+            value === kind ? 'bg-ink-950 text-white' : 'text-ink-800/55 hover:bg-brand-50 hover:text-brand-600',
           )}
           key={kind}
           onClick={() => onChange(kind)}
