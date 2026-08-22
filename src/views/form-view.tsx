@@ -1,0 +1,166 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Save } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Controller, type Resolver, useForm, useWatch } from 'react-hook-form'
+import { Link } from 'react-router'
+
+import { FieldRenderer } from '@/fields/field-renderer'
+import { buildFormSchema } from '@/schema/form-schema'
+import type { CellValue, FormulaContext, RowData, TableDef, UserContext } from '@/schema'
+
+interface FormViewProps {
+  readonly table: TableDef
+  readonly initialRow?: RowData | undefined
+  readonly user: UserContext
+  readonly cancelTo: string
+  readonly submitLabel: string
+  readonly onSubmit: (values: RowData) => Promise<void>
+}
+
+const wideFieldTypes = new Set(['LongText', 'Address', 'EnumList', 'Image', 'Signature'])
+
+function prepareDefaults(table: TableDef, initialRow: RowData | undefined, context: FormulaContext) {
+  const defaults: RowData = { ...(initialRow ?? {}) }
+  for (const column of table.columns) {
+    if (defaults[column.name] === undefined && column.defaultValue) {
+      defaults[column.name] = column.defaultValue(defaults, context)
+    }
+  }
+  return defaults
+}
+
+function editableColumns(table: TableDef) {
+  return table.columns.filter(
+    (column) =>
+      column.origin !== 'system' &&
+      !column.hidden &&
+      !column.virtual &&
+      !column.readOnly &&
+      !column.formula &&
+      column.type !== 'List' &&
+      column.type !== 'Show',
+  )
+}
+
+function withSyncedReferences(table: TableDef, values: RowData): RowData {
+  const result = { ...values }
+  for (const column of table.columns) {
+    if (column.syncTo) {
+      result[column.syncTo] = values[column.name]
+    }
+  }
+  return result
+}
+
+export function FormView({
+  cancelTo,
+  initialRow,
+  onSubmit,
+  submitLabel,
+  table,
+  user,
+}: FormViewProps) {
+  const [submitError, setSubmitError] = useState<string>()
+  const context = useMemo<FormulaContext>(
+    () => ({
+      now: new Date(),
+      user,
+      can: (permission) => user.permissions.has('*') || user.permissions.has(permission),
+      lookup: () => undefined,
+    }),
+    [user],
+  )
+  const schema = useMemo(() => buildFormSchema(table), [table])
+  const defaultValues = useMemo(
+    () => prepareDefaults(table, initialRow, context),
+    [context, initialRow, table],
+  )
+  const form = useForm<RowData>({
+    defaultValues,
+    resolver: zodResolver(schema) as Resolver<RowData>,
+    mode: 'onBlur',
+  })
+  const currentRow = useWatch({ control: form.control })
+  const columns = editableColumns(table).filter(
+    (column) => !column.showIf || column.showIf(currentRow, context),
+  )
+  const sections = [...new Set(columns.map((column) => column.section ?? 'Información general'))]
+
+  const submit = form.handleSubmit(async (values) => {
+    setSubmitError(undefined)
+    try {
+      await onSubmit(withSyncedReferences(table, values))
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'No fue posible guardar el registro.')
+    }
+  })
+
+  return (
+    <form className="space-y-6" onSubmit={(event) => void submit(event)}>
+      {sections.map((section) => {
+        const sectionColumns = columns.filter(
+          (column) => (column.section ?? 'Información general') === section,
+        )
+
+        return (
+          <fieldset
+            className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-7"
+            key={section}
+          >
+            <legend className="px-2 text-lg font-black text-ink-950">{section}</legend>
+            <div className="mt-3 grid gap-5 md:grid-cols-2">
+              {sectionColumns.map((column) => (
+                <div
+                  className={wideFieldTypes.has(column.type) ? 'md:col-span-2' : undefined}
+                  key={column.name}
+                >
+                  <Controller
+                    control={form.control}
+                    name={column.name}
+                    render={({ field, fieldState }) => (
+                      <FieldRenderer
+                        column={column}
+                        context={context}
+                        disabled={Boolean(column.editableIf && !column.editableIf(currentRow, context))}
+                        error={fieldState.error?.message}
+                        onChange={(value: CellValue | undefined) => field.onChange(value)}
+                        row={currentRow}
+                        value={field.value}
+                      />
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+          </fieldset>
+        )
+      })}
+
+      {submitError && (
+        <p
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800"
+          role="alert"
+        >
+          {submitError}
+        </p>
+      )}
+
+      <div className="sticky bottom-20 z-10 flex flex-col-reverse gap-3 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-2xl shadow-ink-950/10 backdrop-blur sm:flex-row sm:justify-end lg:bottom-4">
+        <Link
+          className="inline-flex min-h-12 items-center justify-center rounded-xl border border-black/10 px-5 text-sm font-black text-ink-800"
+          to={cancelTo}
+        >
+          Cancelar
+        </Link>
+        <button
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-ink-950 px-6 text-sm font-black text-white disabled:cursor-wait disabled:opacity-60"
+          disabled={form.formState.isSubmitting}
+          type="submit"
+        >
+          <Save className="size-4" />
+          {form.formState.isSubmitting ? 'Guardando…' : submitLabel}
+        </button>
+      </div>
+    </form>
+  )
+}

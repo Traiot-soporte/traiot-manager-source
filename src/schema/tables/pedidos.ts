@@ -23,7 +23,12 @@ export const pedidosTable = defineTable({
     { name: 'FECHA', type: 'Date', required: true },
     { name: 'TIPO DE PEDIDO', type: 'Enum', values: orderTypes },
     { name: 'ID PEDIDO', type: 'Text', labelColumn: true, required: true },
-    { name: 'ID PRODUCTO', type: 'Ref', ref: { table: 'ALMACEN', keyColumn: '_uuid' } },
+    {
+      name: 'ID PRODUCTO',
+      type: 'Ref',
+      ref: { table: 'ALMACEN', keyColumn: '_uuid' },
+      syncTo: 'producto_uuid',
+    },
     {
       name: 'NOMBRE',
       type: 'Text',
@@ -70,6 +75,7 @@ export const pedidosTable = defineTable({
       name: 'RAZON SOCIAL',
       type: 'Ref',
       ref: { table: 'CLIENTES', keyColumn: '_uuid' },
+      syncTo: 'cliente_uuid',
     },
     {
       name: 'ID CLIENTE',

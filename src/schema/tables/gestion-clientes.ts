@@ -26,6 +26,7 @@ export const gestionClientesTable = defineTable({
       type: 'Ref',
       required: true,
       ref: { table: 'CLIENTES', keyColumn: '_uuid' },
+      syncTo: 'cliente_uuid',
     },
     { name: 'Pagina_empresa', type: 'Url' },
     {

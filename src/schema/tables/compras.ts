@@ -21,6 +21,7 @@ export const comprasTable = defineTable({
       type: 'Ref',
       required: true,
       ref: { table: 'ALMACEN', keyColumn: '_uuid' },
+      syncTo: 'producto_uuid',
     },
     {
       name: 'NOMBRE',

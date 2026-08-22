@@ -28,7 +28,12 @@ export const laboratorioTable = defineTable({
     { name: 'MODELO', type: 'Text' },
     { name: 'IMEI', type: 'Text' },
     { name: 'TEL SIM', type: 'Text' },
-    { name: 'CLIENTE', type: 'Ref', ref: { table: 'CLIENTES', keyColumn: '_uuid' } },
+    {
+      name: 'CLIENTE',
+      type: 'Ref',
+      ref: { table: 'CLIENTES', keyColumn: '_uuid' },
+      syncTo: 'cliente_uuid',
+    },
     { name: 'REVISADO POR', type: 'Enum', values: laboratoryReviewers },
     { name: 'PRUEBAS REALIZADAS', type: 'EnumList', values: laboratoryTests },
     { name: 'FECHA SALIDA', type: 'Date' },

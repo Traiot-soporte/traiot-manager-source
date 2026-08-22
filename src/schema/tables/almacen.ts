@@ -17,7 +17,12 @@ export const almacenTable = defineTable({
     { name: 'No. Item', type: 'Number', required: true },
     { name: 'ID PRODUCTO', type: 'Text', labelColumn: true, required: true },
     { name: 'IMAGEN', type: 'Image', required: true },
-    { name: 'PROVEEDOR', type: 'Text' },
+    {
+      name: 'PROVEEDOR',
+      type: 'Ref',
+      ref: { table: 'PROVEEDORES', keyColumn: '_uuid' },
+      syncTo: 'proveedor_uuid',
+    },
     { name: 'NOMBRE', type: 'Text' },
     { name: 'UNIDAD DE MEDIDA', type: 'Text', hidden: true },
     { name: 'UNIDAD DE MEDIDA SAT', type: 'Text', hidden: true },

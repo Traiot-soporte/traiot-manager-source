@@ -26,7 +26,15 @@ export type ColumnType =
   | 'Show'
 
 export type DataOrigin = 'appsheet' | 'migration' | 'system'
-export type ViewKind = 'table' | 'deck' | 'card' | 'detail' | 'form' | 'calendar' | 'chart'
+export type ViewKind =
+  | 'table'
+  | 'deck'
+  | 'card'
+  | 'detail'
+  | 'form'
+  | 'calendar'
+  | 'chart'
+  | 'dashboard'
 
 export interface UserContext {
   readonly email: string
@@ -57,6 +65,7 @@ export interface ColumnDef<T extends RowData = RowData> {
     readonly table: string
     readonly keyColumn: string
   }
+  readonly syncTo?: string
   readonly formula?: (row: T, context: FormulaContext) => CellValue | undefined
   readonly defaultValue?: (row: T, context: FormulaContext) => CellValue | undefined
   readonly showIf?: (row: T, context: FormulaContext) => boolean

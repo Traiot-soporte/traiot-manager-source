@@ -15,7 +15,12 @@ export const usuariosTable = defineTable({
     { name: 'UserID', type: 'Text', required: true },
     { name: 'UserName', type: 'Name', labelColumn: true },
     { name: 'UserEmail', type: 'Email', required: true },
-    { name: 'UserRole', type: 'Text' },
+    {
+      name: 'UserRole',
+      type: 'Ref',
+      ref: { table: 'Perfiles', keyColumn: '_uuid' },
+      syncTo: 'perfil_uuid',
+    },
     {
       name: 'UserActive',
       type: 'Bool',
