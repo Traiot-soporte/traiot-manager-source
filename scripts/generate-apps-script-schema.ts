@@ -11,8 +11,19 @@ const schema = tableDefinitions.map((table) => {
   return {
     name: table.name,
     sheet: table.sheet,
+    legacyBusinessKey: table.legacyBusinessKey ?? '',
+    labelColumn: table.label,
     sourceHeaders,
     targetHeaders: persistedColumns.map((column) => column.sourceHeader ?? column.name),
+    columns: persistedColumns.map((column) => ({
+      name: column.name,
+      sourceHeader: column.sourceHeader ?? column.name,
+      origin: column.origin ?? 'appsheet',
+      type: column.type,
+      required: Boolean(column.required),
+      syncTo: column.syncTo ?? '',
+      refTable: column.ref?.table ?? '',
+    })),
     newTable: sourceHeaders.length === 0,
   }
 })

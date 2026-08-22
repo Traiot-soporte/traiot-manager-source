@@ -6,6 +6,8 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "ALMACEN",
     "sheet": "ALMACEN",
+    "legacyBusinessKey": "ID PRODUCTO",
+    "labelColumn": "ID PRODUCTO",
     "sourceHeaders": [
       "No. Item",
       "ID PRODUCTO",
@@ -66,11 +68,285 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "PEDIDOS",
       "STOCK"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "proveedor_uuid",
+        "sourceHeader": "proveedor_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "PROVEEDORES"
+      },
+      {
+        "name": "No. Item",
+        "sourceHeader": "No. Item",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID PRODUCTO",
+        "sourceHeader": "ID PRODUCTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN",
+        "sourceHeader": "IMAGEN",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PROVEEDOR",
+        "sourceHeader": "PROVEEDOR",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "proveedor_uuid",
+        "refTable": "PROVEEDORES"
+      },
+      {
+        "name": "NOMBRE",
+        "sourceHeader": "NOMBRE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UNIDAD DE MEDIDA",
+        "sourceHeader": "UNIDAD DE MEDIDA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UNIDAD DE MEDIDA SAT",
+        "sourceHeader": "UNIDAD DE MEDIDA SAT",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "KIT INSTALACION",
+        "sourceHeader": "KIT INSTALACION",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MONEDA",
+        "sourceHeader": "MONEDA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TIPO DE CAMBIO",
+        "sourceHeader": "TIPO DE CAMBIO",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COSTO",
+        "sourceHeader": "COSTO",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MANO DE OBRA",
+        "sourceHeader": "MANO DE OBRA",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PRECIO VENTA PARA ASESOR",
+        "sourceHeader": "PRECIO VENTA PARA ASESOR",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "STOCK MINIMO",
+        "sourceHeader": "STOCK MINIMO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "STOCK MAXIMO",
+        "sourceHeader": "STOCK MAXIMO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "AVISO DE COMPRA",
+        "sourceHeader": "AVISO DE COMPRA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MTS. CABLE INCLUIDOS",
+        "sourceHeader": "MTS. CABLE INCLUIDOS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CATEGORIA",
+        "sourceHeader": "CATEGORIA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CRITICO",
+        "sourceHeader": "CRITICO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CENTRO DE COSTOS",
+        "sourceHeader": "CENTRO DE COSTOS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TIEMPO DE ENTREGA",
+        "sourceHeader": "TIEMPO DE ENTREGA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CLAVE SAT",
+        "sourceHeader": "CLAVE SAT",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS",
+        "sourceHeader": "ESTATUS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COMPRAS",
+        "sourceHeader": "COMPRAS",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "COMPRAS"
+      },
+      {
+        "name": "PEDIDOS",
+        "sourceHeader": "PEDIDOS",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "PEDIDOS"
+      },
+      {
+        "name": "STOCK",
+        "sourceHeader": "STOCK",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "COMPRAS",
     "sheet": "COMPRAS",
+    "legacyBusinessKey": "ID COMPRA",
+    "labelColumn": "ID COMPRA",
     "sourceHeaders": [
       "FECHA COMPRA",
       "ID COMPRA",
@@ -106,12 +382,178 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "ESTATUS COMPRA",
       "COMENTARIOS",
       "VALIDADOR COMPRA"
+    ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "producto_uuid",
+        "sourceHeader": "producto_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "ALMACEN"
+      },
+      {
+        "name": "FECHA COMPRA",
+        "sourceHeader": "FECHA COMPRA",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID COMPRA",
+        "sourceHeader": "ID COMPRA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID PRODUCTO",
+        "sourceHeader": "ID PRODUCTO",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": true,
+        "syncTo": "producto_uuid",
+        "refTable": "ALMACEN"
+      },
+      {
+        "name": "NOMBRE",
+        "sourceHeader": "NOMBRE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PROVEEDOR",
+        "sourceHeader": "PROVEEDOR",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COSTO",
+        "sourceHeader": "COSTO",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "KIT INSTALACION",
+        "sourceHeader": "KIT INSTALACION",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CANTIDAD",
+        "sourceHeader": "CANTIDAD",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SUBTOTAL",
+        "sourceHeader": "SUBTOTAL",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COSTO DE ENVIO",
+        "sourceHeader": "COSTO DE ENVIO",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PRECIO DE COMPRA",
+        "sourceHeader": "PRECIO DE COMPRA",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS COMPRA",
+        "sourceHeader": "ESTATUS COMPRA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COMENTARIOS",
+        "sourceHeader": "COMENTARIOS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VALIDADOR COMPRA",
+        "sourceHeader": "VALIDADOR COMPRA",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
     ],
     "newTable": false
   },
   {
     "name": "PEDIDOS",
     "sheet": "PEDIDOS",
+    "legacyBusinessKey": "ID PEDIDO",
+    "labelColumn": "ID PEDIDO",
     "sourceHeaders": [
       "FECHA",
       "TIPO DE PEDIDO",
@@ -171,11 +613,285 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "COMENTARIOS",
       "VALIDADOR VENTA"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "producto_uuid",
+        "sourceHeader": "producto_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "ALMACEN"
+      },
+      {
+        "name": "cliente_uuid",
+        "sourceHeader": "cliente_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "FECHA",
+        "sourceHeader": "FECHA",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TIPO DE PEDIDO",
+        "sourceHeader": "TIPO DE PEDIDO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID PEDIDO",
+        "sourceHeader": "ID PEDIDO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID PRODUCTO",
+        "sourceHeader": "ID PRODUCTO",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "producto_uuid",
+        "refTable": "ALMACEN"
+      },
+      {
+        "name": "NOMBRE",
+        "sourceHeader": "NOMBRE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CATEGORIA",
+        "sourceHeader": "CATEGORIA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PRECIO VENTA PARA ASESOR",
+        "sourceHeader": "PRECIO VENTA PARA ASESOR",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "EQUIPOS A VENDER",
+        "sourceHeader": "EQUIPOS A VENDER",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COSTO INSTALACION",
+        "sourceHeader": "COSTO INSTALACION",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ENVIO",
+        "sourceHeader": "ENVIO",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SUBTOTAL",
+        "sourceHeader": "SUBTOTAL",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IVA",
+        "sourceHeader": "IVA",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TOTAL",
+        "sourceHeader": "TOTAL",
+        "origin": "appsheet",
+        "type": "Price",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TIPO CLIENTE",
+        "sourceHeader": "TIPO CLIENTE",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RAZON SOCIAL",
+        "sourceHeader": "RAZON SOCIAL",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "cliente_uuid",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "ID CLIENTE",
+        "sourceHeader": "ID CLIENTE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIRECCION",
+        "sourceHeader": "DIRECCION",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO",
+        "sourceHeader": "TELEFONO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "EMAIL",
+        "sourceHeader": "EMAIL",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UBICACION",
+        "sourceHeader": "UBICACION",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CONTACTO",
+        "sourceHeader": "CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO CONTACTO",
+        "sourceHeader": "TELEFONO CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS PEDIDO",
+        "sourceHeader": "ESTATUS PEDIDO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COMENTARIOS",
+        "sourceHeader": "COMENTARIOS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VALIDADOR VENTA",
+        "sourceHeader": "VALIDADOR VENTA",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "PROVEEDORES",
     "sheet": "PROVEEDORES",
+    "legacyBusinessKey": "ID",
+    "labelColumn": "ID",
     "sourceHeaders": [
       "ID",
       "RAZON_SOCIAL",
@@ -234,12 +950,277 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "TIPO",
       "INCOTERM",
       "EXISTE"
+    ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID",
+        "sourceHeader": "ID",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RAZON_SOCIAL",
+        "sourceHeader": "RAZON_SOCIAL",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RFC",
+        "sourceHeader": "RFC",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CALLE",
+        "sourceHeader": "CALLE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NO_INT",
+        "sourceHeader": "NO_INT",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NO_EXT",
+        "sourceHeader": "NO_EXT",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COLONIA",
+        "sourceHeader": "COLONIA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CP",
+        "sourceHeader": "CP",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MUNICIPIO",
+        "sourceHeader": "MUNICIPIO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CIUDAD",
+        "sourceHeader": "CIUDAD",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTADO",
+        "sourceHeader": "ESTADO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PAIS",
+        "sourceHeader": "PAIS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO",
+        "sourceHeader": "TELEFONO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO2",
+        "sourceHeader": "TELEFONO2",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO3",
+        "sourceHeader": "TELEFONO3",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO4",
+        "sourceHeader": "TELEFONO4",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CORREO_E",
+        "sourceHeader": "CORREO_E",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "WEB",
+        "sourceHeader": "WEB",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIAS_PRONTO_PAGO",
+        "sourceHeader": "DIAS_PRONTO_PAGO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIAS_PLAZO",
+        "sourceHeader": "DIAS_PLAZO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DECUENTO_PRONTO",
+        "sourceHeader": "DECUENTO_PRONTO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CONTACTO",
+        "sourceHeader": "CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CONDICION_PAGO",
+        "sourceHeader": "CONDICION_PAGO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TIPO",
+        "sourceHeader": "TIPO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "INCOTERM",
+        "sourceHeader": "INCOTERM",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "EXISTE",
+        "sourceHeader": "EXISTE",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      }
     ],
     "newTable": false
   },
   {
     "name": "CLIENTES",
     "sheet": "CLIENTES",
+    "legacyBusinessKey": "ID CLIENTE",
+    "labelColumn": "ID CLIENTE",
     "sourceHeaders": [
       "ID CLIENTE",
       "RAZON SOCIAL",
@@ -267,11 +1248,132 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "IMAGEN",
       "ESTATUS"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ID CLIENTE",
+        "sourceHeader": "ID CLIENTE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RAZON SOCIAL",
+        "sourceHeader": "RAZON SOCIAL",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIRECCION",
+        "sourceHeader": "DIRECCION",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO",
+        "sourceHeader": "TELEFONO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "EMAIL",
+        "sourceHeader": "EMAIL",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UBICACION",
+        "sourceHeader": "UBICACION",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CONTACTO",
+        "sourceHeader": "CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO CONTACTO",
+        "sourceHeader": "TELEFONO CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN",
+        "sourceHeader": "IMAGEN",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS",
+        "sourceHeader": "ESTATUS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "Gestion Clientes",
     "sheet": "Gestion Clientes",
+    "legacyBusinessKey": "Id_CRM",
+    "labelColumn": "Id_CRM",
     "sourceHeaders": [
       "Id_CRM",
       "Fecha_contacto",
@@ -306,11 +1408,168 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "Estatus_cliente",
       "Notas"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "cliente_uuid",
+        "sourceHeader": "cliente_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "Id_CRM",
+        "sourceHeader": "Id_CRM",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Fecha_contacto",
+        "sourceHeader": "Fecha_contacto",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Nombre_empresa",
+        "sourceHeader": "Nombre_empresa",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": true,
+        "syncTo": "cliente_uuid",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "Pagina_empresa",
+        "sourceHeader": "Pagina_empresa",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Contacto",
+        "sourceHeader": "Contacto",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Telefono",
+        "sourceHeader": "Telefono",
+        "origin": "appsheet",
+        "type": "Phone",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Email",
+        "sourceHeader": "Email",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Tipo_cliente",
+        "sourceHeader": "Tipo_cliente",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Accion",
+        "sourceHeader": "Accion",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Responsable",
+        "sourceHeader": "Responsable",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Estatus_prospeccion",
+        "sourceHeader": "Estatus_prospeccion",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Estatus_cliente",
+        "sourceHeader": "Estatus_cliente",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Notas",
+        "sourceHeader": "Notas",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "Ticket Soporte",
     "sheet": "Ticket Soporte",
+    "legacyBusinessKey": "_ComputedKey",
+    "labelColumn": "FOLIO",
     "sourceHeaders": [
       "🗓️Fecha Registro",
       "🏭Cliente",
@@ -347,11 +1606,177 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "🛡️Comentarios Soporte",
       "🚦Estatus"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FOLIO",
+        "sourceHeader": "FOLIO",
+        "origin": "migration",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🗓️Fecha Registro",
+        "sourceHeader": "🗓️Fecha Registro",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🏭Cliente",
+        "sourceHeader": "🏭Cliente",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "⭐Tipo de Cliente",
+        "sourceHeader": "⭐Tipo de Cliente",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🧾Cuenta propietaria",
+        "sourceHeader": "🧾Cuenta propietaria",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🧑Contacto",
+        "sourceHeader": "🧑Contacto",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "📞Teléfono",
+        "sourceHeader": "📞Teléfono",
+        "origin": "appsheet",
+        "type": "Phone",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "✉️Email",
+        "sourceHeader": "✉️Email",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "💼Asesor de Ventas",
+        "sourceHeader": "💼Asesor de Ventas",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🎫Canal de  Atención",
+        "sourceHeader": "🎫Canal de \nAtención",
+        "origin": "appsheet",
+        "type": "EnumList",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "📌Tipo de Caso",
+        "sourceHeader": "📌Tipo de Caso",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🔎Descripción del problema",
+        "sourceHeader": "🔎Descripción del problema",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🧑Atendió",
+        "sourceHeader": "🧑Atendió",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🛡️Comentarios Soporte",
+        "sourceHeader": "🛡️Comentarios Soporte",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "🚦Estatus",
+        "sourceHeader": "🚦Estatus",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "INSTALACIONES",
     "sheet": "INSTALACIONES",
+    "legacyBusinessKey": "FOLIO SERVICIO",
+    "labelColumn": "FOLIO SERVICIO",
     "sourceHeaders": [
       "FOLIO SERVICIO",
       "FECHA",
@@ -549,11 +1974,915 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "FIRMA DE QUIEN RECIBE",
       "IMAGEN INE"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "cliente_uuid",
+        "sourceHeader": "cliente_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "tecnico_uuid",
+        "sourceHeader": "tecnico_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "Usuarios"
+      },
+      {
+        "name": "consultor_uuid",
+        "sourceHeader": "consultor_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "Usuarios"
+      },
+      {
+        "name": "dispositivo_uuid",
+        "sourceHeader": "dispositivo_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "MATRIZ DISPOSITIVOS"
+      },
+      {
+        "name": "FOLIO SERVICIO",
+        "sourceHeader": "FOLIO SERVICIO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FECHA",
+        "sourceHeader": "FECHA",
+        "origin": "appsheet",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MES",
+        "sourceHeader": "MES",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "AÑO EN CURSO",
+        "sourceHeader": "AÑO EN CURSO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CLIENTE",
+        "sourceHeader": "CLIENTE",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "cliente_uuid",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "CONSULTOR VENTAS",
+        "sourceHeader": "CONSULTOR VENTAS",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "consultor_uuid",
+        "refTable": "Usuarios"
+      },
+      {
+        "name": "TIPO DE SERVICIO",
+        "sourceHeader": "TIPO DE SERVICIO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS",
+        "sourceHeader": "ESTATUS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TECNICO",
+        "sourceHeader": "TECNICO",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "tecnico_uuid",
+        "refTable": "Usuarios"
+      },
+      {
+        "name": "SOLUCION",
+        "sourceHeader": "SOLUCION",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MARCA DISPOSITIVO",
+        "sourceHeader": "MARCA DISPOSITIVO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MODELO DISPOSITIVO",
+        "sourceHeader": "MODELO DISPOSITIVO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMEI",
+        "sourceHeader": "IMEI",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SIM",
+        "sourceHeader": "SIM",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PROVEEDOR SIM",
+        "sourceHeader": "PROVEEDOR SIM",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CONTACTO",
+        "sourceHeader": "CONTACTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TELEFONO",
+        "sourceHeader": "TELEFONO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "EMAIL",
+        "sourceHeader": "EMAIL",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIRECCION",
+        "sourceHeader": "DIRECCION",
+        "origin": "appsheet",
+        "type": "Address",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UBICACION",
+        "sourceHeader": "UBICACION",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ECONOMICO",
+        "sourceHeader": "ECONOMICO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ACCESORIOS ADICIONALES",
+        "sourceHeader": "ACCESORIOS ADICIONALES",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CEREBRO",
+        "sourceHeader": "CEREBRO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PANICO",
+        "sourceHeader": "PANICO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CORTE",
+        "sourceHeader": "CORTE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NO. TANQUES",
+        "sourceHeader": "NO. TANQUES",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 1 (MARCA)",
+        "sourceHeader": "TANQUE 1 (MARCA)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 1 (SERIE)",
+        "sourceHeader": "TANQUE 1 (SERIE)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 2 (MARCA)",
+        "sourceHeader": "TANQUE 2 (MARCA)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 2 (SERIE)",
+        "sourceHeader": "TANQUE 2 (SERIE)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 3 (MARCA)",
+        "sourceHeader": "TANQUE 3 (MARCA)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TANQUE 3 (SERIE)",
+        "sourceHeader": "TANQUE 3 (SERIE)",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 1",
+        "sourceHeader": "IMAGEN FUEL 1",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 2",
+        "sourceHeader": "IMAGEN FUEL 2",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 3",
+        "sourceHeader": "IMAGEN FUEL 3",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 4",
+        "sourceHeader": "IMAGEN FUEL 4",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 5",
+        "sourceHeader": "IMAGEN FUEL 5",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 6",
+        "sourceHeader": "IMAGEN FUEL 6",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 7",
+        "sourceHeader": "IMAGEN FUEL 7",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 8",
+        "sourceHeader": "IMAGEN FUEL 8",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 9",
+        "sourceHeader": "IMAGEN FUEL 9",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN FUEL 10",
+        "sourceHeader": "IMAGEN FUEL 10",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS COMBUSTIBLE",
+        "sourceHeader": "NOTAS COMBUSTIBLE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MARCA AUTO",
+        "sourceHeader": "MARCA AUTO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SUBMARCA",
+        "sourceHeader": "SUBMARCA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COLOR",
+        "sourceHeader": "COLOR",
+        "origin": "appsheet",
+        "type": "Color",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "AÑO",
+        "sourceHeader": "AÑO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VIN",
+        "sourceHeader": "VIN",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PLACAS",
+        "sourceHeader": "PLACAS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ODOMETRO",
+        "sourceHeader": "ODOMETRO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 1",
+        "sourceHeader": "IMAGEN 1",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 2",
+        "sourceHeader": "IMAGEN 2",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 3",
+        "sourceHeader": "IMAGEN 3",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 4",
+        "sourceHeader": "IMAGEN 4",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 5",
+        "sourceHeader": "IMAGEN 5",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 6",
+        "sourceHeader": "IMAGEN 6",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 7",
+        "sourceHeader": "IMAGEN 7",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 8",
+        "sourceHeader": "IMAGEN 8",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 9",
+        "sourceHeader": "IMAGEN 9",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 10",
+        "sourceHeader": "IMAGEN 10",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "COMENTARIOS TECNICO",
+        "sourceHeader": "COMENTARIOS TECNICO",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "LUCES",
+        "sourceHeader": "LUCES",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIRECCIONALES",
+        "sourceHeader": "DIRECCIONALES",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "INTERMITENTES",
+        "sourceHeader": "INTERMITENTES",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CUARTOS",
+        "sourceHeader": "CUARTOS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TABLERO",
+        "sourceHeader": "TABLERO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTEREO",
+        "sourceHeader": "ESTEREO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VIDRIOS ELECTRICOS",
+        "sourceHeader": "VIDRIOS ELECTRICOS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "AIRE ACONDICIONADO",
+        "sourceHeader": "AIRE ACONDICIONADO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SEGUROS ELECTRICOS",
+        "sourceHeader": "SEGUROS ELECTRICOS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "BATERIA",
+        "sourceHeader": "BATERIA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CLAXON",
+        "sourceHeader": "CLAXON",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "LUZ INTERIOR",
+        "sourceHeader": "LUZ INTERIOR",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VISERAS",
+        "sourceHeader": "VISERAS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN CHECK 1",
+        "sourceHeader": "IMAGEN CHECK 1",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN CHECK 2",
+        "sourceHeader": "IMAGEN CHECK 2",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN CHECK 3",
+        "sourceHeader": "IMAGEN CHECK 3",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN CHECK 4",
+        "sourceHeader": "IMAGEN CHECK 4",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN CHECK 5",
+        "sourceHeader": "IMAGEN CHECK 5",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CHECKLIST OBSERVACIONES",
+        "sourceHeader": "CHECKLIST OBSERVACIONES",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "POSICIONAMIENTO OK",
+        "sourceHeader": "POSICIONAMIENTO OK",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBSERVACIONES 1",
+        "sourceHeader": "OBSERVACIONES 1",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IGNICION",
+        "sourceHeader": "IGNICION",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBSERVACIONES 2",
+        "sourceHeader": "OBSERVACIONES 2",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PRUEBA BLOQUEO/HABILITADO DE MOTOR",
+        "sourceHeader": "PRUEBA BLOQUEO/HABILITADO DE MOTOR",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBSERVACIONES 3",
+        "sourceHeader": "OBSERVACIONES 3",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DESCONEXION BATERIA",
+        "sourceHeader": "DESCONEXION BATERIA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBSERVACIONES 4",
+        "sourceHeader": "OBSERVACIONES 4",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "BOTON SOS",
+        "sourceHeader": "BOTON SOS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBSERVACIONES 5",
+        "sourceHeader": "OBSERVACIONES 5",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOMBRE DE QUIEN RECIBE",
+        "sourceHeader": "NOMBRE DE QUIEN RECIBE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FIRMA DE QUIEN RECIBE",
+        "sourceHeader": "FIRMA DE QUIEN RECIBE",
+        "origin": "appsheet",
+        "type": "Signature",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN INE",
+        "sourceHeader": "IMAGEN INE",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "instalacion_fotos",
     "sheet": "instalacion_fotos",
+    "legacyBusinessKey": "",
+    "labelColumn": "orden",
     "sourceHeaders": [],
     "targetHeaders": [
       "_uuid",
@@ -565,11 +2894,87 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "driveFileId",
       "nota"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "instalacion_uuid",
+        "sourceHeader": "instalacion_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "INSTALACIONES"
+      },
+      {
+        "name": "categoria",
+        "sourceHeader": "categoria",
+        "origin": "migration",
+        "type": "Enum",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "orden",
+        "sourceHeader": "orden",
+        "origin": "migration",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "driveFileId",
+        "sourceHeader": "driveFileId",
+        "origin": "migration",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "nota",
+        "sourceHeader": "nota",
+        "origin": "migration",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": true
   },
   {
     "name": "instalacion_tanques",
     "sheet": "instalacion_tanques",
+    "legacyBusinessKey": "",
+    "labelColumn": "orden",
     "sourceHeaders": [],
     "targetHeaders": [
       "_uuid",
@@ -580,11 +2985,78 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "marca",
       "serie"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "instalacion_uuid",
+        "sourceHeader": "instalacion_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "INSTALACIONES"
+      },
+      {
+        "name": "orden",
+        "sourceHeader": "orden",
+        "origin": "migration",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "marca",
+        "sourceHeader": "marca",
+        "origin": "migration",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "serie",
+        "sourceHeader": "serie",
+        "origin": "migration",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": true
   },
   {
     "name": "instalacion_checklist",
     "sheet": "instalacion_checklist",
+    "legacyBusinessKey": "",
+    "labelColumn": "punto",
     "sourceHeaders": [],
     "targetHeaders": [
       "_uuid",
@@ -595,11 +3067,78 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "resultado",
       "observacion"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "instalacion_uuid",
+        "sourceHeader": "instalacion_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "INSTALACIONES"
+      },
+      {
+        "name": "punto",
+        "sourceHeader": "punto",
+        "origin": "migration",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "resultado",
+        "sourceHeader": "resultado",
+        "origin": "migration",
+        "type": "Enum",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "observacion",
+        "sourceHeader": "observacion",
+        "origin": "migration",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": true
   },
   {
     "name": "Laboratorio",
     "sheet": "Laboratorio",
+    "legacyBusinessKey": "FOLIO",
+    "labelColumn": "FOLIO",
     "sourceHeaders": [
       "FOLIO",
       "FECHA ENTRADA",
@@ -658,11 +3197,276 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "DIAS LABORATORIO",
       "SEMAFORO"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "cliente_uuid",
+        "sourceHeader": "cliente_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "FOLIO",
+        "sourceHeader": "FOLIO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FECHA ENTRADA",
+        "sourceHeader": "FECHA ENTRADA",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PROBLEMA DETECTADO",
+        "sourceHeader": "PROBLEMA DETECTADO",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ESTATUS",
+        "sourceHeader": "ESTATUS",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MARCA",
+        "sourceHeader": "MARCA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "MODELO",
+        "sourceHeader": "MODELO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMEI",
+        "sourceHeader": "IMEI",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "TEL SIM",
+        "sourceHeader": "TEL SIM",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CLIENTE",
+        "sourceHeader": "CLIENTE",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "cliente_uuid",
+        "refTable": "CLIENTES"
+      },
+      {
+        "name": "REVISADO POR",
+        "sourceHeader": "REVISADO POR",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PRUEBAS REALIZADAS",
+        "sourceHeader": "PRUEBAS REALIZADAS",
+        "origin": "appsheet",
+        "type": "EnumList",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FECHA SALIDA",
+        "sourceHeader": "FECHA SALIDA",
+        "origin": "appsheet",
+        "type": "Date",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS DE REVISION",
+        "sourceHeader": "NOTAS DE REVISION",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 1",
+        "sourceHeader": "IMAGEN 1",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS IMAGEN 1",
+        "sourceHeader": "NOTAS IMAGEN 1",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 2",
+        "sourceHeader": "IMAGEN 2",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS IMAGEN 2",
+        "sourceHeader": "NOTAS IMAGEN 2",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 3",
+        "sourceHeader": "IMAGEN 3",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS IMAGEN 3",
+        "sourceHeader": "NOTAS IMAGEN 3",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 4",
+        "sourceHeader": "IMAGEN 4",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS IMAGEN 4",
+        "sourceHeader": "NOTAS IMAGEN 4",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IMAGEN 5",
+        "sourceHeader": "IMAGEN 5",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NOTAS IMAGEN 5",
+        "sourceHeader": "NOTAS IMAGEN 5",
+        "origin": "appsheet",
+        "type": "LongText",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DIAS LABORATORIO",
+        "sourceHeader": "DIAS LABORATORIO",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "SEMAFORO",
+        "sourceHeader": "SEMAFORO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "MATRIZ DISPOSITIVOS",
     "sheet": "MATRIZ DISPOSITIVOS",
+    "legacyBusinessKey": "Modelo",
+    "labelColumn": "Modelo",
     "sourceHeaders": [
       "Modelo",
       "Marca",
@@ -762,11 +3566,456 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "Calculadora_bateria",
       "Ficha_Tecnica"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Modelo",
+        "sourceHeader": "Modelo",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Marca",
+        "sourceHeader": "Marca",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Imagen",
+        "sourceHeader": "Imagen",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Familia",
+        "sourceHeader": "Familia",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Tipo",
+        "sourceHeader": "Tipo",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Red",
+        "sourceHeader": "Red",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "BLE",
+        "sourceHeader": "BLE",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IP",
+        "sourceHeader": "IP",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Agua_exterior",
+        "sourceHeader": "Agua_exterior",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Ambiente",
+        "sourceHeader": "Ambiente",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Dimensiones",
+        "sourceHeader": "Dimensiones",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Peso_g",
+        "sourceHeader": "Peso_g",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Bateria(miliamperios)",
+        "sourceHeader": "Bateria(miliamperios)",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Voltaje",
+        "sourceHeader": "Voltaje",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Temp_operacion",
+        "sourceHeader": "Temp_operacion",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Temp_almacenamiento",
+        "sourceHeader": "Temp_almacenamiento",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Montaje_instalacion",
+        "sourceHeader": "Montaje_instalacion",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DI",
+        "sourceHeader": "DI",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "DO",
+        "sourceHeader": "DO",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "AI_Config",
+        "sourceHeader": "AI_Config",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RS232",
+        "sourceHeader": "RS232",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RS485",
+        "sourceHeader": "RS485",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CAN",
+        "sourceHeader": "CAN",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "One_Wire",
+        "sourceHeader": "One_Wire",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "RFID",
+        "sourceHeader": "RFID",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "OBD",
+        "sourceHeader": "OBD",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "WiFi",
+        "sourceHeader": "WiFi",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "USB_Config",
+        "sourceHeader": "USB_Config",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Carga_transmision_datos",
+        "sourceHeader": "Carga_transmision_datos",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Antena_red_GNSS",
+        "sourceHeader": "Antena_red_GNSS",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Indicador_LED",
+        "sourceHeader": "Indicador_LED",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Interruptor_fisico",
+        "sourceHeader": "Interruptor_fisico",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Output_5V_12V",
+        "sourceHeader": "Output_5V_12V",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "BLE_accessory_support",
+        "sourceHeader": "BLE_accessory_support",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Sensor_temp",
+        "sourceHeader": "Sensor_temp",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Sensor_luz_hall",
+        "sourceHeader": "Sensor_luz_hall",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Acelerometro",
+        "sourceHeader": "Acelerometro",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Geocercas",
+        "sourceHeader": "Geocercas",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "FOTA",
+        "sourceHeader": "FOTA",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Protocolos",
+        "sourceHeader": "Protocolos",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Seguridad",
+        "sourceHeader": "Seguridad",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Uso_recomendado",
+        "sourceHeader": "Uso_recomendado",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Comentario",
+        "sourceHeader": "Comentario",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Frecuencia_reporte (min)",
+        "sourceHeader": "Frecuencia_reporte (min)",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Calculadora_bateria",
+        "sourceHeader": "Calculadora_bateria",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Ficha_Tecnica",
+        "sourceHeader": "Ficha_Tecnica",
+        "origin": "appsheet",
+        "type": "Url",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "Usuarios",
     "sheet": "Usuarios",
+    "legacyBusinessKey": "UserID",
+    "labelColumn": "UserName",
     "sourceHeaders": [
       "UserID",
       "UserName",
@@ -785,11 +4034,96 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "UserRole",
       "UserActive"
     ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "perfil_uuid",
+        "sourceHeader": "perfil_uuid",
+        "origin": "migration",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "",
+        "refTable": "Perfiles"
+      },
+      {
+        "name": "UserID",
+        "sourceHeader": "UserID",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UserName",
+        "sourceHeader": "UserName",
+        "origin": "appsheet",
+        "type": "Name",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UserEmail",
+        "sourceHeader": "UserEmail",
+        "origin": "appsheet",
+        "type": "Email",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "UserRole",
+        "sourceHeader": "UserRole",
+        "origin": "appsheet",
+        "type": "Ref",
+        "required": false,
+        "syncTo": "perfil_uuid",
+        "refTable": "Perfiles"
+      },
+      {
+        "name": "UserActive",
+        "sourceHeader": "UserActive",
+        "origin": "appsheet",
+        "type": "Bool",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      }
+    ],
     "newTable": false
   },
   {
     "name": "Perfiles",
     "sheet": "Perfiles",
+    "legacyBusinessKey": "PerfilID",
+    "labelColumn": "PerfilID",
     "sourceHeaders": [
       "PerfilID",
       "VistasPermitidas"
@@ -800,12 +4134,61 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "_deleted",
       "PerfilID",
       "VistasPermitidas"
+    ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "PerfilID",
+        "sourceHeader": "PerfilID",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VistasPermitidas",
+        "sourceHeader": "VistasPermitidas",
+        "origin": "appsheet",
+        "type": "EnumList",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
     ],
     "newTable": false
   },
   {
     "name": "Menu",
     "sheet": "Menu",
+    "legacyBusinessKey": "IdMenu",
+    "labelColumn": "NombreMenu",
     "sourceHeaders": [
       "IdMenu",
       "NombreMenu",
@@ -820,6 +4203,71 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "NombreMenu",
       "VistaMenu",
       "ImagenMenu"
+    ],
+    "columns": [
+      {
+        "name": "_uuid",
+        "sourceHeader": "_uuid",
+        "origin": "system",
+        "type": "Text",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_updatedAt",
+        "sourceHeader": "_updatedAt",
+        "origin": "system",
+        "type": "DateTime",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_deleted",
+        "sourceHeader": "_deleted",
+        "origin": "system",
+        "type": "Bool",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "IdMenu",
+        "sourceHeader": "IdMenu",
+        "origin": "appsheet",
+        "type": "Number",
+        "required": true,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "NombreMenu",
+        "sourceHeader": "NombreMenu",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "VistaMenu",
+        "sourceHeader": "VistaMenu",
+        "origin": "appsheet",
+        "type": "Text",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "ImagenMenu",
+        "sourceHeader": "ImagenMenu",
+        "origin": "appsheet",
+        "type": "Image",
+        "required": false,
+        "syncTo": "",
+        "refTable": ""
+      }
     ],
     "newTable": false
   }

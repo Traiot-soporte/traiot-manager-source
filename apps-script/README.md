@@ -10,7 +10,7 @@ Sheets/Drive. No existe un servidor backend local.
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.
 - Acciones HTTP disponibles: `health`, `inventory`, `preflight` y
-  `preparation-plan`.
+  `preparation-plan`; `data-migration-audit` audita filas sin escribir.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
 - Todavía no existen endpoints de mutación ni acceso público para la PWA.
@@ -33,6 +33,11 @@ La preparación crea o reutiliza `_RESPALDOS_TRAIOT`, carpeta excluida del
 inventario para evitar falsos duplicados. El identificador del respaldo y el
 resultado se conservan en Script Properties, de modo que un reintento no cree
 otra copia ni duplique encabezados.
+
+`data-migration-audit` cuenta filas reales, UUID pendientes, claves visibles
+duplicadas, campos obligatorios vacíos y referencias resolubles, ambiguas o no
+resueltas. No devuelve valores de clientes ni otros ejemplos sensibles y siempre
+informa `writesPerformed: false`.
 
 ## Seguridad
 
