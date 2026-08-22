@@ -28,6 +28,32 @@ function apiRequest(request) {
     return getApiRow_(getTable, String(safeRequest.rowUuid || ''));
   }
 
+  if (action === 'create') {
+    var createTable = requireApiTable_(safeRequest.table);
+    return createApiRow_(user, createTable, safeRequest.values, safeRequest.mutationId);
+  }
+
+  if (action === 'update') {
+    var updateTable = requireApiTable_(safeRequest.table);
+    return updateApiRow_(
+      user,
+      updateTable,
+      String(safeRequest.rowUuid || ''),
+      safeRequest.changes,
+      safeRequest.mutationId
+    );
+  }
+
+  if (action === 'delete') {
+    var deleteTable = requireApiTable_(safeRequest.table);
+    return deleteApiRow_(
+      user,
+      deleteTable,
+      String(safeRequest.rowUuid || ''),
+      safeRequest.mutationId
+    );
+  }
+
   throw new Error('La accion de lectura solicitada no existe.');
 }
 
@@ -157,22 +183,38 @@ function mapApiRowsFromValues_(schemaTable, values) {
   return values.slice(1).filter(function (row) {
     return isApiBusinessRow_(row, headers, schemaTable);
   }).map(function (row) {
-    var record = {};
-
-    schemaTable.columns.filter(function (column) {
-      return !column.virtual;
-    }).forEach(function (column) {
-      var columnIndex = headers.indexOf(column.sourceHeader || column.name);
-
-      if (columnIndex >= 0) {
-        record[column.name] = serializeApiCell_(row[columnIndex], column);
-      }
-    });
-
-    return record;
+    return mapApiRecordFromRow_(schemaTable, headers, row, true);
   }).filter(function (row) {
     return row._deleted !== true;
   });
+}
+
+function mapApiRecordFromRow_(schemaTable, headers, row, preferTechnicalReferences) {
+  var record = {};
+
+  schemaTable.columns.filter(function (column) {
+    return !column.virtual;
+  }).forEach(function (column) {
+    var columnIndex = headers.indexOf(column.sourceHeader || column.name);
+
+    if (columnIndex >= 0) {
+      record[column.name] = serializeApiCell_(row[columnIndex], column);
+    }
+  });
+
+  if (preferTechnicalReferences) {
+    schemaTable.columns.filter(function (column) {
+      return column.syncTo;
+    }).forEach(function (column) {
+      var technicalValue = record[column.syncTo];
+
+      if (normalizeCell_(technicalValue) !== '') {
+        record[column.name] = technicalValue;
+      }
+    });
+  }
+
+  return record;
 }
 
 function isApiBusinessRow_(row, headers, schemaTable) {

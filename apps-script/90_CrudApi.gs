@@ -1,0 +1,645 @@
+/**
+ * CRUD real sobre Google Sheets. Todas las escrituras usan bloqueo global,
+ * UUID estable, borrado logico y una clave de mutacion para reintentos.
+ */
+function createApiRow_(user, schemaTable, submittedValues, mutationId) {
+  assertApiTableWriteAccess_(user, schemaTable);
+
+  return runIdempotentApiMutation_(mutationId, function () {
+    var spreadsheet = openConfiguredSpreadsheet_();
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    var now = new Date().toISOString();
+    var record = prepareApiMutationRecord_(
+      spreadsheet,
+      schemaTable,
+      submittedValues,
+      null,
+      true,
+      now
+    );
+
+    record._uuid = Utilities.getUuid().toLowerCase();
+    record._updatedAt = now;
+    record._deleted = false;
+    validateApiRecord_(schemaTable, record);
+    assertUniqueApiBusinessKey_(sheet, schemaTable, record);
+
+    var rowNumber = Math.max(sheet.getLastRow() + 1, 2);
+    var rowValues = headers.map(function (header) {
+      var column = findApiColumnByHeader_(schemaTable, header);
+      return column ? toApiSheetCell_(record[column.name]) : '';
+    });
+
+    sheet.getRange(rowNumber, 1, 1, headers.length).setValues([rowValues]);
+    SpreadsheetApp.flush();
+
+    return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, record._uuid);
+  });
+}
+
+function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
+  assertApiTableWriteAccess_(user, schemaTable);
+
+  if (!isUuid_(rowUuid)) {
+    throw new Error('El identificador del registro no es valido.');
+  }
+
+  return runIdempotentApiMutation_(mutationId, function () {
+    var spreadsheet = openConfiguredSpreadsheet_();
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var snapshot = findApiRowSnapshot_(sheet, schemaTable, rowUuid);
+
+    if (!snapshot || snapshot.record._deleted === true) {
+      throw new Error('El registro solicitado no existe o fue eliminado.');
+    }
+
+    var now = new Date().toISOString();
+    var nextRecord = prepareApiMutationRecord_(
+      spreadsheet,
+      schemaTable,
+      submittedChanges,
+      snapshot.record,
+      false,
+      now
+    );
+
+    nextRecord._uuid = rowUuid.toLowerCase();
+    nextRecord._updatedAt = now;
+    nextRecord._deleted = false;
+    validateApiRecord_(schemaTable, nextRecord);
+    assertUniqueApiBusinessKey_(sheet, schemaTable, nextRecord);
+    writeApiRecordCells_(
+      sheet,
+      snapshot.rowNumber,
+      snapshot.headers,
+      schemaTable,
+      nextRecord,
+      collectApiMutationColumns_(schemaTable, submittedChanges)
+    );
+    SpreadsheetApp.flush();
+
+    return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid);
+  });
+}
+
+function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
+  assertApiTableWriteAccess_(user, schemaTable);
+
+  if (!isUuid_(rowUuid)) {
+    throw new Error('El identificador del registro no es valido.');
+  }
+
+  return runIdempotentApiMutation_(mutationId, function () {
+    var spreadsheet = openConfiguredSpreadsheet_();
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var snapshot = findApiRowSnapshot_(sheet, schemaTable, rowUuid);
+
+    if (!snapshot || snapshot.record._deleted === true) {
+      throw new Error('El registro solicitado no existe o ya fue eliminado.');
+    }
+
+    var deletedColumn = requireHeaderIndex_(snapshot.headers, '_deleted', schemaTable) + 1;
+    var updatedAtColumn = requireHeaderIndex_(snapshot.headers, '_updatedAt', schemaTable) + 1;
+
+    sheet.getRange(snapshot.rowNumber, deletedColumn).setValue(true);
+    sheet.getRange(snapshot.rowNumber, updatedAtColumn).setValue(new Date().toISOString());
+    SpreadsheetApp.flush();
+
+    snapshot.record._deleted = true;
+    snapshot.record._updatedAt = new Date().toISOString();
+    return snapshot.record;
+  });
+}
+
+function runIdempotentApiMutation_(mutationId, callback) {
+  var normalizedMutationId = String(mutationId || '').toLowerCase();
+
+  if (!isUuid_(normalizedMutationId)) {
+    throw new Error('La solicitud no contiene una clave de mutacion valida.');
+  }
+
+  var lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(30000)) {
+    throw new Error('Otra escritura se encuentra en curso. Intenta nuevamente en un momento.');
+  }
+
+  try {
+    var cache = CacheService.getScriptCache();
+    var cacheKey = 'mutation:' + normalizedMutationId;
+    var cachedResult = cache.get(cacheKey);
+
+    if (cachedResult) {
+      return JSON.parse(cachedResult);
+    }
+
+    var result = callback();
+    cache.put(cacheKey, JSON.stringify(result), 21600);
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function prepareApiMutationRecord_(
+  spreadsheet,
+  schemaTable,
+  submittedValues,
+  currentRecord,
+  isCreate,
+  now
+) {
+  var submitted = submittedValues && typeof submittedValues === 'object' ? submittedValues : {};
+  var record = currentRecord ? copyApiObject_(currentRecord) : {};
+
+  schemaTable.columns.filter(isApiEditableColumn_).forEach(function (column) {
+    if (!Object.prototype.hasOwnProperty.call(submitted, column.name)) {
+      return;
+    }
+
+    var submittedValue = coerceApiInput_(submitted[column.name], column);
+
+    if (column.syncTo && column.refTable) {
+      applyApiReference_(
+        spreadsheet,
+        record,
+        currentRecord,
+        column,
+        submittedValue,
+        isCreate
+      );
+      return;
+    }
+
+    record[column.name] = submittedValue;
+  });
+
+  if (schemaTable.name === 'INSTALACIONES' && isApiBlank_(record.FECHA)) {
+    record.FECHA = now;
+  }
+
+  if (schemaTable.name === 'Ticket Soporte' && isApiBlank_(record.FOLIO)) {
+    record.FOLIO = nextApiTicketFolio_(spreadsheet, now);
+  }
+
+  applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
+  return record;
+}
+
+function applyApiReference_(
+  spreadsheet,
+  record,
+  currentRecord,
+  column,
+  submittedValue,
+  isCreate
+) {
+  var normalizedValue = normalizeCell_(submittedValue);
+
+  if (!normalizedValue) {
+    record[column.name] = null;
+    record[column.syncTo] = null;
+    return;
+  }
+
+  if (!isUuid_(normalizedValue)) {
+    var currentLegacyValue = currentRecord ? normalizeCell_(currentRecord[column.name]) : '';
+
+    if (!isCreate && normalizedValue === currentLegacyValue) {
+      return;
+    }
+
+    throw new Error('La referencia ' + column.name + ' no contiene un UUID valido.');
+  }
+
+  var targetSchema = requireApiTable_(column.refTable);
+  var targetRow = getApiRowFromSpreadsheet_(spreadsheet, targetSchema, normalizedValue);
+
+  if (!targetRow) {
+    throw new Error('No existe el registro relacionado de ' + column.refTable + '.');
+  }
+
+  var visibleColumn = targetSchema.legacyBusinessKey || targetSchema.labelColumn;
+  record[column.name] = targetRow[visibleColumn] || targetRow[targetSchema.labelColumn] || normalizedValue;
+  record[column.syncTo] = normalizedValue.toLowerCase();
+}
+
+function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
+  if (schemaTable.name === 'ALMACEN') {
+    record['PRECIO VENTA PARA ASESOR'] = roundApiCurrency_(apiNumber_(record.COSTO) * 1.16);
+  }
+
+  if (schemaTable.name === 'COMPRAS') {
+    var purchasedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
+    copyApiFields_(purchasedProduct, record, ['NOMBRE', 'PROVEEDOR', 'COSTO', 'KIT INSTALACION']);
+    record.SUBTOTAL = roundApiCurrency_(
+      apiNumber_(record.COSTO) * apiNumber_(record.CANTIDAD) + apiNumber_(record['KIT INSTALACION'])
+    );
+    record['PRECIO DE COMPRA'] = roundApiCurrency_(
+      apiNumber_(record.SUBTOTAL) + apiNumber_(record['COSTO DE ENVIO'])
+    );
+  }
+
+  if (schemaTable.name === 'PEDIDOS') {
+    var orderedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
+    copyApiFields_(orderedProduct, record, ['NOMBRE', 'PRECIO VENTA PARA ASESOR']);
+    var orderedClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
+    copyApiFields_(orderedClient, record, [
+      'ID CLIENTE',
+      'DIRECCION',
+      'TELEFONO',
+      'EMAIL',
+      'UBICACION',
+      'CONTACTO',
+      'TELEFONO CONTACTO'
+    ]);
+    record.SUBTOTAL = roundApiCurrency_(
+      apiNumber_(record['PRECIO VENTA PARA ASESOR']) * apiNumber_(record['EQUIPOS A VENDER']) +
+      apiNumber_(record['COSTO INSTALACION']) + apiNumber_(record.ENVIO)
+    );
+    record.IVA = roundApiCurrency_(apiNumber_(record.SUBTOTAL) * 0.16);
+    record.TOTAL = roundApiCurrency_(apiNumber_(record.SUBTOTAL) + apiNumber_(record.IVA));
+  }
+
+  if (schemaTable.name === 'Gestion Clientes') {
+    var crmClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
+
+    if (crmClient) {
+      record.Contacto = crmClient.CONTACTO;
+      record.Telefono = crmClient['TELEFONO CONTACTO'];
+      record.Email = crmClient.EMAIL;
+    }
+  }
+
+  if (schemaTable.name === 'Laboratorio') {
+    record['DIAS LABORATORIO'] = calculateApiLaboratoryDays_(record['FECHA ENTRADA'], now);
+    record.SEMAFORO = calculateApiLaboratorySemaphore_(record.ESTATUS, record['DIAS LABORATORIO']);
+  }
+}
+
+function validateApiRecord_(schemaTable, record) {
+  var errors = [];
+
+  schemaTable.columns.filter(function (column) {
+    return column.required && column.origin !== 'system' && !column.hasFormula;
+  }).forEach(function (column) {
+    if (isApiBlank_(record[column.name])) {
+      errors.push(column.name + ' es obligatorio');
+    }
+  });
+
+  schemaTable.columns.filter(function (column) {
+    return column.values && column.values.length > 0;
+  }).forEach(function (column) {
+    var value = record[column.name];
+
+    if (isApiBlank_(value)) {
+      return;
+    }
+
+    var values = Array.isArray(value) ? value : [value];
+    values.forEach(function (candidate) {
+      if (column.values.indexOf(String(candidate)) < 0) {
+        errors.push(column.name + ' contiene una opcion no permitida');
+      }
+    });
+  });
+
+  if (errors.length > 0) {
+    throw new Error('No fue posible guardar: ' + errors.join('; ') + '.');
+  }
+}
+
+function coerceApiInput_(value, column) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  if (column.type === 'Image' || column.type === 'Signature') {
+    var imageValue = String(value);
+
+    if (imageValue.indexOf('data:') === 0 || imageValue.indexOf('blob:') === 0) {
+      throw new Error('La carga de imagenes y firmas se habilitara en el siguiente bloque.');
+    }
+
+    return imageValue;
+  }
+
+  if (column.type === 'Number' || column.type === 'Price') {
+    var numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      throw new Error(column.name + ' debe ser numerico.');
+    }
+
+    return numericValue;
+  }
+
+  if (column.type === 'Bool') {
+    var booleanValue = normalizeApiBoolean_(value);
+
+    if (booleanValue === null) {
+      throw new Error(column.name + ' debe ser verdadero o falso.');
+    }
+
+    return booleanValue;
+  }
+
+  if (column.type === 'EnumList' || column.type === 'List') {
+    return Array.isArray(value) ? value.map(String) : splitApiList_(value);
+  }
+
+  return String(value).trim();
+}
+
+function collectApiMutationColumns_(schemaTable, submittedChanges) {
+  var submitted = submittedChanges && typeof submittedChanges === 'object' ? submittedChanges : {};
+  var columnNames = ['_updatedAt'];
+
+  schemaTable.columns.filter(isApiEditableColumn_).forEach(function (column) {
+    if (Object.prototype.hasOwnProperty.call(submitted, column.name)) {
+      columnNames.push(column.name);
+
+      if (column.syncTo) {
+        columnNames.push(column.syncTo);
+      }
+    }
+  });
+
+  schemaTable.columns.filter(function (column) {
+    return column.hasFormula;
+  }).forEach(function (column) {
+    columnNames.push(column.name);
+  });
+
+  return columnNames.filter(function (columnName, index, values) {
+    return values.indexOf(columnName) === index;
+  });
+}
+
+function writeApiRecordCells_(sheet, rowNumber, headers, schemaTable, record, columnNames) {
+  columnNames.forEach(function (columnName) {
+    var column = findApiColumnByName_(schemaTable, columnName);
+
+    if (!column) {
+      return;
+    }
+
+    var columnIndex = headers.indexOf(column.sourceHeader || column.name);
+
+    if (columnIndex >= 0) {
+      sheet.getRange(rowNumber, columnIndex + 1).setValue(toApiSheetCell_(record[column.name]));
+    }
+  });
+}
+
+function findApiRowSnapshot_(sheet, schemaTable, rowUuid) {
+  var values = sheet.getDataRange().getValues();
+
+  if (values.length < 2) {
+    return null;
+  }
+
+  var headers = values[0].map(String);
+  var uuidIndex = requireHeaderIndex_(headers, '_uuid', schemaTable);
+  var normalizedUuid = rowUuid.toLowerCase();
+
+  for (var rowIndex = 1; rowIndex < values.length; rowIndex += 1) {
+    if (normalizeCell_(values[rowIndex][uuidIndex]).toLowerCase() === normalizedUuid) {
+      return {
+        rowNumber: rowIndex + 1,
+        headers: headers,
+        record: mapApiRecordFromRow_(schemaTable, headers, values[rowIndex], false)
+      };
+    }
+  }
+
+  return null;
+}
+
+function getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid) {
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var snapshot = findApiRowSnapshot_(sheet, schemaTable, rowUuid);
+
+  if (!snapshot || snapshot.record._deleted === true) {
+    return null;
+  }
+
+  var values = sheet.getRange(snapshot.rowNumber, 1, 1, snapshot.headers.length).getValues()[0];
+  return mapApiRecordFromRow_(schemaTable, snapshot.headers, values, true);
+}
+
+function lookupApiReference_(spreadsheet, tableName, rowUuid) {
+  return isUuid_(normalizeCell_(rowUuid))
+    ? getApiRowFromSpreadsheet_(spreadsheet, requireApiTable_(tableName), String(rowUuid))
+    : null;
+}
+
+function requireApiSheet_(spreadsheet, schemaTable) {
+  var sheet = spreadsheet.getSheetByName(schemaTable.sheet);
+
+  if (!sheet) {
+    throw new Error('No se encontro la hoja ' + schemaTable.sheet + '.');
+  }
+
+  return sheet;
+}
+
+function readApiHeaders_(sheet) {
+  var lastColumn = sheet.getLastColumn();
+  return lastColumn > 0 ? sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(String) : [];
+}
+
+function findApiColumnByName_(schemaTable, columnName) {
+  return schemaTable.columns.filter(function (column) {
+    return column.name === columnName;
+  })[0] || null;
+}
+
+function findApiColumnByHeader_(schemaTable, header) {
+  return schemaTable.columns.filter(function (column) {
+    return (column.sourceHeader || column.name) === header;
+  })[0] || null;
+}
+
+function isApiEditableColumn_(column) {
+  return (column.origin === 'appsheet' || column.origin === 'migration') &&
+    !column.hidden &&
+    !column.readOnly &&
+    !column.hasFormula &&
+    column.type !== 'List' &&
+    column.type !== 'Show';
+}
+
+function assertUniqueApiBusinessKey_(sheet, schemaTable, record) {
+  var keyColumn = findApiBusinessKeyColumn_(schemaTable);
+
+  if (!keyColumn || isApiBlank_(record[keyColumn.name])) {
+    return;
+  }
+
+  var values = sheet.getDataRange().getDisplayValues();
+
+  if (values.length < 2) {
+    return;
+  }
+
+  var headers = values[0].map(String);
+  var keyIndex = requireHeaderIndex_(headers, keyColumn.sourceHeader || keyColumn.name, schemaTable);
+  var uuidIndex = requireHeaderIndex_(headers, '_uuid', schemaTable);
+  var expectedKey = normalizeApiComparableKey_(record[keyColumn.name]);
+  var currentUuid = normalizeCell_(record._uuid).toLowerCase();
+
+  for (var rowIndex = 1; rowIndex < values.length; rowIndex += 1) {
+    var existingUuid = normalizeCell_(values[rowIndex][uuidIndex]).toLowerCase();
+
+    if (existingUuid === currentUuid) {
+      continue;
+    }
+
+    if (normalizeApiComparableKey_(values[rowIndex][keyIndex]) === expectedKey) {
+      throw new Error(
+        'Ya existe un registro de ' + schemaTable.name + ' con ' +
+        keyColumn.name + ' = ' + record[keyColumn.name] + '.'
+      );
+    }
+  }
+}
+
+function findApiBusinessKeyColumn_(schemaTable) {
+  var legacyColumn = schemaTable.legacyBusinessKey
+    ? findApiColumnByName_(schemaTable, schemaTable.legacyBusinessKey)
+    : null;
+
+  if (legacyColumn) {
+    return legacyColumn;
+  }
+
+  return schemaTable.name === 'Ticket Soporte'
+    ? findApiColumnByName_(schemaTable, 'FOLIO')
+    : null;
+}
+
+function normalizeApiComparableKey_(value) {
+  return normalizeCell_(value).toUpperCase();
+}
+
+function nextApiTicketFolio_(spreadsheet, now) {
+  var schemaTable = requireApiTable_('Ticket Soporte');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var folioIndex = requireHeaderIndex_(headers, 'FOLIO', schemaTable);
+  var year = Utilities.formatDate(
+    new Date(now),
+    getRuntimeConfig_().timeZone,
+    'yyyy'
+  );
+  var folios = sheet.getLastRow() > 1
+    ? sheet.getRange(2, folioIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues()
+      .map(function (row) { return row[0]; })
+    : [];
+
+  return buildNextApiTicketFolio_(folios, year);
+}
+
+function buildNextApiTicketFolio_(folios, year) {
+  var prefix = 'TS-' + year + '-';
+  var maximum = (folios || []).reduce(function (currentMaximum, value) {
+    var normalized = normalizeCell_(value);
+
+    if (normalized.indexOf(prefix) !== 0) {
+      return currentMaximum;
+    }
+
+    var sequence = Number(normalized.slice(prefix.length));
+    return Number.isInteger(sequence) && sequence > currentMaximum
+      ? sequence
+      : currentMaximum;
+  }, 0);
+
+  return prefix + String(maximum + 1).padStart(4, '0');
+}
+
+function assertApiTableWriteAccess_(user, schemaTable) {
+  assertApiTableAccess_(user, schemaTable);
+}
+
+function toApiSheetCell_(value) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  return Array.isArray(value) ? value.join(' , ') : value;
+}
+
+function copyApiObject_(value) {
+  var copy = {};
+
+  Object.keys(value || {}).forEach(function (key) {
+    copy[key] = value[key];
+  });
+
+  return copy;
+}
+
+function copyApiFields_(source, target, fields) {
+  if (!source) {
+    return;
+  }
+
+  fields.forEach(function (field) {
+    target[field] = source[field];
+  });
+}
+
+function apiNumber_(value) {
+  var number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function roundApiCurrency_(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function isApiBlank_(value) {
+  return value === null || value === undefined || value === '' ||
+    (Array.isArray(value) && value.length === 0);
+}
+
+function calculateApiLaboratoryDays_(entryDate, now) {
+  var normalizedDate = normalizeCell_(entryDate).slice(0, 10);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    return null;
+  }
+
+  var today = Utilities.formatDate(new Date(now), 'America/Mexico_City', 'yyyy-MM-dd');
+  var entryParts = normalizedDate.split('-').map(Number);
+  var todayParts = today.split('-').map(Number);
+  var entryUtc = Date.UTC(entryParts[0], entryParts[1] - 1, entryParts[2]);
+  var todayUtc = Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2]);
+  return Math.max(0, (todayUtc - entryUtc) / 86400000);
+}
+
+function calculateApiLaboratorySemaphore_(status, days) {
+  if (days === null) {
+    return '';
+  }
+
+  var closedStatuses = ['❌ DAÑADO', '🏬 ENVIADO A MATRIZ', '📦 ENTREGADO', '✅ FUNCIONAL'];
+
+  if (closedStatuses.indexOf(normalizeCell_(status)) >= 0) {
+    return '🔵 CERRADO';
+  }
+
+  if (days <= 3) {
+    return '🟢 EN TIEMPO';
+  }
+
+  if (days <= 6) {
+    return '🟡 POR VENCER';
+  }
+
+  return '🔴 URGENTE';
+}

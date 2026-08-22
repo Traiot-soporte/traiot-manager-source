@@ -35,7 +35,7 @@ export function RecordDetailPage() {
   if (row.isError || !row.data) return <RecordMessage title="Registro no encontrado" backTo={basePath} />
 
   const askToRemove = () => {
-    if (window.confirm('¿Deseas eliminar este registro? Esta acción se simula en memoria durante la Fase 2.')) remove.mutate()
+    if (window.confirm('¿Deseas eliminar este registro? Se ocultará mediante borrado lógico.')) remove.mutate()
   }
 
   return (

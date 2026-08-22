@@ -27,11 +27,18 @@ describe('AppsScriptRepository', () => {
     expect(call).toHaveBeenCalledWith({ action: 'list', table: 'ALMACEN' })
   })
 
-  it('mantiene bloqueadas las escrituras mientras la API es de solo lectura', async () => {
-    const repository = new AppsScriptRepository(() => Promise.resolve(null))
+  it('envia las escrituras con una clave de mutacion unica', async () => {
+    const saved = { _uuid: '11111111-1111-4111-8111-111111111111', NOMBRE: 'Equipo' }
+    const call = vi.fn(() => Promise.resolve(saved))
+    const mutationId = '22222222-2222-4222-8222-222222222222'
+    const repository = new AppsScriptRepository(call, () => mutationId)
 
-    await expect(repository.delete({ table: 'ALMACEN', rowUuid: 'x' })).rejects.toThrow(
-      'solo lectura',
-    )
+    await expect(repository.create({ table: 'ALMACEN', values: { NOMBRE: 'Equipo' } })).resolves.toEqual(saved)
+    expect(call).toHaveBeenCalledWith({
+      action: 'create',
+      table: 'ALMACEN',
+      values: { NOMBRE: 'Equipo' },
+      mutationId,
+    })
   })
 })

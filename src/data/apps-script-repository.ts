@@ -18,11 +18,16 @@ type ApiCaller = (request: Readonly<Record<string, unknown>>) => Promise<unknown
 export class AppsScriptRepository implements Repository {
   readonly source = 'apps-script' as const
   readonly sourceLabel = 'Google Sheets'
-  readonly writable = false
+  readonly writable = true
   readonly #call: ApiCaller
+  readonly #createMutationId: () => string
 
-  constructor(call: ApiCaller = callAppsScript) {
+  constructor(
+    call: ApiCaller = callAppsScript,
+    createMutationId: () => string = () => globalThis.crypto.randomUUID(),
+  ) {
     this.#call = call
+    this.#createMutationId = createMutationId
   }
 
   async getCurrentUser(): Promise<UserContext> {
@@ -47,24 +52,33 @@ export class AppsScriptRepository implements Repository {
     return row ?? undefined
   }
 
-  create(input: CreateRowInput): Promise<RowData> {
-    void input
-    return Promise.reject(readOnlyError())
+  async create(input: CreateRowInput): Promise<RowData> {
+    return await this.#call({
+      action: 'create',
+      table: input.table,
+      values: input.values,
+      mutationId: this.#createMutationId(),
+    }) as RowData
   }
 
-  update(input: UpdateRowInput): Promise<RowData> {
-    void input
-    return Promise.reject(readOnlyError())
+  async update(input: UpdateRowInput): Promise<RowData> {
+    return await this.#call({
+      action: 'update',
+      table: input.table,
+      rowUuid: input.rowUuid,
+      changes: input.changes,
+      mutationId: this.#createMutationId(),
+    }) as RowData
   }
 
-  delete(input: DeleteRowInput): Promise<RowData> {
-    void input
-    return Promise.reject(readOnlyError())
+  async delete(input: DeleteRowInput): Promise<RowData> {
+    return await this.#call({
+      action: 'delete',
+      table: input.table,
+      rowUuid: input.rowUuid,
+      mutationId: this.#createMutationId(),
+    }) as RowData
   }
-}
-
-function readOnlyError(): Error {
-  return new Error('La conexion real se encuentra temporalmente en modo de solo lectura.')
 }
 
 export const appsScriptRepository = new AppsScriptRepository()

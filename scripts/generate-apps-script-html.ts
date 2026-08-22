@@ -23,6 +23,7 @@ html = html.replace(
 )
 
 html = html.replace('<head>', '<head>\n    <base target="_top" />')
+html = html.replace(/[ \t]+$/gm, '')
 writeFileSync(targetPath, html, 'utf8')
 
 function resolveAssetPath(assetPath: string): string {

@@ -9,9 +9,9 @@ Sheets/Drive. No existe un servidor backend local.
 - La ruta principal entrega la interfaz React empaquetada y utiliza
   `google.script.run` para consultar Sheets sin CORS ni credenciales en el
   navegador.
-- La interfaz conectada permite lectura de usuario, resumen, listas y detalle;
-  las altas, ediciones y bajas permanecen bloqueadas hasta terminar permisos y
-  validaciones de escritura.
+- La interfaz conectada permite lectura, altas, ediciones y bajas logicas. Cada
+  escritura valida la tabla, los campos obligatorios y catalogos, utiliza
+  `LockService` y conserva UUID y marcas de sincronizacion.
 - Permisos: acceso a Google Drive y Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.
@@ -19,7 +19,8 @@ Sheets/Drive. No existe un servidor backend local.
   `preparation-plan`; `data-migration-audit` audita filas sin escribir.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
-- Todavía no existen endpoints de mutación ni acceso público para la PWA.
+- Las mutaciones solo estan disponibles mediante el puente privado de la
+  interfaz alojada; todavia no existe acceso publico para la PWA.
 
 ## Funciones manuales
 
