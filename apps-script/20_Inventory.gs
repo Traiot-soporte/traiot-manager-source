@@ -55,6 +55,11 @@ function collectSpreadsheets_(folder, relativePath, destination) {
 
   while (folders.hasNext()) {
     var child = folders.next();
+
+    if (child.getName() === TRAIOT_DEFAULT_CONFIG.backupFolderName) {
+      continue;
+    }
+
     collectSpreadsheets_(child, relativePath + '/' + child.getName(), destination);
   }
 }

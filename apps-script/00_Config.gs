@@ -8,7 +8,8 @@
 var TRAIOT_DEFAULT_CONFIG = Object.freeze({
   folderId: '1FT8lpteo4FNj7ORQQZEr3IwU4_1LWKA7',
   schemaVersion: '1.0.0',
-  timeZone: 'America/Mexico_City'
+  timeZone: 'America/Mexico_City',
+  backupFolderName: '_RESPALDOS_TRAIOT'
 });
 
 var TRAIOT_EXPECTED_TABLES = Object.freeze([
@@ -35,8 +36,10 @@ function getRuntimeConfig_() {
 
   return {
     folderId: properties.getProperty('TRAIOT_FOLDER_ID') || TRAIOT_DEFAULT_CONFIG.folderId,
+    spreadsheetId: properties.getProperty('TRAIOT_SPREADSHEET_ID') || '',
     schemaVersion: properties.getProperty('TRAIOT_SCHEMA_VERSION') || TRAIOT_DEFAULT_CONFIG.schemaVersion,
-    timeZone: TRAIOT_DEFAULT_CONFIG.timeZone
+    timeZone: TRAIOT_DEFAULT_CONFIG.timeZone,
+    backupFolderName: TRAIOT_DEFAULT_CONFIG.backupFolderName
   };
 }
 
@@ -52,15 +55,26 @@ function configurarBackend() {
 
   var folder = DriveApp.getFolderById(TRAIOT_DEFAULT_CONFIG.folderId);
   var spreadsheetFiles = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+  var spreadsheetIds = [];
   var spreadsheetsDetected = 0;
   var sheetsDetected = 0;
 
   while (spreadsheetFiles.hasNext()) {
     var spreadsheetFile = spreadsheetFiles.next();
     var spreadsheet = SpreadsheetApp.openById(spreadsheetFile.getId());
+    spreadsheetIds.push(spreadsheetFile.getId());
     spreadsheetsDetected += 1;
     sheetsDetected += spreadsheet.getSheets().length;
   }
+
+  if (spreadsheetIds.length !== 1) {
+    throw new Error('La carpeta debe contener exactamente un archivo de Google Sheets en su nivel principal.');
+  }
+
+  PropertiesService.getScriptProperties().setProperty(
+    'TRAIOT_SPREADSHEET_ID',
+    spreadsheetIds[0]
+  );
 
   return {
     ok: true,
@@ -70,4 +84,14 @@ function configurarBackend() {
     spreadsheetsDetected: spreadsheetsDetected,
     sheetsDetected: sheetsDetected
   };
+}
+
+/**
+ * Crea el respaldo y prepara la estructura sin transformar filas existentes.
+ * Esta funcion es idempotente y puede retomarse despues de una interrupcion.
+ */
+function prepararMigracion() {
+  var result = prepareMigrationStructure_();
+  console.log(JSON.stringify(result, null, 2));
+  return result;
 }

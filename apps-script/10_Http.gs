@@ -26,6 +26,8 @@ function handleHttpRequest_(event, payload) {
       data = buildDriveInventory_();
     } else if (action === 'preflight') {
       data = buildMigrationPreflight_();
+    } else if (action === 'preparation-plan') {
+      data = buildStructurePlan_(buildMigrationPreflight_());
     } else {
       throw createApiError_('INVALID_ACTION', 'La accion solicitada no existe.', false);
     }
