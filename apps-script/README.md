@@ -6,7 +6,9 @@ Sheets/Drive. No existe un servidor backend local.
 ## Estado actual
 
 - Web App privado: acceso exclusivo de la cuenta propietaria.
-- Permisos: lectura de Google Drive y Google Sheets.
+- Permisos: lectura de Google Drive y acceso a Google Sheets. El servicio
+  `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
+  actuales siguen siendo exclusivamente de lectura.
 - Acciones HTTP disponibles: `health` e `inventory`.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
