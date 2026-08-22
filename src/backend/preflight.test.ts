@@ -81,10 +81,10 @@ describe('preflight de Apps Script', () => {
       const sourceTable = tableDefinitions.find((table) => table.name === generatedTable.name)
       const expectedSourceHeaders = sourceTable?.columns
         .filter((column) => !column.virtual && (column.origin ?? 'appsheet') === 'appsheet')
-        .map((column) => column.name)
+        .map((column) => column.sourceHeader ?? column.name)
       const expectedTargetHeaders = sourceTable?.columns
         .filter((column) => !column.virtual)
-        .map((column) => column.name)
+        .map((column) => column.sourceHeader ?? column.name)
 
       expect(generatedTable.sourceHeaders, generatedTable.name).toEqual(expectedSourceHeaders)
       expect(generatedTable.targetHeaders, generatedTable.name).toEqual(expectedTargetHeaders)

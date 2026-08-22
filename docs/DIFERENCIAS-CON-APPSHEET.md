@@ -36,3 +36,14 @@ PEDIDOS conserva cliente_uuid y mantiene dirección, teléfonos, email, ubicaci�
 ### Backend
 
 No se crea un servidor Node ni un backend local. El frontend usa MockRepository exclusivamente durante las primeras fases. El backend productivo será un Google Apps Script Web App.
+
+### Encabezados reales confirmados en Drive
+
+El preflight de Fase 3 confirmó que la hoja física de Ticket Soporte guarda un
+salto de línea en `🎫Canal de \nAtención`, aunque el identificador canónico de
+AppSheet conserva dos espacios. La metadata mantiene ambos valores mediante
+`sourceHeader`, sin renombrar ni modificar la hoja.
+
+Laboratorio conserva las mismas 25 columnas, pero las evidencias están ordenadas
+por pares (`IMAGEN 1`, `NOTAS IMAGEN 1`, etc.). La TableDef ahora refleja ese orden
+real. Ninguna de estas correcciones cambia datos existentes.

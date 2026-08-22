@@ -57,6 +57,28 @@ describe('registro de metadata', () => {
 
   it('conserva el doble espacio del canal de atención', () => {
     const support = tableDefinitions.find((table) => table.name === 'Ticket Soporte')
-    expect(support?.columns.some((column) => column.name === '🎫Canal de  Atención')).toBe(true)
+    const channel = support?.columns.find((column) => column.name === '🎫Canal de  Atención')
+    expect(channel).toBeDefined()
+    expect(channel?.sourceHeader).toBe('🎫Canal de \nAtención')
+  })
+
+  it('respeta el orden intercalado de evidencias de Laboratorio', () => {
+    const laboratory = tableDefinitions.find((table) => table.name === 'Laboratorio')
+    const evidenceColumns = laboratory?.columns
+      .filter((column) => /^(IMAGEN|NOTAS IMAGEN) \d$/.test(column.name))
+      .map((column) => column.name)
+
+    expect(evidenceColumns).toEqual([
+      'IMAGEN 1',
+      'NOTAS IMAGEN 1',
+      'IMAGEN 2',
+      'NOTAS IMAGEN 2',
+      'IMAGEN 3',
+      'NOTAS IMAGEN 3',
+      'IMAGEN 4',
+      'NOTAS IMAGEN 4',
+      'IMAGEN 5',
+      'NOTAS IMAGEN 5',
+    ])
   })
 })

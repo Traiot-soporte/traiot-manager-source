@@ -6,13 +6,13 @@ const schema = tableDefinitions.map((table) => {
   const persistedColumns = table.columns.filter((column) => !column.virtual)
   const sourceHeaders = persistedColumns
     .filter((column) => (column.origin ?? 'appsheet') === 'appsheet')
-    .map((column) => column.name)
+    .map((column) => column.sourceHeader ?? column.name)
 
   return {
     name: table.name,
     sheet: table.sheet,
     sourceHeaders,
-    targetHeaders: persistedColumns.map((column) => column.name),
+    targetHeaders: persistedColumns.map((column) => column.sourceHeader ?? column.name),
     newTable: sourceHeaders.length === 0,
   }
 })

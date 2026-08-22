@@ -35,7 +35,12 @@ export const ticketSoporteTable = defineTable({
     { name: '📞Teléfono', type: 'Phone', required: true },
     { name: '✉️Email', type: 'Email' },
     { name: '💼Asesor de Ventas', type: 'Text' },
-    { name: '🎫Canal de  Atención', type: 'EnumList', values: supportChannels },
+    {
+      name: '🎫Canal de  Atención',
+      sourceHeader: '🎫Canal de \nAtención',
+      type: 'EnumList',
+      values: supportChannels,
+    },
     { name: '📌Tipo de Caso', type: 'Enum', values: supportCaseTypes },
     { name: '🔎Descripción del problema', type: 'LongText' },
     { name: '🧑Atendió', type: 'Enum', values: supportAgents },

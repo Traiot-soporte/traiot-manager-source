@@ -6,7 +6,12 @@ import {
   laboratoryTests,
 } from '@/schema/catalogs'
 import { laboratoryDays, laboratorySemaphore } from '@/schema/formulas'
-import { defineTable, migrationRef, repeatedColumns } from '@/schema/helpers'
+import { defineTable, migrationRef } from '@/schema/helpers'
+
+const laboratoryEvidenceColumns = Array.from({ length: 5 }, (_, index) => [
+  { name: `IMAGEN ${String(index + 1)}`, type: 'Image' as const },
+  { name: `NOTAS IMAGEN ${String(index + 1)}`, type: 'LongText' as const },
+]).flat()
 
 export const laboratorioTable = defineTable({
   name: 'Laboratorio',
@@ -38,8 +43,7 @@ export const laboratorioTable = defineTable({
     { name: 'PRUEBAS REALIZADAS', type: 'EnumList', values: laboratoryTests },
     { name: 'FECHA SALIDA', type: 'Date' },
     { name: 'NOTAS DE REVISION', type: 'LongText' },
-    ...repeatedColumns('IMAGEN', 5, 'Image'),
-    ...repeatedColumns('NOTAS IMAGEN', 5, 'LongText'),
+    ...laboratoryEvidenceColumns,
     {
       name: 'DIAS LABORATORIO',
       type: 'Number',

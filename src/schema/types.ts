@@ -51,6 +51,7 @@ export interface FormulaContext {
 
 export interface ColumnDef<T extends RowData = RowData> {
   readonly name: string
+  readonly sourceHeader?: string
   readonly label?: string
   readonly type: ColumnType
   readonly key?: boolean
