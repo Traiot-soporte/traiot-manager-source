@@ -169,7 +169,8 @@ export function AppShell() {
               cn(
                 'mb-2 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-white/70',
                 sidebarCollapsed && 'lg:justify-center lg:px-0',
-                isActive && 'bg-white/10 text-white',
+                isActive &&
+                  'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
               )
             }
             end
