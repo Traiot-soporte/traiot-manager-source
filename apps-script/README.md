@@ -15,7 +15,7 @@ Sheets/Drive. No existe un servidor backend local.
 ## Funciones manuales
 
 - `configurarBackend()`: guarda la configuración inicial y confirma acceso a la
-  carpeta.
+  carpeta, sus archivos de Google Sheets y sus pestañas.
 - `diagnosticarCarpeta()`: enumera, sin modificar, los archivos de Google Sheets,
   pestañas, encabezados y coincidencias con las 16 tablas esperadas.
 

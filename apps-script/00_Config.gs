@@ -51,11 +51,23 @@ function configurarBackend() {
   });
 
   var folder = DriveApp.getFolderById(TRAIOT_DEFAULT_CONFIG.folderId);
+  var spreadsheetFiles = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
+  var spreadsheetsDetected = 0;
+  var sheetsDetected = 0;
+
+  while (spreadsheetFiles.hasNext()) {
+    var spreadsheetFile = spreadsheetFiles.next();
+    var spreadsheet = SpreadsheetApp.openById(spreadsheetFile.getId());
+    spreadsheetsDetected += 1;
+    sheetsDetected += spreadsheet.getSheets().length;
+  }
 
   return {
     ok: true,
     folderId: folder.getId(),
     folderName: folder.getName(),
-    schemaVersion: TRAIOT_DEFAULT_CONFIG.schemaVersion
+    schemaVersion: TRAIOT_DEFAULT_CONFIG.schemaVersion,
+    spreadsheetsDetected: spreadsheetsDetected,
+    sheetsDetected: sheetsDetected
   };
 }
