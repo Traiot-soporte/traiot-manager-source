@@ -56,5 +56,6 @@ export type {
   FormulaContext,
   RowData,
   TableDef,
+  TableSummary,
   UserContext,
 } from '@/schema/types'

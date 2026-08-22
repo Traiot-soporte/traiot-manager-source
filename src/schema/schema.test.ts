@@ -26,11 +26,14 @@ describe('registro de metadata', () => {
   })
 
   it('conserva todas las columnas de AppSheet salvo _RowNumber', () => {
+    let total = 0
     for (const [tableName, expectedCount] of Object.entries(expectedAppSheetColumns)) {
       const table = tableDefinitions.find((candidate) => candidate.name === tableName)
       expect(table, tableName).toBeDefined()
       expect(appsheetColumnCount(table!), tableName).toBe(expectedCount)
+      total += expectedCount
     }
+    expect(total).toBe(313)
   })
 
   it('agrega las columnas de sincronización a todas las tablas', () => {
