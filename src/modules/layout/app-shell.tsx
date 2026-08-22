@@ -167,7 +167,7 @@ export function AppShell() {
           <NavLink
             className={({ isActive }) =>
               cn(
-                'mb-2 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold text-white/70',
+                'mb-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[13px] font-bold text-white/70',
                 sidebarCollapsed && 'lg:justify-center lg:px-0',
                 isActive &&
                   'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
@@ -179,13 +179,15 @@ export function AppShell() {
             to="/"
           >
             <Home className="size-5 shrink-0" />
-            <span className={cn(sidebarCollapsed && 'lg:hidden')}>RESUMEN</span>
+            <span className={cn('min-w-0 flex-1 whitespace-nowrap', sidebarCollapsed && 'lg:hidden')}>
+              RESUMEN
+            </span>
           </NavLink>
           {primaryTables.map((table) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/65 transition hover:bg-white/5 hover:text-white',
+                  'flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[13px] font-semibold text-white/65 transition hover:bg-white/5 hover:text-white',
                   sidebarCollapsed && 'lg:justify-center lg:px-0',
                   isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
                 )
@@ -196,7 +198,13 @@ export function AppShell() {
               to={'/tablas/' + encodeURIComponent(table.name)}
             >
               <TableIcon className="shrink-0" name={table.icon} />
-              <span className={cn('truncate', sidebarCollapsed && 'lg:hidden')}>
+              <span
+                className={cn(
+                  'min-w-0 flex-1 whitespace-nowrap',
+                  table.name.length >= 18 && 'text-[12.5px]',
+                  sidebarCollapsed && 'lg:hidden',
+                )}
+              >
                 {table.name.toLocaleUpperCase('es-MX')}
               </span>
             </NavLink>
