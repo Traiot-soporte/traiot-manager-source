@@ -23,6 +23,9 @@ Sheets/Drive. No existe un servidor backend local.
   pestañas, encabezados y coincidencias con las 16 tablas esperadas.
 - `prepararMigracion()`: crea un respaldo idempotente y aplica exclusivamente
   las hojas y encabezados faltantes; no transforma filas.
+- `poblarIdentificadores()`: asigna UUID y completa `_updatedAt` y `_deleted`
+  en las filas existentes. Conserva valores validos, puede reanudarse y exige
+  que el respaldo estructural registrado siga disponible.
 
 El endpoint `preflight` compara los encabezados reales con la metadata generada
 desde `src/schema`, distingue las tres tablas nuevas pendientes y bloquea una
@@ -38,6 +41,11 @@ otra copia ni duplique encabezados.
 duplicadas, campos obligatorios vacíos y referencias resolubles, ambiguas o no
 resueltas. No devuelve valores de clientes ni otros ejemplos sensibles y siempre
 informa `writesPerformed: false`.
+
+La migracion de identificadores procesa solamente las 13 tablas originales y
+no modifica sus columnas heredadas. Tampoco completa campos obligatorios vacios
+ni relaciones que no puedan resolverse exactamente; esos datos permanecen
+disponibles para una conciliacion posterior.
 
 ## Seguridad
 

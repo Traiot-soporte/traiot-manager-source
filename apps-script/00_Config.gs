@@ -95,3 +95,13 @@ function prepararMigracion() {
   console.log(JSON.stringify(result, null, 2));
   return result;
 }
+
+/**
+ * Puebla los identificadores y metadatos tecnicos de las filas existentes.
+ * No modifica ninguna columna original ni intenta resolver relaciones.
+ */
+function poblarIdentificadores() {
+  var result = migrateTechnicalIdentifiers_();
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
