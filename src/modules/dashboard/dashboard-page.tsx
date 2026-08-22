@@ -42,7 +42,7 @@ export function DashboardPage() {
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
             Esta vista utiliza un repositorio simulado. No hay servidor local ni conexión a Google
-            Sheets durante la Fase 1.
+            Sheets durante la Fase 2.
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
             <Metric icon={Layers3} label="Tablas definidas" value="16" />

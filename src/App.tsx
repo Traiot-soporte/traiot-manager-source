@@ -1,18 +1,27 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 
-import { DashboardPage } from '@/modules/dashboard/dashboard-page'
 import { AppShell } from '@/modules/layout/app-shell'
 import { NotFoundPage } from '@/modules/not-found-page'
-import { TablePreviewPage } from '@/modules/tables/table-preview-page'
+
+const DashboardPage = lazy(() => import('@/modules/dashboard/dashboard-page').then((module) => ({ default: module.DashboardPage })))
+const TablePage = lazy(() => import('@/modules/tables/table-page').then((module) => ({ default: module.TablePage })))
+const RecordDetailPage = lazy(() => import('@/modules/tables/record-detail-page').then((module) => ({ default: module.RecordDetailPage })))
+const RecordFormPage = lazy(() => import('@/modules/tables/record-form-page').then((module) => ({ default: module.RecordFormPage })))
 
 export function App() {
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route index element={<DashboardPage />} />
-        <Route element={<TablePreviewPage />} path="tablas/:tableName" />
-        <Route element={<NotFoundPage />} path="*" />
-      </Route>
-    </Routes>
+    <Suspense fallback={<div className="rounded-3xl bg-white p-8 text-sm font-bold text-ink-800/55">Cargando módulo…</div>}>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<DashboardPage />} />
+          <Route element={<TablePage />} path="tablas/:tableName" />
+          <Route element={<RecordFormPage />} path="tablas/:tableName/nuevo" />
+          <Route element={<RecordDetailPage />} path="tablas/:tableName/:rowUuid" />
+          <Route element={<RecordFormPage />} path="tablas/:tableName/:rowUuid/editar" />
+          <Route element={<NotFoundPage />} path="*" />
+        </Route>
+      </Routes>
+    </Suspense>
   )
 }

@@ -4,14 +4,18 @@ Migración de la aplicación AppSheet TRAIOT MANAGER a una SPA/PWA offline-first
 
 ## Estado
 
-Fase 1 completada:
+Fase 2 completada:
 
 - frontend estático con Vite, React 19 y TypeScript estricto;
 - Tailwind CSS y estructura compatible con shadcn/ui;
 - navegación SPA con React Router 7;
 - 16 TableDef guiadas por metadata;
 - MockRepository en memoria con datos de demostración;
-- fórmulas y correcciones críticas cubiertas por Vitest.
+- fórmulas y correcciones críticas cubiertas por Vitest;
+- ocho renderizadores genéricos: tabla, lista, tarjetas, detalle, formulario, calendario, gráfica y panel;
+- campos genéricos para todos los ColumnType, incluidas referencias, imágenes y firma;
+- alta, consulta, edición y borrado navegables en las 16 tablas;
+- formularios agrupados por sección y validados con Zod desde la metadata.
 
 No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz. El backend real se implementará en Google Apps Script durante la Fase 3 y será el único proceso autorizado para acceder a Google Sheets y Google Drive.
 
@@ -39,8 +43,10 @@ src/
 ├─ components/       Componentes compartidos del shell
 ├─ data/             Repository, MockRepository y datos demo
 ├─ lib/              Formato y utilidades
-├─ modules/          Resumen, navegación y vista previa de tablas
-└─ schema/           Tipos, catálogos, fórmulas y 16 TableDef
+├─ fields/           Componentes genéricos por tipo de campo
+├─ modules/          Resumen, navegación y rutas CRUD
+├─ schema/           Tipos, catálogos, fórmulas y 16 TableDef
+└─ views/            Ocho renderizadores genéricos
 ~~~
 
 ## Modelo de esta fase
