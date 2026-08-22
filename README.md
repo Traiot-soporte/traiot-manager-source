@@ -4,7 +4,7 @@ Migración de la aplicación AppSheet TRAIOT MANAGER a una SPA/PWA offline-first
 
 ## Estado
 
-Fase 2 completada:
+Fase 2 completada y Fase 3 iniciada:
 
 - frontend estático con Vite, React 19 y TypeScript estricto;
 - Tailwind CSS y estructura compatible con shadcn/ui;
@@ -17,6 +17,8 @@ Fase 2 completada:
 - alta, consulta, edición y borrado navegables en las 16 tablas;
 - formularios agrupados por sección y validados con Zod desde la metadata.
 - navegación contraíble, tema claro/oscuro persistente y flujo demostrativo de sesión.
+- proyecto independiente `TRAIOT Manager Backend` creado en Google Apps Script;
+- conexión privada de solo lectura preparada para inventariar Google Sheets en Drive.
 
 No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz. El backend real se implementará en Google Apps Script durante la Fase 3 y será el único proceso autorizado para acceder a Google Sheets y Google Drive.
 
@@ -33,6 +35,9 @@ npm run dev
 npm run build
 npm run lint
 npm test
+npm run gas:status
+npm run gas:push
+npm run gas:open
 ~~~
 
 La aplicación de desarrollo queda disponible normalmente en http://localhost:5173.
@@ -42,6 +47,17 @@ abre http://127.0.0.1:5173 en el navegador y mantiene la consola visible para po
 con Ctrl+C. No abras `index.html` directamente: el navegador no puede transformar por sí solo
 los módulos TypeScript de Vite. Este servidor entrega únicamente el frontend y no reemplaza el
 backend previsto en Google Apps Script.
+
+## Backend de Google Apps Script
+
+El código fuente está en `apps-script/` y se sincroniza con el proyecto remoto
+mediante la herramienta oficial `clasp`. El despliegue inicial está restringido a
+la cuenta propietaria y solo solicita lectura de Drive y Google Sheets. No habilita
+altas, ediciones ni borrados.
+
+Los archivos locales `.clasprc.json` y `.clasp.json` no se versionan porque contienen
+la autorización y la vinculación con el proyecto remoto. Nunca deben compartirse ni
+subirse al repositorio.
 
 ## Estructura actual
 

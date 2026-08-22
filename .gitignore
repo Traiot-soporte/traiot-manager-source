@@ -7,5 +7,7 @@ coverage/
 !.env.example
 *.local
 *.log
+.clasprc.json
+.clasp.json
 .DS_Store
 Thumbs.db
