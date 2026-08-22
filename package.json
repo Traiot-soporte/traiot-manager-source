@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "gas:login": "clasp login",
+    "gas:generate-schema": "vite-node scripts/generate-apps-script-schema.ts",
     "gas:open": "clasp open-script",
     "gas:push": "clasp push",
     "gas:status": "clasp status",

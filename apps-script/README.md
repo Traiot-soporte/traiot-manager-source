@@ -9,7 +9,7 @@ Sheets/Drive. No existe un servidor backend local.
 - Permisos: lectura de Google Drive y acceso a Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   actuales siguen siendo exclusivamente de lectura.
-- Acciones HTTP disponibles: `health` e `inventory`.
+- Acciones HTTP disponibles: `health`, `inventory` y `preflight`.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
 - Todavía no existen endpoints de mutación ni acceso público para la PWA.
@@ -20,6 +20,11 @@ Sheets/Drive. No existe un servidor backend local.
   carpeta, sus archivos de Google Sheets y sus pestañas.
 - `diagnosticarCarpeta()`: enumera, sin modificar, los archivos de Google Sheets,
   pestañas, encabezados y coincidencias con las 16 tablas esperadas.
+
+El endpoint `preflight` compara los encabezados reales con la metadata generada
+desde `src/schema`, distingue las tres tablas nuevas pendientes y bloquea una
+migración si falta una tabla original o si encuentra encabezados incompatibles.
+Siempre devuelve `writesPerformed: false`.
 
 ## Seguridad
 
