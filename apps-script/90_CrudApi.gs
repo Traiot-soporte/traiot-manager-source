@@ -10,25 +10,33 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
     var sheet = requireApiSheet_(spreadsheet, schemaTable);
     var headers = readApiHeaders_(sheet);
     var now = new Date().toISOString();
+    var rowUuid = Utilities.getUuid().toLowerCase();
     var record = prepareApiMutationRecord_(
       spreadsheet,
       schemaTable,
       submittedValues,
-      null,
+      { _uuid: rowUuid },
       true,
       now
     );
 
-    record._uuid = Utilities.getUuid().toLowerCase();
+    record._uuid = rowUuid;
     record._updatedAt = now;
     record._deleted = false;
     validateApiRecord_(schemaTable, record);
     assertUniqueApiBusinessKey_(sheet, schemaTable, record);
+    persistApiMediaFields_(
+      spreadsheet,
+      schemaTable,
+      record,
+      submittedValues,
+      mutationId
+    );
 
     var rowNumber = Math.max(sheet.getLastRow() + 1, 2);
     var rowValues = headers.map(function (header) {
       var column = findApiColumnByHeader_(schemaTable, header);
-      return column ? toApiSheetCell_(record[column.name]) : '';
+      return column ? toApiSheetCell_(record[column.name], column) : '';
     });
 
     sheet.getRange(rowNumber, 1, 1, headers.length).setValues([rowValues]);
@@ -69,6 +77,13 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
     nextRecord._deleted = false;
     validateApiRecord_(schemaTable, nextRecord);
     assertUniqueApiBusinessKey_(sheet, schemaTable, nextRecord);
+    persistApiMediaFields_(
+      spreadsheet,
+      schemaTable,
+      nextRecord,
+      submittedChanges,
+      mutationId
+    );
     writeApiRecordCells_(
       sheet,
       snapshot.rowNumber,
@@ -317,13 +332,7 @@ function coerceApiInput_(value, column) {
   }
 
   if (column.type === 'Image' || column.type === 'Signature') {
-    var imageValue = String(value);
-
-    if (imageValue.indexOf('data:') === 0 || imageValue.indexOf('blob:') === 0) {
-      throw new Error('La carga de imagenes y firmas se habilitara en el siguiente bloque.');
-    }
-
-    return imageValue;
+    return String(value);
   }
 
   if (column.type === 'Number' || column.type === 'Price') {
@@ -389,7 +398,9 @@ function writeApiRecordCells_(sheet, rowNumber, headers, schemaTable, record, co
     var columnIndex = headers.indexOf(column.sourceHeader || column.name);
 
     if (columnIndex >= 0) {
-      sheet.getRange(rowNumber, columnIndex + 1).setValue(toApiSheetCell_(record[column.name]));
+      sheet.getRange(rowNumber, columnIndex + 1).setValue(
+        toApiSheetCell_(record[column.name], column)
+      );
     }
   });
 }
@@ -565,9 +576,22 @@ function assertApiTableWriteAccess_(user, schemaTable) {
   assertApiTableAccess_(user, schemaTable);
 }
 
-function toApiSheetCell_(value) {
+function toApiSheetCell_(value, column) {
   if (value === null || value === undefined) {
     return '';
+  }
+
+  if (column && column.type === 'Date' && /^\d{4}-\d{2}-\d{2}$/.test(String(value).slice(0, 10))) {
+    var dateParts = String(value).slice(0, 10).split('-').map(Number);
+    return new Date(dateParts[0], dateParts[1] - 1, dateParts[2], 12, 0, 0);
+  }
+
+  if (column && column.type === 'DateTime') {
+    var dateTime = new Date(value);
+
+    if (!Number.isNaN(dateTime.getTime())) {
+      return dateTime;
+    }
   }
 
   return Array.isArray(value) ? value.join(' , ') : value;

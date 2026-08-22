@@ -28,6 +28,12 @@ function apiRequest(request) {
     return getApiRow_(getTable, String(safeRequest.rowUuid || ''));
   }
 
+  if (action === 'media') {
+    var mediaTable = requireApiTable_(safeRequest.table);
+    assertApiTableAccess_(user, mediaTable);
+    return readApiMedia_(mediaTable, String(safeRequest.value || ''));
+  }
+
   if (action === 'create') {
     var createTable = requireApiTable_(safeRequest.table);
     return createApiRow_(user, createTable, safeRequest.values, safeRequest.mutationId);

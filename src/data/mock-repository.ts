@@ -78,6 +78,13 @@ export class MockRepository implements Repository {
     return row && row._deleted !== true ? copyRow(row) : undefined
   }
 
+  async getMedia(table: string, value: string): Promise<string | undefined> {
+    this.#assertTable(table)
+    return value.startsWith('data:image/') || value.startsWith('https://')
+      ? value
+      : undefined
+  }
+
   async create(input: CreateRowInput): Promise<RowData> {
     this.#assertTable(input.table)
     const rowUuid =

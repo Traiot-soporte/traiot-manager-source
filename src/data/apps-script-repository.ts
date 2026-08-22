@@ -52,6 +52,11 @@ export class AppsScriptRepository implements Repository {
     return row ?? undefined
   }
 
+  async getMedia(table: string, value: string): Promise<string | undefined> {
+    const media = await this.#call({ action: 'media', table, value }) as string | null
+    return media ?? undefined
+  }
+
   async create(input: CreateRowInput): Promise<RowData> {
     return await this.#call({
       action: 'create',

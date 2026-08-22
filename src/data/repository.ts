@@ -24,6 +24,7 @@ export interface Repository {
   getSummaries(): Promise<readonly TableSummary[]>
   list(table: string): Promise<readonly RowData[]>
   get(table: string, rowUuid: string): Promise<RowData | undefined>
+  getMedia(table: string, value: string): Promise<string | undefined>
   create(input: CreateRowInput): Promise<RowData>
   update(input: UpdateRowInput): Promise<RowData>
   delete(input: DeleteRowInput): Promise<RowData>

@@ -20,7 +20,7 @@ export function DetailView({ row, table }: DetailViewProps) {
             {columns.filter((column) => (column.section ?? 'Información general') === section).map((column) => (
               <div className={column.type === 'LongText' || column.type === 'Image' || column.type === 'Signature' ? 'md:col-span-2 xl:col-span-3' : undefined} key={column.name}>
                 <dt className="text-[11px] font-black uppercase tracking-wide text-ink-800/40">{column.label ?? column.name}</dt>
-                <dd className="mt-1 break-words text-sm font-semibold text-ink-800"><CellDisplay column={column} value={row[column.name]} /></dd>
+                <dd className="mt-1 break-words text-sm font-semibold text-ink-800"><CellDisplay column={column} table={table.name} value={row[column.name]} /></dd>
               </div>
             ))}
           </dl>

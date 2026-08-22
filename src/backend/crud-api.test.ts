@@ -32,6 +32,12 @@ interface CrudSandbox {
   ) => void
   readonly calculateApiLaboratorySemaphore_: (status: unknown, days: number | null) => string
   readonly buildNextApiTicketFolio_: (folios: readonly string[], year: string) => string
+  readonly buildApiMediaFileName_: (
+    rowUuid: string,
+    columnName: string,
+    mutationId: string,
+    extension: string,
+  ) => string
   readonly isApiEditableColumn_: (column: CrudColumn) => boolean
 }
 
@@ -40,6 +46,7 @@ function loadCrudSandbox(): CrudSandbox {
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/90_CrudApi.gs', 'utf8'), sandbox)
+  runInContext(readFileSync('apps-script/95_MediaApi.gs', 'utf8'), sandbox)
   return sandbox as CrudSandbox
 }
 
@@ -101,5 +108,19 @@ describe('CRUD de Apps Script', () => {
     expect(
       isApiEditableColumn_(column({ origin: 'migration', name: 'instalacion_uuid', hidden: true })),
     ).toBe(false)
+  })
+
+  it('genera nombres de archivo deterministas para evitar duplicados al reintentar', () => {
+    const { buildApiMediaFileName_ } = loadCrudSandbox()
+
+    expect(buildApiMediaFileName_(
+      '11111111-1111-4111-8111-111111111111',
+      'IMAGEN CHECK 1',
+      '22222222-2222-4222-8222-222222222222',
+      'jpg',
+    )).toBe(
+      '11111111-1111-4111-8111-111111111111.imagen-check-1.' +
+      '22222222-2222-4222-8222-222222222222.jpg',
+    )
   })
 })

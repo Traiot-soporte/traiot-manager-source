@@ -29,7 +29,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
               <tr className="transition hover:bg-brand-50" key={String(row._uuid)}>
                 {columns.map((column, index) => (
                   <td className={index === 0 ? 'px-4 py-4 text-sm font-black text-ink-950' : 'px-4 py-4 text-sm font-medium text-ink-800/75'} key={column.name}>
-                    <CellDisplay column={column} value={row[column.name]} />
+                    <CellDisplay column={column} table={table.name} value={row[column.name]} />
                   </td>
                 ))}
                 <td className="px-2">

@@ -12,6 +12,9 @@ Sheets/Drive. No existe un servidor backend local.
 - La interfaz conectada permite lectura, altas, ediciones y bajas logicas. Cada
   escritura valida la tabla, los campos obligatorios y catalogos, utiliza
   `LockService` y conserva UUID y marcas de sincronizacion.
+- Las imagenes y firmas nuevas se guardan como archivos privados en Google
+  Drive; la hoja conserva la ruta y la interfaz las solicita mediante el puente
+  autorizado, sin publicar las carpetas.
 - Permisos: acceso a Google Drive y Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.

@@ -8,11 +8,13 @@ import { getRowTitle } from '@/views/view-utils'
 
 interface CellDisplayProps {
   readonly column: ColumnDef
+  readonly table: string
   readonly value: CellValue | undefined
 }
 
-export function CellDisplay({ column, value }: CellDisplayProps) {
+export function CellDisplay({ column, table, value }: CellDisplayProps) {
   const repository = useRepository()
+  const isMedia = column.type === 'Image' || column.type === 'Signature'
   const referenceTable = column.ref?.table ?? ''
   const rowUuid = typeof value === 'string' ? value : ''
   const reference = useQuery({
@@ -20,14 +22,22 @@ export function CellDisplay({ column, value }: CellDisplayProps) {
     queryFn: () => repository.get(referenceTable, rowUuid),
     enabled: column.type === 'Ref' && Boolean(referenceTable) && Boolean(rowUuid),
   })
+  const media = useQuery({
+    queryKey: ['media', table, column.name, rowUuid],
+    queryFn: () => repository.getMedia(table, rowUuid),
+    enabled: isMedia && Boolean(rowUuid),
+  })
 
-  if ((column.type === 'Image' || column.type === 'Signature') && typeof value === 'string') {
+  if (isMedia && typeof value === 'string') {
+    if (media.isPending) return <>Cargando archivo…</>
+    if (!media.data) return <>{value}</>
+
     return (
       <img
         alt={column.label ?? column.name}
         className="max-h-56 w-auto rounded-2xl border border-black/5 object-contain"
         loading="lazy"
-        src={value}
+        src={media.data}
       />
     )
   }

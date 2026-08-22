@@ -1,27 +1,32 @@
 import { ImagePlus, X } from 'lucide-react'
-import type { ChangeEvent } from 'react'
+import { type ChangeEvent, useState } from 'react'
 
 import { FieldShell } from '@/fields/field-shell'
 import type { FieldComponentProps } from '@/fields/types'
+import { prepareImageDataUrl } from '@/lib/image-data-url'
 
 export function ImageField({ column, disabled, error, onChange, value }: FieldComponentProps) {
+  const [fileError, setFileError] = useState<string>()
+  const [preparing, setPreparing] = useState(false)
   const inputId = 'field-' + encodeURIComponent(column.name)
   const imageValue = typeof value === 'string' ? value : ''
   const hasPreview = imageValue.startsWith('data:image/') || imageValue.startsWith('blob:')
 
-  const readFile = (event: ChangeEvent<HTMLInputElement>) => {
+  const readFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) {
       return
     }
 
-    const reader = new FileReader()
-    reader.addEventListener('load', () => {
-      if (typeof reader.result === 'string') {
-        onChange(reader.result)
-      }
-    })
-    reader.readAsDataURL(file)
+    setFileError(undefined)
+    setPreparing(true)
+    try {
+      onChange(await prepareImageDataUrl(file))
+    } catch (caught) {
+      setFileError(caught instanceof Error ? caught.message : 'No fue posible preparar la imagen.')
+    } finally {
+      setPreparing(false)
+    }
   }
 
   return (
@@ -44,14 +49,14 @@ export function ImageField({ column, disabled, error, onChange, value }: FieldCo
         htmlFor={inputId}
       >
         <ImagePlus className="size-5" />
-        {hasPreview ? 'Cambiar imagen' : 'Seleccionar imagen'}
+        {preparing ? 'Preparando imagen…' : hasPreview ? 'Cambiar imagen' : 'Seleccionar imagen'}
       </label>
       <input
         accept="image/*"
         className="sr-only"
-        disabled={disabled}
+        disabled={disabled || preparing}
         id={inputId}
-        onChange={readFile}
+        onChange={(event) => void readFile(event)}
         type="file"
       />
       {imageValue && !hasPreview && (
@@ -59,6 +64,7 @@ export function ImageField({ column, disabled, error, onChange, value }: FieldCo
           Archivo existente: {imageValue}
         </p>
       )}
+      {fileError && <p className="text-xs font-bold text-red-700">{fileError}</p>}
     </FieldShell>
   )
 }
