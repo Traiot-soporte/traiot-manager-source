@@ -1,0 +1,33 @@
+import { defineTable, namedColumns } from '@/schema/helpers'
+
+export const proveedoresTable = defineTable({
+  name: 'PROVEEDORES',
+  sheet: 'PROVEEDORES',
+  label: 'ID',
+  legacyBusinessKey: 'ID',
+  permissionView: 'Almacen',
+  module: 'Inventario',
+  icon: 'Factory',
+  description: 'Padrón de proveedores y condiciones comerciales.',
+  defaultView: 'table',
+  columns: [
+    { name: 'ID', type: 'Number', labelColumn: true, required: true },
+    { name: 'RAZON_SOCIAL', type: 'Text' },
+    { name: 'RFC', type: 'Text' },
+    { name: 'CALLE', type: 'Text' },
+    { name: 'NO_INT', type: 'Number' },
+    { name: 'NO_EXT', type: 'Number' },
+    { name: 'COLONIA', type: 'Text' },
+    { name: 'CP', type: 'Number', required: true },
+    ...namedColumns(['MUNICIPIO', 'CIUDAD', 'ESTADO']),
+    { name: 'PAIS', type: 'Enum', values: ['México', 'CHINA', 'LITHUANIA'] },
+    ...namedColumns(['TELEFONO', 'TELEFONO2', 'TELEFONO3', 'TELEFONO4']),
+    { name: 'CORREO_E', type: 'Url' },
+    { name: 'WEB', type: 'Text' },
+    { name: 'DIAS_PRONTO_PAGO', type: 'Number', required: true },
+    { name: 'DIAS_PLAZO', type: 'Number', required: true },
+    { name: 'DECUENTO_PRONTO', type: 'Number', required: true },
+    ...namedColumns(['CONTACTO', 'CONDICION_PAGO', 'TIPO', 'INCOTERM']),
+    { name: 'EXISTE', type: 'Number', required: true },
+  ],
+})

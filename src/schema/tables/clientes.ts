@@ -1,0 +1,46 @@
+import { defineTable } from '@/schema/helpers'
+
+export const clientesTable = defineTable({
+  name: 'CLIENTES',
+  sheet: 'CLIENTES',
+  label: 'ID CLIENTE',
+  legacyBusinessKey: 'ID CLIENTE',
+  permissionView: 'Clientes',
+  module: 'CRM',
+  icon: 'Building2',
+  description: 'Padrón de clientes y contactos.',
+  defaultView: 'card',
+  columns: [
+    { name: 'ID CLIENTE', type: 'Text', labelColumn: true, required: true },
+    { name: 'RAZON SOCIAL', type: 'Text' },
+    { name: 'DIRECCION', type: 'Text' },
+    { name: 'TELEFONO', type: 'Text' },
+    { name: 'EMAIL', type: 'Email' },
+    { name: 'UBICACION', type: 'Url' },
+    { name: 'CONTACTO', type: 'Text' },
+    { name: 'TELEFONO CONTACTO', type: 'Text' },
+    { name: 'IMAGEN', type: 'Image' },
+    { name: 'ESTATUS', type: 'Enum', values: ['Activo', 'Inactivo'] },
+    {
+      name: 'Related PEDIDOSs',
+      type: 'List',
+      virtual: true,
+      readOnly: true,
+      ref: { table: 'PEDIDOS', keyColumn: 'cliente_uuid' },
+    },
+    {
+      name: 'Related Gestion Clientes',
+      type: 'List',
+      virtual: true,
+      readOnly: true,
+      ref: { table: 'Gestion Clientes', keyColumn: 'cliente_uuid' },
+    },
+    {
+      name: 'Related Laboratorios',
+      type: 'List',
+      virtual: true,
+      readOnly: true,
+      ref: { table: 'Laboratorio', keyColumn: 'cliente_uuid' },
+    },
+  ],
+})
