@@ -20,7 +20,7 @@ Fase 2 completada y Fase 3 iniciada:
 - proyecto independiente `TRAIOT Manager Backend` creado en Google Apps Script;
 - conexión privada de solo lectura preparada para inventariar Google Sheets en Drive.
 
-No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz. El backend real se implementará en Google Apps Script durante la Fase 3 y será el único proceso autorizado para acceder a Google Sheets y Google Drive.
+No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz en `localhost`. La ruta principal del Web App de Google Apps Script entrega la interfaz conectada, que ya consulta los registros reales en modo de solo lectura mediante `google.script.run`.
 
 ## Requisitos
 

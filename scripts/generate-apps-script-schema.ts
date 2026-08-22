@@ -11,6 +11,10 @@ const schema = tableDefinitions.map((table) => {
   return {
     name: table.name,
     sheet: table.sheet,
+    module: table.module,
+    description: table.description,
+    icon: table.icon,
+    permissionView: table.permissionView,
     legacyBusinessKey: table.legacyBusinessKey ?? '',
     labelColumn: table.label,
     sourceHeaders,

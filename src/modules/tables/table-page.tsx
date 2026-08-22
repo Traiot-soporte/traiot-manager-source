@@ -63,13 +63,19 @@ export function TablePage() {
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-800/55">{table.description}</p>
               </div>
             </div>
-            <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
-              <Plus className="size-5" /> Nuevo registro
-            </Link>
+            {repository.writable ? (
+              <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
+                <Plus className="size-5" /> Nuevo registro
+              </Link>
+            ) : (
+              <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">
+                Solo lectura
+              </span>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 bg-brand-50 px-6 py-3 text-xs font-bold text-brand-600 sm:px-8">
-          <span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>MockRepository</span>
+          <span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>{repository.sourceLabel}</span>
         </div>
       </section>
 
@@ -83,7 +89,7 @@ export function TablePage() {
       </div>
 
       {rows.isPending && <StatusMessage text="Cargando registros…" />}
-      {rows.isError && <StatusMessage error text="No fue posible leer los datos simulados." />}
+      {rows.isError && <StatusMessage error text="No fue posible leer los registros del repositorio." />}
       {rows.data && filteredRows.length === 0 && <StatusMessage text={search ? 'No hay resultados para esta búsqueda.' : 'Aún no hay registros. Crea el primero con el botón superior.'} />}
       {rows.data && filteredRows.length > 0 && <CollectionView basePath={basePath} rows={filteredRows} table={table} view={view} />}
     </div>

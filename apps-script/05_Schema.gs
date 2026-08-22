@@ -6,6 +6,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "ALMACEN",
     "sheet": "ALMACEN",
+    "module": "Inventario",
+    "description": "Catálogo maestro de productos y existencias.",
+    "icon": "Package",
+    "permissionView": "Almacen",
     "legacyBusinessKey": "ID PRODUCTO",
     "labelColumn": "ID PRODUCTO",
     "sourceHeaders": [
@@ -345,6 +349,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "COMPRAS",
     "sheet": "COMPRAS",
+    "module": "Inventario",
+    "description": "Entradas y recepción de inventario.",
+    "icon": "Truck",
+    "permissionView": "Compras",
     "legacyBusinessKey": "ID COMPRA",
     "labelColumn": "ID COMPRA",
     "sourceHeaders": [
@@ -552,6 +560,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "PEDIDOS",
     "sheet": "PEDIDOS",
+    "module": "Ventas",
+    "description": "Pedidos, ventas y salidas de inventario.",
+    "icon": "ShoppingCart",
+    "permissionView": "Salidas",
     "legacyBusinessKey": "ID PEDIDO",
     "labelColumn": "ID PEDIDO",
     "sourceHeaders": [
@@ -890,6 +902,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "PROVEEDORES",
     "sheet": "PROVEEDORES",
+    "module": "Inventario",
+    "description": "Padrón de proveedores y condiciones comerciales.",
+    "icon": "Factory",
+    "permissionView": "Almacen",
     "legacyBusinessKey": "ID",
     "labelColumn": "ID",
     "sourceHeaders": [
@@ -1219,6 +1235,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "CLIENTES",
     "sheet": "CLIENTES",
+    "module": "CRM",
+    "description": "Padrón de clientes y contactos.",
+    "icon": "Building2",
+    "permissionView": "Clientes",
     "legacyBusinessKey": "ID CLIENTE",
     "labelColumn": "ID CLIENTE",
     "sourceHeaders": [
@@ -1372,6 +1392,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Gestion Clientes",
     "sheet": "Gestion Clientes",
+    "module": "CRM",
+    "description": "Bitácora de prospección y seguimiento comercial.",
+    "icon": "Handshake",
+    "permissionView": "Gestion Clientes",
     "legacyBusinessKey": "Id_CRM",
     "labelColumn": "Id_CRM",
     "sourceHeaders": [
@@ -1568,6 +1592,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Ticket Soporte",
     "sheet": "Ticket Soporte",
+    "module": "Soporte",
+    "description": "Registro y seguimiento de solicitudes de soporte.",
+    "icon": "LifeBuoy",
+    "permissionView": "Ticket Soporte",
     "legacyBusinessKey": "_ComputedKey",
     "labelColumn": "FOLIO",
     "sourceHeaders": [
@@ -1775,6 +1803,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "INSTALACIONES",
     "sheet": "INSTALACIONES",
+    "module": "Operación",
+    "description": "Órdenes de servicio e instalaciones en campo.",
+    "icon": "Wrench",
+    "permissionView": "Servicios",
     "legacyBusinessKey": "FOLIO SERVICIO",
     "labelColumn": "FOLIO SERVICIO",
     "sourceHeaders": [
@@ -2881,6 +2913,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "instalacion_fotos",
     "sheet": "instalacion_fotos",
+    "module": "Operación",
+    "description": "Evidencias fotográficas normalizadas de una instalación.",
+    "icon": "Images",
+    "permissionView": "Servicios",
     "legacyBusinessKey": "",
     "labelColumn": "orden",
     "sourceHeaders": [],
@@ -2973,6 +3009,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "instalacion_tanques",
     "sheet": "instalacion_tanques",
+    "module": "Operación",
+    "description": "Tanques y sensores de combustible asociados a una instalación.",
+    "icon": "Fuel",
+    "permissionView": "Servicios",
     "legacyBusinessKey": "",
     "labelColumn": "orden",
     "sourceHeaders": [],
@@ -3055,6 +3095,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "instalacion_checklist",
     "sheet": "instalacion_checklist",
+    "module": "Operación",
+    "description": "Recepción y pruebas post-instalación en formato normalizado.",
+    "icon": "ListChecks",
+    "permissionView": "Servicios",
     "legacyBusinessKey": "",
     "labelColumn": "punto",
     "sourceHeaders": [],
@@ -3137,6 +3181,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Laboratorio",
     "sheet": "Laboratorio",
+    "module": "Laboratorio",
+    "description": "Recepción, diagnóstico y salida de equipos RMA.",
+    "icon": "FlaskConical",
+    "permissionView": "Laboratorio",
     "legacyBusinessKey": "FOLIO",
     "labelColumn": "FOLIO",
     "sourceHeaders": [
@@ -3465,6 +3513,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "MATRIZ DISPOSITIVOS",
     "sheet": "MATRIZ DISPOSITIVOS",
+    "module": "Catálogo técnico",
+    "description": "Fichas técnicas y comparador de dispositivos GPS.",
+    "icon": "Cpu",
+    "permissionView": "Matriz Dispositivos",
     "legacyBusinessKey": "Modelo",
     "labelColumn": "Modelo",
     "sourceHeaders": [
@@ -4014,6 +4066,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Usuarios",
     "sheet": "Usuarios",
+    "module": "Administración",
+    "description": "Usuarios autorizados y su perfil.",
+    "icon": "Users",
+    "permissionView": "Usuarios",
     "legacyBusinessKey": "UserID",
     "labelColumn": "UserName",
     "sourceHeaders": [
@@ -4122,6 +4178,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Perfiles",
     "sheet": "Perfiles",
+    "module": "Administración",
+    "description": "Perfiles y permisos efectivos de acceso.",
+    "icon": "ShieldCheck",
+    "permissionView": "Perfiles",
     "legacyBusinessKey": "PerfilID",
     "labelColumn": "PerfilID",
     "sourceHeaders": [
@@ -4187,6 +4247,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "Menu",
     "sheet": "Menu",
+    "module": "Administración",
+    "description": "Lanzador configurable de módulos.",
+    "icon": "LayoutGrid",
+    "permissionView": "Menu",
     "legacyBusinessKey": "IdMenu",
     "labelColumn": "NombreMenu",
     "sourceHeaders": [

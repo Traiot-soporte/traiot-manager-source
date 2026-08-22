@@ -6,6 +6,12 @@ Sheets/Drive. No existe un servidor backend local.
 ## Estado actual
 
 - Web App privado: acceso exclusivo de la cuenta propietaria.
+- La ruta principal entrega la interfaz React empaquetada y utiliza
+  `google.script.run` para consultar Sheets sin CORS ni credenciales en el
+  navegador.
+- La interfaz conectada permite lectura de usuario, resumen, listas y detalle;
+  las altas, ediciones y bajas permanecen bloqueadas hasta terminar permisos y
+  validaciones de escritura.
 - Permisos: acceso a Google Drive y Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.

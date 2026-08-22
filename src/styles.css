@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source not "../apps-script";
 
 @theme {
   --font-sans: "Aptos", "Segoe UI", system-ui, sans-serif;

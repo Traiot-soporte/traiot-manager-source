@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Database, Layers3, WifiOff } from 'lucide-react'
+import { ArrowRight, Cloud, Database, Layers3, WifiOff } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { TableIcon } from '@/components/table-icon'
@@ -19,6 +19,7 @@ const moduleOrder = [
 
 export function DashboardPage() {
   const repository = useRepository()
+  const connected = repository.source === 'apps-script'
   const summaries = useQuery({
     queryKey: ['table-summaries'],
     queryFn: () => repository.getSummaries(),
@@ -41,13 +42,14 @@ export function DashboardPage() {
             Todo tu negocio, listo para trabajar sin señal.
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
-            Esta vista utiliza un repositorio simulado. No hay servidor local ni conexión a Google
-            Sheets durante la Fase 2.
+            {connected
+              ? 'Datos reales consultados de forma privada mediante Google Apps Script.'
+              : 'Esta vista utiliza datos simulados mientras se revisa la interfaz local.'}
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
             <Metric icon={Layers3} label="Tablas definidas" value="16" />
-            <Metric icon={Database} label="Filas demo" value={String(totalRows)} />
-            <Metric icon={WifiOff} label="Backend" value="Apps Script · Fase 3" />
+            <Metric icon={Database} label={connected ? 'Filas reales' : 'Filas demo'} value={String(totalRows)} />
+            <Metric icon={connected ? Cloud : WifiOff} label="Backend" value={connected ? 'Apps Script · conectado' : 'Sin conexion'} />
           </div>
         </div>
       </section>
@@ -100,7 +102,7 @@ export function DashboardPage() {
                       {summary.description}
                     </p>
                     <div className="mt-4 flex gap-2 text-[11px] font-bold text-ink-800/50">
-                      <span>{summary.rowCount} registros demo</span>
+                      <span>{summary.rowCount} {connected ? 'registros' : 'registros demo'}</span>
                       <span>·</span>
                       <span>{fieldCount} campos</span>
                     </div>

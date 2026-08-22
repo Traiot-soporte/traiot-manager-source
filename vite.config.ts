@@ -6,10 +6,18 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    assetsInlineLimit: Number.MAX_SAFE_INTEGER,
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 })
-

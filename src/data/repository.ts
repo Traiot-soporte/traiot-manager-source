@@ -17,6 +17,9 @@ export interface DeleteRowInput {
 }
 
 export interface Repository {
+  readonly source: 'mock' | 'apps-script'
+  readonly sourceLabel: string
+  readonly writable: boolean
   getCurrentUser(): Promise<UserContext>
   getSummaries(): Promise<readonly TableSummary[]>
   list(table: string): Promise<readonly RowData[]>

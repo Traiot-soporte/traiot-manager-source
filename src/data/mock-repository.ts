@@ -21,6 +21,9 @@ function copyRow(row: RowData): RowData {
 }
 
 export class MockRepository implements Repository {
+  readonly source = 'mock' as const
+  readonly sourceLabel = 'MockRepository'
+  readonly writable = true
   readonly #tables = new Map<string, Map<string, RowData>>()
   readonly #now: () => Date
   readonly #createUuid: () => string

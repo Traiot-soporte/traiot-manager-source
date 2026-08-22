@@ -50,7 +50,9 @@ function getRuntimeConfig_() {
 function configurarBackend() {
   PropertiesService.getScriptProperties().setProperties({
     TRAIOT_FOLDER_ID: TRAIOT_DEFAULT_CONFIG.folderId,
-    TRAIOT_SCHEMA_VERSION: TRAIOT_DEFAULT_CONFIG.schemaVersion
+    TRAIOT_SCHEMA_VERSION: TRAIOT_DEFAULT_CONFIG.schemaVersion,
+    TRAIOT_OWNER_EMAIL: Session.getEffectiveUser().getEmail(),
+    TRAIOT_AUTH_MODE: 'OWNER_ONLY'
   });
 
   var folder = DriveApp.getFolderById(TRAIOT_DEFAULT_CONFIG.folderId);

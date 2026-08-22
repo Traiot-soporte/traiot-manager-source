@@ -4,6 +4,15 @@
  * antes de habilitar mutaciones o publicar el endpoint para la PWA.
  */
 function doGet(event) {
+  var query = event && event.parameter ? event.parameter : {};
+
+  if (!query.action || String(query.action).toLowerCase() === 'app') {
+    return HtmlService
+      .createHtmlOutputFromFile('Index')
+      .setTitle('TRAIOT MANAGER')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
+
   return handleHttpRequest_(event, null);
 }
 
