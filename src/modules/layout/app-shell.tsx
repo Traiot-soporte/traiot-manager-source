@@ -104,8 +104,8 @@ export function AppShell() {
     <div className="min-h-screen bg-[#f7f3f1]">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-[286px] flex-col border-r border-white/10 bg-ink-950 text-white transition-[width,transform] duration-300 lg:translate-x-0',
-          sidebarCollapsed && 'lg:w-[88px]',
+          'fixed inset-y-0 left-0 z-40 flex w-[240px] flex-col border-r border-white/10 bg-ink-950 text-white transition-[width,transform] duration-300 lg:translate-x-0',
+          sidebarCollapsed && 'lg:w-[76px]',
           menuOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -246,8 +246,8 @@ export function AppShell() {
 
       <div
         className={cn(
-          'transition-[padding] duration-300 lg:pl-[286px]',
-          sidebarCollapsed && 'lg:pl-[88px]',
+          'transition-[padding] duration-300 lg:pl-[240px]',
+          sidebarCollapsed && 'lg:pl-[76px]',
         )}
       >
         <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-black/5 bg-[#f7f3f1]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
