@@ -6,6 +6,7 @@ import { SyncStatus } from '@/components/sync-status'
 import { TableIcon } from '@/components/table-icon'
 import { cn } from '@/lib/utils'
 import { tableDefinitions } from '@/schema'
+import logoUrl from '../../../logo.jpeg'
 
 const primaryTables = tableDefinitions.filter(
   (table) => !table.name.startsWith('instalacion_') && table.name !== 'Menu',
@@ -36,8 +37,13 @@ export function AppShell() {
             onClick={() => setMenuOpen(false)}
             to="/"
           >
-            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 font-black text-ink-950">
-              T
+            <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#191919]">
+              <img
+                alt=""
+                aria-hidden="true"
+                className="size-full scale-[1.55] object-cover"
+                src={logoUrl}
+              />
             </span>
             <span>
               <span className="block text-sm font-black tracking-[0.12em]">TRAIOT</span>
