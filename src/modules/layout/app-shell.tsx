@@ -1,10 +1,25 @@
-import { ChevronLeft, ChevronRight, Home, Menu, Package, Users, Wrench, X } from 'lucide-react'
-import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Menu,
+  Package,
+  Power,
+  UserRound,
+  Users,
+  Wrench,
+  X,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router'
 
 import { SyncStatus } from '@/components/sync-status'
 import { TableIcon } from '@/components/table-icon'
+import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
+import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
+import { LoginScreen } from '@/modules/auth/login-screen'
 import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
@@ -19,25 +34,77 @@ const mobileLinks = [
   { label: 'Almacén', to: '/tablas/ALMACEN', icon: Package },
 ] as const
 
+function readPreference(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function savePreference(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value)
+  } catch {
+    // La sesión sigue funcionando aunque el navegador bloquee el almacenamiento local.
+  }
+}
+
 export function AppShell() {
+  const repository = useRepository()
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    () => window.localStorage.getItem('traiot-sidebar-collapsed') === 'true',
+    () => readPreference('traiot-sidebar-collapsed') === 'true',
   )
+  const [theme, setTheme] = useState<ThemeMode>(() =>
+    document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+  )
+  const [sessionActive, setSessionActive] = useState(
+    () => readPreference('traiot-session-active') !== 'false',
+  )
+  const currentUser = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => repository.getCurrentUser(),
+    enabled: sessionActive,
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.documentElement.style.colorScheme = theme
+    savePreference('traiot-theme', theme)
+  }, [theme])
 
   const toggleSidebar = () => {
     setSidebarCollapsed((current) => {
       const next = !current
-      window.localStorage.setItem('traiot-sidebar-collapsed', String(next))
+      savePreference('traiot-sidebar-collapsed', String(next))
       return next
     })
   }
+
+  const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
+  const login = () => {
+    savePreference('traiot-session-active', 'true')
+    setSessionActive(true)
+  }
+  const logout = () => {
+    savePreference('traiot-session-active', 'false')
+    setMenuOpen(false)
+    setSessionActive(false)
+  }
+
+  if (!sessionActive) {
+    return <LoginScreen onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+  }
+
+  const email = currentUser.data?.email ?? 'usuario@traiot.mx'
+  const displayName = email.split('@')[0]?.replace(/[._-]+/g, ' ') ?? 'Usuario'
 
   return (
     <div className="min-h-screen bg-[#f7f3f1]">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-[286px] border-r border-white/10 bg-ink-950 text-white transition-[width,transform] duration-300 lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-[286px] flex-col border-r border-white/10 bg-ink-950 text-white transition-[width,transform] duration-300 lg:translate-x-0',
           sidebarCollapsed && 'lg:w-[88px]',
           menuOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -95,7 +162,7 @@ export function AppShell() {
 
         <nav
           aria-label="Módulos"
-          className="h-[calc(100vh-5rem)] overflow-x-hidden overflow-y-auto p-3 uppercase"
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 uppercase"
         >
           <NavLink
             className={({ isActive }) =>
@@ -119,7 +186,7 @@ export function AppShell() {
                 cn(
                   'flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-white/65 transition hover:bg-white/5 hover:text-white',
                   sidebarCollapsed && 'lg:justify-center lg:px-0',
-                  isActive && 'bg-brand-400 text-ink-950 hover:bg-brand-400 hover:text-ink-950',
+                  isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
                 )
               }
               key={table.name}
@@ -134,6 +201,37 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        <footer className="shrink-0 space-y-2 border-t border-white/10 p-3 uppercase">
+          <ThemeToggle compact={sidebarCollapsed} onToggle={toggleTheme} theme={theme} />
+          <div
+            className={cn(
+              'flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-2',
+              sidebarCollapsed && 'lg:flex-col',
+            )}
+          >
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-500 text-[#191919]">
+              <UserRound className="size-5" />
+            </span>
+            <span className={cn('min-w-0 flex-1', sidebarCollapsed && 'lg:hidden')}>
+              <span className="block truncate text-xs font-black text-white">
+                {displayName}
+              </span>
+              <span className="block truncate text-[10px] font-bold text-white/45">
+                {currentUser.data?.role ?? 'CARGANDO…'}
+              </span>
+            </span>
+            <button
+              aria-label="Cerrar sesión"
+              className="grid min-h-10 min-w-10 place-items-center rounded-xl border border-white/10 text-white/65 transition hover:bg-brand-600 hover:text-white"
+              onClick={logout}
+              title="Cerrar sesión"
+              type="button"
+            >
+              <Power className="size-4" />
+            </button>
+          </div>
+        </footer>
       </aside>
 
       {menuOpen && (

@@ -63,7 +63,7 @@ export function TablePage() {
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-800/55">{table.description}</p>
               </div>
             </div>
-            <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-ink-950 transition hover:bg-brand-400" to={basePath + '/nuevo'}>
+            <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
               <Plus className="size-5" /> Nuevo registro
             </Link>
           </div>

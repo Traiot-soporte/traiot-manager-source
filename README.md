@@ -16,6 +16,7 @@ Fase 2 completada:
 - campos genéricos para todos los ColumnType, incluidas referencias, imágenes y firma;
 - alta, consulta, edición y borrado navegables en las 16 tablas;
 - formularios agrupados por sección y validados con Zod desde la metadata.
+- navegación contraíble, tema claro/oscuro persistente y flujo demostrativo de sesión.
 
 No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz. El backend real se implementará en Google Apps Script durante la Fase 3 y será el único proceso autorizado para acceder a Google Sheets y Google Drive.
 

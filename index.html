@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#191919" />
     <meta name="description" content="TRAIOT MANAGER — operación GPS e IoT" />
     <title>TRAIOT MANAGER</title>
+    <script>
+      try {
+        const savedTheme = window.localStorage.getItem('traiot-theme')
+        const useDarkTheme = savedTheme
+          ? savedTheme === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches
+        document.documentElement.classList.toggle('dark', useDarkTheme)
+      } catch {
+        // El tema claro se mantiene si el navegador bloquea el almacenamiento local.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
