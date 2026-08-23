@@ -1,8 +1,9 @@
-import { Activity, CircleAlert, Columns3, Database, Gauge, UserCheck, UsersRound } from 'lucide-react'
+import { Activity, CircleAlert, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, UserCheck, UsersRound } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CardView } from '@/views/card-view'
+import { matrixDeviceMetrics } from '@/views/dashboard-metrics'
 import { TableView } from '@/views/table-view'
 
 export function DashboardView(props: CollectionViewProps) {
@@ -15,12 +16,17 @@ export function DashboardView(props: CollectionViewProps) {
   const possible = Math.max(rows.length * table.columns.length, 1)
   const completeness = Math.round((filled / possible) * 100)
 
-  const metrics = [
-    { label: 'Registros', value: rows.length, icon: Database },
-    { label: 'Campos', value: table.columns.length, icon: Columns3 },
-    { label: 'Completitud', value: completeness + '%', icon: Gauge },
-    { label: 'Estado', value: 'Activo', icon: Activity },
-  ] as const
+  const metrics = table.name === 'MATRIZ DISPOSITIVOS'
+    ? matrixDeviceMetrics(rows).map((metric, index) => ({
+        ...metric,
+        icon: [Database, Layers3, Tags, FileCheck2][index] ?? Database,
+      }))
+    : [
+        { label: 'Registros', value: rows.length, icon: Database },
+        { label: 'Campos', value: table.columns.length, icon: Columns3 },
+        { label: 'Completitud', value: completeness + '%', icon: Gauge },
+        { label: 'Estado', value: 'Activo', icon: Activity },
+      ]
 
   return (
     <div className="space-y-6">
