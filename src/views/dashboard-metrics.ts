@@ -6,11 +6,18 @@ export interface DashboardMetricValue {
   readonly value: number
 }
 
+export type MatrixBreakdownColumn = 'Familia' | 'Marca'
+
+export interface MatrixBreakdownItem {
+  readonly label: string
+  readonly total: number
+}
+
 export function matrixDeviceMetrics(rows: readonly RowData[]): readonly DashboardMetricValue[] {
   return [
     { label: 'Registros', value: rows.length },
-    { label: 'Familias', value: countDistinctValues(rows, 'Familia') },
-    { label: 'Marcas', value: countDistinctValues(rows, 'Marca') },
+    { label: 'Familias', value: matrixDeviceBreakdown(rows, 'Familia').length },
+    { label: 'Marcas', value: matrixDeviceBreakdown(rows, 'Marca').length },
     {
       label: 'Fichas técnicas',
       value: rows.filter((row) => Boolean(safeExternalUrl(row.Ficha_Tecnica))).length,
@@ -18,15 +25,27 @@ export function matrixDeviceMetrics(rows: readonly RowData[]): readonly Dashboar
   ]
 }
 
-function countDistinctValues(rows: readonly RowData[], columnName: string): number {
-  const values = new Set<string>()
+export function matrixDeviceBreakdown(
+  rows: readonly RowData[],
+  columnName: MatrixBreakdownColumn,
+): readonly MatrixBreakdownItem[] {
+  const values = new Map<string, MatrixBreakdownItem>()
 
   for (const row of rows) {
-    const normalized = normalizeCategory(row[columnName])
-    if (normalized) values.add(normalized)
+    const rawValue = row[columnName]
+    const normalized = normalizeCategory(rawValue)
+    if (!normalized) continue
+
+    const current = values.get(normalized)
+    values.set(normalized, {
+      label: current?.label ?? String(rawValue).trim(),
+      total: (current?.total ?? 0) + 1,
+    })
   }
 
-  return values.size
+  return [...values.values()].sort((left, right) =>
+    right.total - left.total || left.label.localeCompare(right.label, 'es-MX'),
+  )
 }
 
 function normalizeCategory(value: unknown): string {

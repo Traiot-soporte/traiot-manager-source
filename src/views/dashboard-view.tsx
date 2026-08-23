@@ -1,14 +1,19 @@
-import { Activity, CircleAlert, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, UserCheck, UsersRound } from 'lucide-react'
+import { Activity, ChevronRight, CircleAlert, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, UserCheck, UsersRound, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CardView } from '@/views/card-view'
-import { matrixDeviceMetrics } from '@/views/dashboard-metrics'
+import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { TableView } from '@/views/table-view'
 
 export function DashboardView(props: CollectionViewProps) {
   if (props.table.name === 'Gestion Clientes') {
     return <CrmDashboardView {...props} />
+  }
+  if (props.table.name === 'MATRIZ DISPOSITIVOS') {
+    return <MatrixDeviceDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -16,17 +21,12 @@ export function DashboardView(props: CollectionViewProps) {
   const possible = Math.max(rows.length * table.columns.length, 1)
   const completeness = Math.round((filled / possible) * 100)
 
-  const metrics = table.name === 'MATRIZ DISPOSITIVOS'
-    ? matrixDeviceMetrics(rows).map((metric, index) => ({
-        ...metric,
-        icon: [Database, Layers3, Tags, FileCheck2][index] ?? Database,
-      }))
-    : [
-        { label: 'Registros', value: rows.length, icon: Database },
-        { label: 'Campos', value: table.columns.length, icon: Columns3 },
-        { label: 'Completitud', value: completeness + '%', icon: Gauge },
-        { label: 'Estado', value: 'Activo', icon: Activity },
-      ]
+  const metrics = [
+    { label: 'Registros', value: rows.length, icon: Database },
+    { label: 'Campos', value: table.columns.length, icon: Columns3 },
+    { label: 'Completitud', value: completeness + '%', icon: Gauge },
+    { label: 'Estado', value: 'Activo', icon: Activity },
+  ]
 
   return (
     <div className="space-y-6">
@@ -44,6 +44,138 @@ export function DashboardView(props: CollectionViewProps) {
         <CardView {...props} rows={rows.slice(0, 6)} />
       </section>
     </div>
+  )
+}
+
+function MatrixDeviceDashboardView(props: CollectionViewProps) {
+  const { rows } = props
+  const [breakdown, setBreakdown] = useState<MatrixBreakdownColumn>()
+  const metrics = matrixDeviceMetrics(rows)
+  const icons = [Database, Layers3, Tags, FileCheck2] as const
+  const breakdowns: readonly (MatrixBreakdownColumn | undefined)[] = [undefined, 'Familia', 'Marca', undefined]
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(({ label, value }, index) => (
+          <MatrixMetricCard
+            icon={icons[index] ?? Database}
+            key={label}
+            label={label}
+            onClick={breakdowns[index] ? () => setBreakdown(breakdowns[index]) : undefined}
+            value={value}
+          />
+        ))}
+      </div>
+      <section>
+        <h2 className="mb-4 text-lg font-black text-ink-950">Registros recientes</h2>
+        <CardView {...props} rows={rows.slice(0, 6)} />
+      </section>
+      {breakdown && (
+        <MatrixBreakdownDialog
+          column={breakdown}
+          onClose={() => setBreakdown(undefined)}
+          rows={rows}
+        />
+      )}
+    </div>
+  )
+}
+
+function MatrixMetricCard({ icon: Icon, label, onClick, value }: {
+  readonly icon: typeof Database
+  readonly label: string
+  readonly onClick: (() => void) | undefined
+  readonly value: number
+}) {
+  const content = (
+    <>
+      <span className="grid size-11 place-items-center rounded-2xl bg-brand-100 text-brand-600"><Icon className="size-5" /></span>
+      <p className="mt-5 text-3xl font-black text-ink-950">{value}</p>
+      <p className="mt-1 text-xs font-black uppercase tracking-wide text-ink-800/45">{label}</p>
+      {onClick && <ChevronRight className="absolute right-5 top-5 size-5 text-brand-600 transition group-hover:translate-x-0.5" />}
+    </>
+  )
+
+  if (onClick) {
+    return (
+      <button
+        aria-label={'Ver ' + label.toLocaleLowerCase('es-MX') + ' disponibles'}
+        className="group relative rounded-3xl border border-black/5 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
+        onClick={onClick}
+        type="button"
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return <article className="relative rounded-3xl border border-black/5 bg-white p-5 shadow-sm">{content}</article>
+}
+
+function MatrixBreakdownDialog({ column, onClose, rows }: {
+  readonly column: MatrixBreakdownColumn
+  readonly onClose: () => void
+  readonly rows: CollectionViewProps['rows']
+}) {
+  const items = matrixDeviceBreakdown(rows, column)
+  const maximum = Math.max(...items.map((item) => item.total), 1)
+  const title = column === 'Familia' ? 'Familias disponibles' : 'Marcas disponibles'
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div
+      aria-label={title}
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+    >
+      <section className="max-h-[86vh] w-full max-w-xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+        <header className="flex items-start justify-between gap-5 bg-ink-950 p-5 text-white sm:p-7">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-400">Matriz de dispositivos</p>
+            <h2 className="mt-2 text-2xl font-black">{title}</h2>
+            <p className="mt-2 text-sm text-white/55">Distribución de los dispositivos registrados.</p>
+          </div>
+          <button aria-label="Cerrar desglose" className="grid size-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 transition hover:bg-brand-500 hover:text-[#191919]" onClick={onClose} type="button">
+            <X className="size-5" />
+          </button>
+        </header>
+
+        <div className="max-h-[58vh] space-y-3 overflow-y-auto p-5 sm:p-7">
+          {items.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-black/10 p-6 text-center text-sm font-semibold text-ink-800/45">No hay valores registrados todavía.</p>
+          )}
+          {items.map((item) => (
+            <article className="rounded-2xl border border-black/5 bg-[#faf7f5] p-4" key={item.label}>
+              <div className="flex items-center justify-between gap-4">
+                <h3 className="font-black text-ink-950">{item.label}</h3>
+                <span className="shrink-0 rounded-full bg-brand-100 px-3 py-1 text-xs font-black text-brand-600">
+                  {item.total} {item.total === 1 ? 'dispositivo' : 'dispositivos'}
+                </span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/5">
+                <div className="h-full rounded-full bg-brand-500" style={{ width: Math.max((item.total / maximum) * 100, 6) + '%' }} />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>,
+    document.body,
   )
 }
 
