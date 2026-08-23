@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { buildFormSchema } from '@/schema/form-schema'
 import { tableDefinitions } from '@/schema'
 import { clientesTable } from '@/schema/tables/clientes'
+import { gestionClientesTable } from '@/schema/tables/gestion-clientes'
 import { pedidosTable } from '@/schema/tables/pedidos'
 import { usuariosTable } from '@/schema/tables/usuarios'
 
@@ -44,6 +45,16 @@ describe('schema Zod derivado de metadata', () => {
     })
 
     expect(result.success).toBe(true)
+  })
+
+  it('no solicita el consecutivo CRM porque se genera en el servidor', () => {
+    const fields = Object.keys(buildFormSchema(gestionClientesTable).shape)
+
+    expect(fields).not.toContain('Id_CRM')
+    expect(gestionClientesTable.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
+      readOnly: true,
+      required: true,
+    })
   })
 
   it.each([true, false])('acepta UserActive=%s como booleano válido', (active) => {

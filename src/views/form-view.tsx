@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save } from 'lucide-react'
+import { Hash, Save } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Controller, type Resolver, useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router'
@@ -97,6 +97,17 @@ export function FormView({
 
   return (
     <form className="space-y-6" onSubmit={(event) => void submit(event)}>
+      {table.name === 'Gestion Clientes' && (
+        <aside className="flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-brand-700" role="note">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm"><Hash className="size-5" /></span>
+          <div>
+            <p className="text-sm font-black">Consecutivo CRM automático</p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
+              No necesitas capturar ningún ID. Para un cliente nuevo, regístralo primero en Clientes; después selecciónalo aquí y captura la actividad. Al guardar, el sistema asignará automáticamente el siguiente consecutivo.
+            </p>
+          </div>
+        </aside>
+      )}
       {sections.map((section) => {
         const sectionColumns = columns.filter(
           (column) => (column.section ?? 'Información general') === section,

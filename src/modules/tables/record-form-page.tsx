@@ -55,7 +55,9 @@ export function RecordFormPage() {
     <div className="space-y-4">
       <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
       <ModuleHeader
-        description="Completa la información necesaria del registro."
+        description={table.name === 'Gestion Clientes'
+          ? 'Selecciona el cliente y registra la actividad; el consecutivo CRM se genera automáticamente.'
+          : 'Completa la información necesaria del registro.'}
         eyebrow={editing ? 'Edición' : 'Nuevo registro'}
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName}

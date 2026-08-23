@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { ArrowUpRight, ExternalLink, ImageOff } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ArrowUpRight, ExternalLink, ImageOff, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useRepository } from '@/data/use-repository'
@@ -10,6 +10,8 @@ import { safeExternalUrl } from '@/views/url-utils'
 import { getListColumns, getRowTitle } from '@/views/view-utils'
 
 export function CardView({ basePath, rows, table }: CollectionViewProps) {
+  const repository = useRepository()
+  const queryClient = useQueryClient()
   const coverColumn = table.name === 'MATRIZ DISPOSITIVOS'
     ? table.columns.find((column) => column.name === 'Imagen' && column.type === 'Image')
     : undefined
@@ -19,6 +21,23 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
   const technicalSheetColumn = table.name === 'MATRIZ DISPOSITIVOS'
     ? table.columns.find((column) => column.name === 'Ficha_Tecnica' && column.type === 'Url')
     : undefined
+  const remove = useMutation({
+    mutationFn: (rowUuid: string) => repository.delete({ table: table.name, rowUuid }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['table', table.name] }),
+        queryClient.invalidateQueries({ queryKey: ['table-summaries'] }),
+      ])
+    },
+  })
+
+  const askToRemoveClient = (rowUuid: string, title: string) => {
+    const accepted = window.confirm(
+      '¿Eliminar a ' + title + '?\n\n' +
+      'El contacto dejará de aparecer en Clientes, pero sus seguimientos históricos se conservarán.',
+    )
+    if (accepted) remove.mutate(rowUuid)
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
@@ -45,13 +64,30 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
             <div className="p-5">
               <div className="flex items-start justify-between gap-4 border-b border-black/5 pb-4">
                 <h2 className="text-lg font-black text-ink-950">{getRowTitle(table, row)}</h2>
-                <Link
-                  aria-label={'Abrir ' + getRowTitle(table, row)}
-                  className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-brand-100 text-brand-600 group-hover:bg-ink-950 group-hover:text-white"
-                  to={basePath + '/' + encodeURIComponent(String(row._uuid))}
-                >
-                  <ArrowUpRight className="size-5" />
-                </Link>
+                <div className="flex shrink-0 gap-2">
+                  {table.name === 'CLIENTES' && repository.writable && (
+                    <button
+                      aria-label={'Eliminar ' + getRowTitle(table, row)}
+                      className="grid min-h-11 min-w-11 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-wait disabled:opacity-50"
+                      disabled={remove.isPending && remove.variables === String(row._uuid)}
+                      onClick={() => askToRemoveClient(
+                        String(row._uuid),
+                        String(row['RAZON SOCIAL'] ?? getRowTitle(table, row)),
+                      )}
+                      title="Eliminar contacto"
+                      type="button"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  )}
+                  <Link
+                    aria-label={'Abrir ' + getRowTitle(table, row)}
+                    className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-brand-100 text-brand-600 group-hover:bg-ink-950 group-hover:text-white"
+                    to={basePath + '/' + encodeURIComponent(String(row._uuid))}
+                  >
+                    <ArrowUpRight className="size-5" />
+                  </Link>
+                </div>
               </div>
               <dl className="mt-4 grid gap-4 sm:grid-cols-2">
                 {columns.map((column) => (
@@ -70,6 +106,11 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
                 >
                   Ver ficha técnica <ExternalLink aria-hidden="true" className="size-4" />
                 </a>
+              )}
+              {table.name === 'CLIENTES' && remove.isError && remove.variables === String(row._uuid) && (
+                <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-800" role="alert">
+                  No fue posible eliminar el contacto. Intenta nuevamente.
+                </p>
               )}
             </div>
           </article>
