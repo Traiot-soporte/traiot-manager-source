@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router'
 
 import { AppShell } from '@/modules/layout/app-shell'
 import { NotFoundPage } from '@/modules/not-found-page'
+import { TableAccessBoundary } from '@/modules/auth/table-access-boundary'
 
 const LoginPage = lazy(() => import('@/modules/auth/login-page').then((module) => ({ default: module.LoginPage })))
 const ChangePasswordPage = lazy(() => import('@/modules/auth/change-password-page').then((module) => ({ default: module.ChangePasswordPage })))
@@ -20,10 +21,12 @@ export function App() {
         <Route element={<ChangePasswordPage />} path="cambiar-contrasena" />
         <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
-          <Route element={<TablePage />} path="tablas/:tableName" />
-          <Route element={<RecordFormPage />} path="tablas/:tableName/nuevo" />
-          <Route element={<RecordDetailPage />} path="tablas/:tableName/:rowUuid" />
-          <Route element={<RecordFormPage />} path="tablas/:tableName/:rowUuid/editar" />
+          <Route element={<TableAccessBoundary />} path="tablas/:tableName">
+            <Route index element={<TablePage />} />
+            <Route element={<RecordFormPage />} path="nuevo" />
+            <Route element={<RecordDetailPage />} path=":rowUuid" />
+            <Route element={<RecordFormPage />} path=":rowUuid/editar" />
+          </Route>
           <Route element={<SecurityUsersPage />} path="seguridad-usuarios" />
           <Route element={<NotFoundPage />} path="*" />
         </Route>

@@ -222,8 +222,33 @@ function prepareApiMutationRecord_(
 
   applyCrmCalendarOwnership_(user, schemaTable, record, isCreate);
 
+  applyApiRoleRules_(schemaTable, record);
+
   applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
   return record;
+}
+
+function applyApiRoleRules_(schemaTable, record) {
+  if (schemaTable.name === 'Perfiles') {
+    var profileRole = canonicalApiRole_(record.PerfilID);
+    if (!profileRole) {
+      throw new Error('PerfilID debe ser Administrador, Gerencia, Soporte, Ventas o Tecnico.');
+    }
+
+    var profileMatrix = rolePermissionMatrix_().filter(function (entry) {
+      return entry.role === profileRole;
+    })[0];
+    record.PerfilID = profileRole;
+    record.VistasPermitidas = profileMatrix.labels.slice();
+  }
+
+  if (schemaTable.name === 'Usuarios') {
+    var userRole = canonicalApiRole_(record.UserRole);
+    if (!userRole) {
+      throw new Error('UserRole debe ser Administrador, Gerencia, Soporte, Ventas o Tecnico.');
+    }
+    record.UserRole = userRole;
+  }
 }
 
 function applyCrmCalendarOwnership_(user, schemaTable, record, isCreate) {
@@ -734,11 +759,11 @@ function diagnosticarConsecutivoCrm() {
 }
 
 function assertApiTableWriteAccess_(user, schemaTable) {
-  assertApiTableAccess_(user, schemaTable);
-
   if (schemaTable.name === 'Usuarios' || schemaTable.name === 'Perfiles') {
     assertAuthAdministrator_(user);
   }
+
+  assertApiTableAccess_(user, schemaTable);
 }
 
 function toApiSheetCell_(value, column) {

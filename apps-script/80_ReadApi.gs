@@ -3,6 +3,39 @@
  * google.script.run invoca esta funcion sin exponer credenciales ni depender
  * de solicitudes CORS desde otro dominio.
  */
+var TRAIOT_ROLE_SECTIONS = Object.freeze({
+  ADMINISTRADOR: Object.freeze([
+    'administracion-comercial',
+    'crm',
+    'ingenieria',
+    'tecnico',
+    'seguridad'
+  ]),
+  GERENCIA: Object.freeze(['administracion-comercial', 'crm', 'ingenieria', 'tecnico']),
+  SOPORTE: Object.freeze(['crm', 'ingenieria', 'tecnico']),
+  VENTAS: Object.freeze(['crm']),
+  TECNICO: Object.freeze(['tecnico'])
+});
+
+var TRAIOT_TABLE_SECTIONS = Object.freeze({
+  'ALMACEN': 'administracion-comercial',
+  'COMPRAS': 'administracion-comercial',
+  'PEDIDOS': 'administracion-comercial',
+  'PROVEEDORES': 'administracion-comercial',
+  'CLIENTES': 'crm',
+  'Gestion Clientes': 'crm',
+  'Ticket Soporte': 'ingenieria',
+  'Laboratorio': 'ingenieria',
+  'INSTALACIONES': 'tecnico',
+  'instalacion_fotos': 'tecnico',
+  'instalacion_tanques': 'tecnico',
+  'instalacion_checklist': 'tecnico',
+  'MATRIZ DISPOSITIVOS': 'tecnico',
+  'Perfiles': 'seguridad',
+  'Usuarios': 'seguridad',
+  'Menu': 'seguridad'
+});
+
 function apiRequest(request) {
   var safeRequest = request || {};
   var action = String(safeRequest.action || '').toLowerCase();
@@ -80,6 +113,10 @@ function apiRequest(request) {
 
   if (action === 'auth-activate') {
     return activateSheetAuthentication_(user);
+  }
+
+  if (action === 'auth-sync-role-matrix') {
+    return syncRolePermissionMatrix_(user);
   }
 
   if (action === 'summaries') {
@@ -188,21 +225,16 @@ function findAuthorizedSheetUser_(email) {
     throw new Error('La cuenta no esta registrada como usuario activo.');
   }
 
-  var role = normalizeCell_(userRow.UserRole);
-  var perfilesSchema = requireApiTable_('Perfiles');
-  var perfilesRows = readApiRows_(spreadsheet, perfilesSchema);
-  var profile = perfilesRows.filter(function (row) {
-    return normalizeLookupValue_(row.PerfilID) === normalizeLookupValue_(role) ||
-      normalizeCell_(row._uuid) === normalizeCell_(userRow.perfil_uuid);
-  })[0];
-  var permissions = profile && Array.isArray(profile.VistasPermitidas)
-    ? profile.VistasPermitidas
-    : splitApiList_(profile ? profile.VistasPermitidas : '');
+  var role = canonicalApiRole_(userRow.UserRole);
+
+  if (!role) {
+    throw new Error('El usuario no tiene uno de los cinco roles autorizados.');
+  }
 
   return {
     email: email,
-    role: role || 'USUARIO',
-    permissions: permissions
+    role: role,
+    permissions: buildApiRolePermissions_(role)
   };
 }
 
@@ -508,15 +540,57 @@ function assertApiTableAccess_(user, schemaTable) {
 }
 
 function canApiViewTable_(user, schemaTable) {
-  if (user.permissions.indexOf('*') >= 0) {
-    return true;
+  var section = TRAIOT_TABLE_SECTIONS[schemaTable.name];
+  return Boolean(section && canApiRoleAccessSection_(user.role, section));
+}
+
+function canonicalApiRole_(role) {
+  var normalized = normalizeLookupValue_(role);
+
+  if (normalized === 'ADMIN' || normalized === 'ADMINISTRADOR') return 'Administrador';
+  if (normalized === 'GERENCIA') return 'Gerencia';
+  if (normalized === 'SOPORTE') return 'Soporte';
+  if (normalized === 'VENTAS') return 'Ventas';
+  if (normalized === 'TECNICO') return 'Tecnico';
+  return '';
+}
+
+function apiRoleKey_(role) {
+  return normalizeLookupValue_(canonicalApiRole_(role));
+}
+
+function apiSectionsForRole_(role) {
+  var sections = TRAIOT_ROLE_SECTIONS[apiRoleKey_(role)];
+  return sections ? sections.slice() : [];
+}
+
+function canApiRoleAccessSection_(role, section) {
+  return apiSectionsForRole_(role).indexOf(section) >= 0;
+}
+
+function buildApiRolePermissions_(role) {
+  if (apiRoleKey_(role) === 'ADMINISTRADOR') {
+    return ['*'];
   }
 
-  var requestedPermission = normalizeLookupValue_(schemaTable.permissionView || schemaTable.name);
+  var permissions = [];
+  TRAIOT_SCHEMA_TABLES.forEach(function (schemaTable) {
+    if (!canApiViewTable_({ role: role }, schemaTable)) {
+      return;
+    }
 
-  return user.permissions.some(function (permission) {
-    return normalizeLookupValue_(permission) === requestedPermission;
+    var permission = schemaTable.permissionView || schemaTable.name;
+    var normalizedPermission = normalizeLookupValue_(permission);
+    var alreadyPresent = permissions.some(function (candidate) {
+      return normalizeLookupValue_(candidate) === normalizedPermission;
+    });
+
+    if (!alreadyPresent) {
+      permissions.push(permission);
+    }
   });
+
+  return permissions;
 }
 
 function normalizeApiEmail_(value) {

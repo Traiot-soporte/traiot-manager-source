@@ -18,6 +18,7 @@ export const usuariosTable = defineTable({
     {
       name: 'UserRole',
       type: 'Ref',
+      required: true,
       ref: { table: 'Perfiles', keyColumn: '_uuid' },
       syncTo: 'perfil_uuid',
     },

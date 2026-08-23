@@ -693,21 +693,10 @@ function buildAuthAdminStatus_(spreadsheet) {
 }
 
 function buildApiUserFromAuthRecord_(spreadsheet, userRecord) {
-  var role = normalizeCell_(userRecord.UserRole) || 'USUARIO';
-  var normalizedRole = normalizeLookupValue_(role);
-  var permissions = [];
+  var role = canonicalApiRole_(userRecord.UserRole);
 
-  if (normalizedRole === 'ADMIN' || normalizedRole === 'ADMINISTRADOR') {
-    permissions = ['*'];
-  } else {
-    var perfilesRows = readApiRows_(spreadsheet, requireApiTable_('Perfiles'));
-    var profile = perfilesRows.filter(function (row) {
-      return normalizeLookupValue_(row.PerfilID) === normalizedRole ||
-        normalizeCell_(row._uuid) === normalizeCell_(userRecord.perfil_uuid);
-    })[0];
-    permissions = profile && Array.isArray(profile.VistasPermitidas)
-      ? profile.VistasPermitidas
-      : splitApiList_(profile ? profile.VistasPermitidas : '');
+  if (!role) {
+    throw new Error('El usuario no tiene uno de los cinco roles autorizados.');
   }
 
   return {
@@ -716,7 +705,7 @@ function buildApiUserFromAuthRecord_(spreadsheet, userRecord) {
     name: normalizeCell_(userRecord.UserName) || normalizeCell_(userRecord.UserID),
     role: role,
     mustChangePassword: userRecord.MustChangePassword === true,
-    permissions: permissions
+    permissions: buildApiRolePermissions_(role)
   };
 }
 

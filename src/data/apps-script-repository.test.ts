@@ -40,6 +40,22 @@ describe('AppsScriptRepository', () => {
     })
   })
 
+  it('sincroniza la matriz fija de roles mediante una accion administrativa', async () => {
+    const result = {
+      ok: true,
+      profilesUpdated: 5,
+      profilesCreated: 0,
+      duplicateOrUnknownProfilesDisabled: 0,
+      usersUpdated: 2,
+      invalidUsers: [],
+    }
+    const call = vi.fn(() => Promise.resolve(result))
+    const repository = new AppsScriptRepository(call)
+
+    await expect(repository.syncRolePermissions()).resolves.toEqual(result)
+    expect(call).toHaveBeenCalledWith({ action: 'auth-sync-role-matrix' })
+  })
+
   it('envia las escrituras con una clave de mutacion unica', async () => {
     const saved = { _uuid: '11111111-1111-4111-8111-111111111111', NOMBRE: 'Equipo' }
     const call = vi.fn(() => Promise.resolve(saved))

@@ -6241,7 +6241,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "sourceHeader": "UserRole",
         "origin": "appsheet",
         "type": "Ref",
-        "required": false,
+        "required": true,
         "hidden": false,
         "sensitive": false,
         "readOnly": false,
@@ -6432,13 +6432,19 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "name": "PerfilID",
         "sourceHeader": "PerfilID",
         "origin": "appsheet",
-        "type": "Text",
+        "type": "Enum",
         "required": true,
         "hidden": false,
         "sensitive": false,
         "readOnly": false,
         "hasFormula": false,
-        "values": [],
+        "values": [
+          "Administrador",
+          "Gerencia",
+          "Soporte",
+          "Ventas",
+          "Tecnico"
+        ],
         "syncTo": "",
         "refTable": ""
       },
@@ -6450,9 +6456,15 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "required": false,
         "hidden": false,
         "sensitive": false,
-        "readOnly": false,
+        "readOnly": true,
         "hasFormula": false,
-        "values": [],
+        "values": [
+          "Administración Comercial",
+          "CRM",
+          "Ingeniería",
+          "Técnico",
+          "Seguridad"
+        ],
         "syncTo": "",
         "refTable": ""
       }

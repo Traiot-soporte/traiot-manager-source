@@ -63,6 +63,15 @@ export interface AuthSecurityUser {
   readonly activeSessions: number
 }
 
+export interface RolePermissionSyncResult {
+  readonly ok: boolean
+  readonly profilesUpdated: number
+  readonly profilesCreated: number
+  readonly duplicateOrUnknownProfilesDisabled: number
+  readonly usersUpdated: number
+  readonly invalidUsers: readonly string[]
+}
+
 export interface Repository {
   readonly source: 'mock' | 'apps-script'
   readonly sourceLabel: string
@@ -79,6 +88,7 @@ export interface Repository {
   unlockAuthUser(userUuid: string): Promise<void>
   revokeAuthUserSessions(userUuid: string): Promise<void>
   setAuthUserActive(userUuid: string, active: boolean): Promise<void>
+  syncRolePermissions(): Promise<RolePermissionSyncResult>
   activateAuthentication(): Promise<void>
   getCurrentUser(): Promise<UserContext>
   getSummaries(): Promise<readonly TableSummary[]>

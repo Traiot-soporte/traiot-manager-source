@@ -55,6 +55,10 @@ interface CrudSandbox {
     table: CrudTable,
     record: Readonly<Record<string, unknown>>,
   ) => void
+  readonly applyApiRoleRules_: (
+    table: Readonly<Record<string, unknown>>,
+    record: Record<string, unknown>,
+  ) => void
 }
 
 function loadCrudSandbox(): CrudSandbox {
@@ -67,6 +71,7 @@ function loadCrudSandbox(): CrudSandbox {
   })
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
+  runInContext(readFileSync('apps-script/87_RolePermissions.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/90_CrudApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/95_MediaApi.gs', 'utf8'), sandbox)
   return sandbox as CrudSandbox
@@ -194,5 +199,21 @@ describe('CRUD de Apps Script', () => {
     const company: Record<string, unknown> = { Calendario: 'Empresarial' }
     applyCrmCalendarOwnership_(owner, table, company, true)
     expect(company._calendarOwnerUuid).toBe('')
+  })
+
+  it('normaliza roles y calcula las secciones de perfiles sin aceptar otros valores', () => {
+    const { applyApiRoleRules_ } = loadCrudSandbox()
+    const user: Record<string, unknown> = { UserRole: 'Técnico' }
+    const profile: Record<string, unknown> = { PerfilID: 'Ventas' }
+
+    applyApiRoleRules_({ name: 'Usuarios' }, user)
+    applyApiRoleRules_({ name: 'Perfiles' }, profile)
+
+    expect(user.UserRole).toBe('Tecnico')
+    expect(profile).toEqual({ PerfilID: 'Ventas', VistasPermitidas: ['CRM'] })
+    expect(() => applyApiRoleRules_(
+      { name: 'Usuarios' },
+      { UserRole: 'Invitado' },
+    )).toThrow('UserRole')
   })
 })

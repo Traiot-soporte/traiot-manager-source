@@ -1,5 +1,21 @@
 export const productCategories = ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'] as const
 
+export const userRoles = [
+  'Administrador',
+  'Gerencia',
+  'Soporte',
+  'Ventas',
+  'Tecnico',
+] as const
+
+export const permissionSections = [
+  'Administración Comercial',
+  'CRM',
+  'Ingeniería',
+  'Técnico',
+  'Seguridad',
+] as const
+
 export const purchaseStatuses = ['RECIBIDA', 'EN CAMINO', 'CANCELADA'] as const
 
 export const orderTypes = ['VENTA EQUIPO', 'INSTALACION', 'REVISION'] as const

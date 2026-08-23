@@ -8,6 +8,8 @@ import {
   LockKeyhole,
   LogOut,
   Search,
+  RefreshCw,
+  ShieldCheck,
   Unlock,
   UserCheck,
   Users,
@@ -17,7 +19,12 @@ import { type FormEvent, useState } from 'react'
 
 import { ModuleHeader } from '@/components/module-header'
 import { useRepository } from '@/data/use-repository'
-import { isAdministratorRole } from '@/modules/auth/auth-permissions'
+import {
+  appRoles,
+  appSectionLabels,
+  getRoleSections,
+  isAdministratorRole,
+} from '@/modules/auth/auth-permissions'
 
 export function SecurityUsersPage() {
   const repository = useRepository()
@@ -62,6 +69,18 @@ export function SecurityUsersPage() {
       repository.setAuthUserActive(userUuid, active),
     onSuccess: refresh,
   })
+  const syncRoles = useMutation({
+    mutationFn: () => repository.syncRolePermissions(),
+    onSuccess: async () => {
+      await Promise.all([
+        refresh(),
+        queryClient.invalidateQueries({ queryKey: ['table', 'Perfiles'] }),
+        queryClient.invalidateQueries({ queryKey: ['table', 'Usuarios'] }),
+        queryClient.invalidateQueries({ queryKey: ['table-summaries'] }),
+        queryClient.invalidateQueries({ queryKey: ['current-user'] }),
+      ])
+    },
+  })
 
   const users = securityUsers.data ?? []
   const normalizedSearch = search.trim().toLocaleLowerCase('es-MX')
@@ -98,7 +117,8 @@ export function SecurityUsersPage() {
   const lockedCount = users.filter((user) => user.locked).length
   const activeSessions = users.reduce((total, user) => total + user.activeSessions, 0)
   const error = mutationError(resetPassword.error) ?? mutationError(unlock.error) ??
-    mutationError(revoke.error) ?? mutationError(setActive.error) ?? formError
+    mutationError(revoke.error) ?? mutationError(setActive.error) ??
+    mutationError(syncRoles.error) ?? formError
 
   return (
     <div className="space-y-4">
@@ -117,6 +137,43 @@ export function SecurityUsersPage() {
         <Metric icon={UserCheck} label="Activos" value={users.filter((user) => user.active).length} />
         <Metric icon={Unlock} label="Bloqueados" value={lockedCount} />
         <Metric icon={Activity} label="Sesiones activas" value={activeSessions} />
+      </section>
+
+      <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-black text-ink-950">
+              <ShieldCheck className="size-4 text-brand-600" /> ROLES Y PERMISOS
+            </p>
+            <p className="mt-1 text-xs text-ink-800/50">
+              Matriz fija aplicada tanto en la interfaz como en Apps Script.
+            </p>
+          </div>
+          <button
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-[11px] font-black text-brand-700 disabled:opacity-50"
+            disabled={syncRoles.isPending}
+            onClick={() => syncRoles.mutate()}
+            type="button"
+          >
+            <RefreshCw className={syncRoles.isPending ? 'size-3.5 animate-spin' : 'size-3.5'} />
+            SINCRONIZAR CON SHEETS
+          </button>
+        </div>
+        <div className="mt-3 grid gap-2 lg:grid-cols-5">
+          {appRoles.map((role) => (
+            <article className="rounded-xl bg-[#f8f5f3] p-3" key={role}>
+              <h2 className="text-xs font-black uppercase text-ink-950">{role}</h2>
+              <p className="mt-1.5 text-[11px] leading-5 text-ink-800/55">
+                {[...getRoleSections(role)].map((section) => appSectionLabels[section]).join(' · ')}
+              </p>
+            </article>
+          ))}
+        </div>
+        {syncRoles.isSuccess && (
+          <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+            Matriz sincronizada: {syncRoles.data.profilesUpdated} perfiles y {syncRoles.data.usersUpdated} usuarios actualizados.
+          </p>
+        )}
       </section>
 
       <div className="relative max-w-lg">

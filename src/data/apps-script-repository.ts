@@ -14,6 +14,7 @@ import type {
   DeleteRowInput,
   LoginInput,
   Repository,
+  RolePermissionSyncResult,
   UpdateRowInput,
 } from '@/data/repository'
 import type { RowData, TableSummary, UserContext } from '@/schema'
@@ -139,6 +140,12 @@ export class AppsScriptRepository implements Repository {
 
   async setAuthUserActive(userUuid: string, active: boolean): Promise<void> {
     await this.#authenticatedCall({ action: 'auth-set-user-active', userUuid, active })
+  }
+
+  async syncRolePermissions(): Promise<RolePermissionSyncResult> {
+    return await this.#authenticatedCall({
+      action: 'auth-sync-role-matrix',
+    }) as RolePermissionSyncResult
   }
 
   async activateAuthentication(): Promise<void> {

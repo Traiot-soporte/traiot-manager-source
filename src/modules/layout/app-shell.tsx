@@ -24,7 +24,12 @@ import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import { AuthLoading, AuthUnavailable } from '@/modules/auth/login-page'
-import { isAdministratorRole } from '@/modules/auth/auth-permissions'
+import {
+  canRoleAccessSection,
+  canRoleAccessTable,
+  isAdministratorRole,
+  type AppSectionId,
+} from '@/modules/auth/auth-permissions'
 import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
@@ -34,7 +39,7 @@ type NavigationItem =
   | { readonly kind: 'pending'; readonly label: string }
 
 interface NavigationSection {
-  readonly id: string
+  readonly id: AppSectionId
   readonly label: string
   readonly number: number
   readonly items: readonly NavigationItem[]
@@ -102,10 +107,6 @@ const mobileLinks = [
   { label: 'Clientes', to: '/tablas/CLIENTES', icon: Users, table: 'CLIENTES' },
   { label: 'Almacén', to: '/tablas/ALMACEN', icon: Package, table: 'ALMACEN' },
 ] as const
-
-function normalizePermission(value: string): string {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase()
-}
 
 function readPreference(key: string): string | null {
   try {
@@ -246,22 +247,20 @@ export function AppShell() {
   const email = currentUser.data?.email ?? 'usuario@traiot.mx'
   const displayName = currentUser.data?.name ||
     email.split('@')[0]?.replace(/[._-]+/g, ' ') || 'Usuario'
-  const permissions = currentUser.data?.permissions ?? new Set<string>()
-  const canAccess = (tableName: string) => {
-    if (permissions.has('*')) return true
-    const table = tableDefinitions.find((candidate) => candidate.name === tableName)
-    const required = normalizePermission(table?.permissionView ?? tableName)
-    return [...permissions].some((permission) => normalizePermission(permission) === required)
-  }
+  const currentRole = currentUser.data.role
+  const canAccess = (tableName: string) => canRoleAccessTable(currentRole, tableName)
   const isAdministrator = isAdministratorRole(currentUser.data.role)
-  const visibleNavigationSections = navigationSections.map((section) => ({
-    ...section,
-    items: section.items.filter((item) => {
-      if (item.kind === 'table') return canAccess(item.table)
-      if (item.kind === 'route') return !item.administratorOnly || isAdministrator
-      return true
-    }),
-  })).filter((section) => section.items.length > 0)
+  const visibleNavigationSections = navigationSections
+    .filter((section) => canRoleAccessSection(currentRole, section.id))
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => {
+        if (item.kind === 'table') return canAccess(item.table)
+        if (item.kind === 'route') return !item.administratorOnly || isAdministrator
+        return true
+      }),
+    }))
+    .filter((section) => section.items.length > 0)
   const visibleMobileLinks = mobileLinks.filter(
     (link) => !('table' in link) || canAccess(link.table),
   )

@@ -27,6 +27,11 @@ interface ReadApiSandbox {
     row: Readonly<Record<string, unknown>>,
     user: Readonly<Record<string, unknown>>,
   ) => boolean
+  readonly apiSectionsForRole_: (role: string) => readonly string[]
+  readonly canApiViewTable_: (
+    user: Readonly<Record<string, unknown>>,
+    table: Readonly<Record<string, unknown>>,
+  ) => boolean
 }
 
 function loadReadApiSandbox(): ReadApiSandbox {
@@ -125,5 +130,30 @@ describe('API privada de lectura', () => {
     ])
 
     expect(rows[0]?.Responsable).toEqual(['Luis Baca', 'Manuel Soto'])
+  })
+
+  it('aplica la matriz de secciones a los cinco roles', () => {
+    const { apiSectionsForRole_ } = loadReadApiSandbox()
+
+    expect(apiSectionsForRole_('Administrador')).toEqual([
+      'administracion-comercial', 'crm', 'ingenieria', 'tecnico', 'seguridad',
+    ])
+    expect(apiSectionsForRole_('Gerencia')).toEqual([
+      'administracion-comercial', 'crm', 'ingenieria', 'tecnico',
+    ])
+    expect(apiSectionsForRole_('Soporte')).toEqual(['crm', 'ingenieria', 'tecnico'])
+    expect(apiSectionsForRole_('Ventas')).toEqual(['crm'])
+    expect(apiSectionsForRole_('Técnico')).toEqual(['tecnico'])
+  })
+
+  it('protege tablas por rol aunque la sesion declare permisos heredados', () => {
+    const { canApiViewTable_ } = loadReadApiSandbox()
+    const sales = { role: 'Ventas', permissions: ['*'] }
+    const support = { role: 'Soporte', permissions: ['Usuarios'] }
+
+    expect(canApiViewTable_(sales, { name: 'CLIENTES' })).toBe(true)
+    expect(canApiViewTable_(sales, { name: 'ALMACEN' })).toBe(false)
+    expect(canApiViewTable_(support, { name: 'Ticket Soporte' })).toBe(true)
+    expect(canApiViewTable_(support, { name: 'Usuarios' })).toBe(false)
   })
 })

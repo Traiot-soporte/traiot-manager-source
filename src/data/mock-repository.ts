@@ -119,6 +119,17 @@ export class MockRepository implements Repository {
     void active
   }
 
+  async syncRolePermissions() {
+    return {
+      ok: true,
+      profilesUpdated: 5,
+      profilesCreated: 0,
+      duplicateOrUnknownProfilesDisabled: 0,
+      usersUpdated: 0,
+      invalidUsers: [],
+    }
+  }
+
   async activateAuthentication(): Promise<void> {}
 
   async getSummaries(): Promise<readonly TableSummary[]> {
