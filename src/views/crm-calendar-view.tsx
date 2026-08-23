@@ -18,7 +18,14 @@ const responsibleColors = [
   { background: '#fef3c7', border: '#fbbf24', text: '#92400e' },
   { background: '#ede9fe', border: '#a78bfa', text: '#5b21b6' },
   { background: '#cffafe', border: '#22d3ee', text: '#155e75' },
+  { background: '#fce7f3', border: '#f472b6', text: '#9d174d' },
+  { background: '#ecfccb', border: '#84cc16', text: '#3f6212' },
+  { background: '#e0e7ff', border: '#818cf8', text: '#3730a3' },
+  { background: '#ccfbf1', border: '#2dd4bf', text: '#115e59' },
+  { background: '#ffedd5', border: '#fb923c', text: '#9a3412' },
+  { background: '#fae8ff', border: '#d946ef', text: '#86198f' },
 ] as const
+const unassignedColor = { background: '#f1f5f9', border: '#64748b', text: '#334155' } as const
 
 export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
   const repository = useRepository()
@@ -35,9 +42,8 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
   const eventsByDay = useMemo(() => groupEventsByDay(visibleRows), [visibleRows])
   const calendarDays = buildMonthCells(month)
   const today = mexicoDateKey(new Date())
-  const responsibles = [...new Set(
-    visibleRows.map((row) => responsibleName(row)).filter(Boolean),
-  )].sort((left, right) => left.localeCompare(right, 'es-MX'))
+  const responsibles = useMemo(() => uniqueResponsibles(visibleRows), [visibleRows])
+  const colorByResponsible = useMemo(() => assignResponsibleColors(responsibles), [responsibles])
 
   const moveMonth = (offset: number) => setMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1, 12))
 
@@ -87,7 +93,7 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
                       {dayEvents.length > 0 && <span className="text-[10px] font-black text-ink-800/30">{dayEvents.length}</span>}
                     </div>
                     <div className="space-y-1.5">
-                      {dayEvents.slice(0, 3).map((row) => <CalendarEvent basePath={basePath} key={String(row._uuid)} row={row} />)}
+                      {dayEvents.slice(0, 3).map((row) => <CalendarEvent basePath={basePath} colorByResponsible={colorByResponsible} key={String(row._uuid)} row={row} />)}
                       {dayEvents.length > 3 && <p className="px-1 text-[10px] font-black text-brand-700">+{dayEvents.length - 3} más</p>}
                     </div>
                   </div>
@@ -105,7 +111,7 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
       <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
         <span className="mr-2 text-[10px] font-black uppercase tracking-wide text-ink-800/40">Responsables</span>
         {responsibles.length > 0 ? responsibles.map((responsible) => {
-          const color = colorForResponsible(responsible)
+          const color = colorForResponsible(responsible, colorByResponsible)
           return <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-black" key={responsible} style={{ backgroundColor: color.background, color: color.text }}><span className="size-2 rounded-full" style={{ backgroundColor: color.border }} />{responsible}</span>
         }) : <span className="text-xs font-semibold text-ink-800/35">Sin responsables visibles.</span>}
       </section>
@@ -117,9 +123,9 @@ function ScopeButton({ active, icon: Icon, label, onClick }: { readonly active: 
   return <button className={cn('inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-[11px] font-black transition', active ? 'bg-ink-950 text-white' : 'text-ink-800/50 hover:bg-white')} onClick={onClick} type="button"><Icon className="size-4" />{label}</button>
 }
 
-function CalendarEvent({ basePath, row }: { readonly basePath: string; readonly row: RowData }) {
+function CalendarEvent({ basePath, colorByResponsible, row }: { readonly basePath: string; readonly colorByResponsible: ReadonlyMap<string, ResponsibleColor>; readonly row: RowData }) {
   const responsible = responsibleName(row)
-  const color = colorForResponsible(responsible)
+  const color = colorForResponsible(responsible, colorByResponsible)
   const action = String(row.Accion ?? 'Seguimiento')
   return (
     <Link className="block truncate rounded-md border-l-[3px] px-2 py-1.5 text-[10px] font-black leading-4 transition hover:brightness-95" style={{ backgroundColor: color.background, borderLeftColor: color.border, color: color.text }} title={`${action} · ${responsible}`} to={basePath + '/' + encodeURIComponent(String(row._uuid))}>
@@ -160,7 +166,9 @@ function buildMonthCells(month: Date): readonly ({ key: string; number: number }
 }
 
 function responsibleName(row: RowData): string {
-  return String(row.Responsable ?? '').trim() || 'Sin responsable'
+  const responsible = String(row.Responsable ?? '').trim()
+  if (!responsible) return 'Sin responsable'
+  return responsible.toLocaleLowerCase('es-MX').replace(/(^|[\s/])\p{L}/gu, (match) => match.toLocaleUpperCase('es-MX'))
 }
 
 function calendarScope(row: RowData): 'Personal' | 'Empresarial' {
@@ -173,10 +181,52 @@ function normalizeName(value: unknown): string {
     : ''
 }
 
-function colorForResponsible(responsible: string) {
+type ResponsibleColor = (typeof responsibleColors)[number] | typeof unassignedColor
+
+function uniqueResponsibles(rows: readonly RowData[]): readonly string[] {
+  const labels = new Map<string, string>()
+  for (const row of rows) {
+    const label = responsibleName(row)
+    const key = normalizeName(label)
+    if (!labels.has(key)) labels.set(key, label)
+  }
+  return [...labels.values()].sort((left, right) => left.localeCompare(right, 'es-MX'))
+}
+
+function assignResponsibleColors(responsibles: readonly string[]): ReadonlyMap<string, ResponsibleColor> {
+  const assignments = new Map<string, ResponsibleColor>()
+  const usedIndexes = new Set<number>()
+
+  for (const responsible of responsibles) {
+    const key = normalizeName(responsible)
+    if (key === 'SIN RESPONSABLE') {
+      assignments.set(key, unassignedColor)
+      continue
+    }
+
+    let index = stableColorIndex(key)
+    for (let offset = 0; offset < responsibleColors.length; offset += 1) {
+      const candidate = (index + offset) % responsibleColors.length
+      if (!usedIndexes.has(candidate)) {
+        index = candidate
+        break
+      }
+    }
+    usedIndexes.add(index)
+    assignments.set(key, responsibleColors[index]!)
+  }
+
+  return assignments
+}
+
+function stableColorIndex(value: string): number {
   let hash = 0
-  for (const character of normalizeName(responsible)) hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0
-  return responsibleColors[Math.abs(hash) % responsibleColors.length]!
+  for (const character of value) hash = ((hash << 5) - hash + character.charCodeAt(0)) | 0
+  return Math.abs(hash) % responsibleColors.length
+}
+
+function colorForResponsible(responsible: string, assignments: ReadonlyMap<string, ResponsibleColor>): ResponsibleColor {
+  return assignments.get(normalizeName(responsible)) ?? unassignedColor
 }
 
 function mexicoCurrentMonth(): Date {
