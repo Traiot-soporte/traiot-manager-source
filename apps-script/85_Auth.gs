@@ -315,8 +315,17 @@ function changeSheetPassword_(apiUser, sessionToken, currentPassword, nextPasswo
     var spreadsheet = openConfiguredSpreadsheet_();
     var userRecord = findAuthUserByUuid_(spreadsheet, apiUser.userUuid);
 
-    if (!userRecord || !compareAuthPassword_(String(currentPassword || ''), userRecord.PasswordHash)) {
+    if (!userRecord) {
+      throw new Error('La cuenta ya no se encuentra disponible.');
+    }
+
+    if (shouldRequireCurrentAuthPassword_(apiUser, userRecord) &&
+        !compareAuthPassword_(String(currentPassword || ''), userRecord.PasswordHash)) {
       throw new Error('La contraseña actual no es correcta.');
+    }
+
+    if (compareAuthPassword_(String(nextPassword || ''), userRecord.PasswordHash)) {
+      throw new Error('La contraseña nueva debe ser diferente a la temporal o actual.');
     }
 
     var now = new Date().toISOString();
@@ -438,11 +447,18 @@ function validateAuthPassword_(password) {
   }
 }
 
+function shouldRequireCurrentAuthPassword_(apiUser, userRecord) {
+  return !(apiUser && apiUser.mustChangePassword === true &&
+    userRecord && userRecord.MustChangePassword === true);
+}
+
 function createAuthSession_(spreadsheet, userRecord, remember) {
   var sheet = requireAuthSheet_(spreadsheet, TRAIOT_AUTH_SESSIONS_SHEET);
   var token = generateAuthToken_();
   var createdAt = new Date();
-  var duration = remember ? 7 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000;
+  var duration = userRecord.MustChangePassword === true
+    ? 30 * 60 * 1000
+    : (remember ? 7 * 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000);
   var expiresAt = new Date(createdAt.getTime() + duration);
   var row = [
     hashAuthToken_(token),

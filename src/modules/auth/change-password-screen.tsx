@@ -13,7 +13,6 @@ interface ChangePasswordScreenProps {
 }
 
 export function ChangePasswordScreen({ email, onChangePassword, onLogout }: ChangePasswordScreenProps) {
-  const [currentPassword, setCurrentPassword] = useState('')
   const [nextPassword, setNextPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [visible, setVisible] = useState(false)
@@ -29,7 +28,7 @@ export function ChangePasswordScreen({ email, onChangePassword, onLogout }: Chan
     }
     setSubmitting(true)
     try {
-      await onChangePassword({ currentPassword, nextPassword })
+      await onChangePassword({ currentPassword: '', nextPassword })
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'No fue posible cambiar la contraseña.')
     } finally {
@@ -53,11 +52,10 @@ export function ChangePasswordScreen({ email, onChangePassword, onLogout }: Chan
         </span>
         <h1 className="mt-5 text-3xl font-black tracking-tight">Protege tu cuenta</h1>
         <p className="mt-3 text-sm leading-6 text-white/45">
-          La contraseña asignada a <strong className="text-white/70">{email}</strong> es temporal. Crea una contraseña personal para continuar.
+          El acceso de <strong className="text-white/70">{email}</strong> ya fue validado. Crea una contraseña personal para continuar.
         </p>
 
         <form className="mt-7 space-y-4" onSubmit={(event) => void submit(event)}>
-          <PasswordInput label="Contraseña temporal" onChange={setCurrentPassword} value={currentPassword} visible={visible} />
           <PasswordInput label="Contraseña nueva" onChange={setNextPassword} value={nextPassword} visible={visible} />
           <PasswordInput label="Confirmar contraseña nueva" onChange={setConfirmation} value={confirmation} visible={visible} />
 

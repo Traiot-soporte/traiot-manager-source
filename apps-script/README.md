@@ -45,7 +45,10 @@ Flujo de preparación:
 5. Verificar el acceso y solamente entonces desplegar una versión con acceso
    anónimo al Web App; la identidad seguirá validándose contra `Usuarios`.
 
-La primera sesión obliga al usuario a reemplazar la contraseña temporal. Cinco
+La primera sesión obliga al usuario a reemplazar la contraseña temporal y dura
+como máximo 30 minutos hasta completar el cambio. Como la contraseña ya fue
+validada al crear esa sesión, la pantalla solicita únicamente la contraseña
+nueva y su confirmación. Cinco
 fallos bloquean la cuenta durante 15 minutos. Los tokens se almacenan como hash
 en `_AuthSessions`, las acciones de acceso se registran en `_AuthAudit` y ambas
 hojas se mantienen ocultas.

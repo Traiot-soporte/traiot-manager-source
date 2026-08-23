@@ -10,6 +10,10 @@ interface AuthSandbox {
   constantTimeAuthEqual_: (left: string, right: string) => boolean
   hashAuthPassword_: (password: string) => string
   compareAuthPassword_: (password: string, hash: string) => boolean
+  shouldRequireCurrentAuthPassword_: (
+    apiUser: { mustChangePassword: boolean },
+    userRecord: { MustChangePassword: boolean },
+  ) => boolean
 }
 
 function bytes(buffer: Buffer): number[] {
@@ -79,5 +83,18 @@ describe('autenticacion privada de Apps Script', () => {
     expect(constantTimeAuthEqual_('abc123', 'abc123')).toBe(true)
     expect(constantTimeAuthEqual_('abc123', 'abc124')).toBe(false)
     expect(constantTimeAuthEqual_('abc123', 'abc1234')).toBe(false)
+  })
+
+  it('no repite la contraseña temporal durante una sesión válida de primer acceso', () => {
+    const { shouldRequireCurrentAuthPassword_ } = loadAuthSandbox()
+
+    expect(shouldRequireCurrentAuthPassword_(
+      { mustChangePassword: true },
+      { MustChangePassword: true },
+    )).toBe(false)
+    expect(shouldRequireCurrentAuthPassword_(
+      { mustChangePassword: false },
+      { MustChangePassword: false },
+    )).toBe(true)
   })
 })
