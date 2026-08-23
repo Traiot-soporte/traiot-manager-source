@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Construction,
   Home,
   IdCard,
   LockKeyhole,
@@ -14,7 +16,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Navigate, NavLink, Outlet, useNavigate } from 'react-router'
+import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { SyncStatus } from '@/components/sync-status'
 import { TableIcon } from '@/components/table-icon'
@@ -23,16 +25,80 @@ import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import { AuthLoading, AuthUnavailable } from '@/modules/auth/login-page'
 import { isAdministratorRole } from '@/modules/auth/auth-permissions'
-import { getTableDisplayName, tableDefinitions } from '@/schema'
+import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
-const primaryTables = tableDefinitions.filter(
-  (table) => !table.name.startsWith('instalacion_') && table.name !== 'Menu',
-)
+type NavigationItem =
+  | { readonly kind: 'table'; readonly label: string; readonly table: string }
+  | { readonly administratorOnly: true; readonly kind: 'route'; readonly label: string; readonly to: string }
+  | { readonly kind: 'pending'; readonly label: string }
+
+interface NavigationSection {
+  readonly id: string
+  readonly label: string
+  readonly number: number
+  readonly items: readonly NavigationItem[]
+}
+
+const navigationSections: readonly NavigationSection[] = [
+  {
+    id: 'administracion-comercial',
+    number: 1,
+    label: 'Administración Comercial',
+    items: [
+      { kind: 'table', label: 'Almacén', table: 'ALMACEN' },
+      { kind: 'table', label: 'Compras', table: 'COMPRAS' },
+      { kind: 'table', label: 'Salidas', table: 'PEDIDOS' },
+      { kind: 'table', label: 'Proveedores', table: 'PROVEEDORES' },
+    ],
+  },
+  {
+    id: 'crm',
+    number: 2,
+    label: 'CRM',
+    items: [
+      { kind: 'table', label: 'Clientes', table: 'CLIENTES' },
+      { kind: 'table', label: 'Seguimiento Clientes', table: 'Gestion Clientes' },
+    ],
+  },
+  {
+    id: 'ingenieria',
+    number: 3,
+    label: 'Ingeniería',
+    items: [
+      { kind: 'table', label: 'Ticket Soporte', table: 'Ticket Soporte' },
+      { kind: 'table', label: 'Laboratorio', table: 'Laboratorio' },
+    ],
+  },
+  {
+    id: 'tecnico',
+    number: 4,
+    label: 'Técnico',
+    items: [
+      { kind: 'table', label: 'Servicios GPS', table: 'INSTALACIONES' },
+      { kind: 'pending', label: 'Diagramas' },
+    ],
+  },
+  {
+    id: 'seguridad',
+    number: 5,
+    label: 'Seguridad',
+    items: [
+      { kind: 'table', label: 'Perfiles', table: 'Perfiles' },
+      { kind: 'table', label: 'Usuarios', table: 'Usuarios' },
+      {
+        kind: 'route',
+        label: 'Seguridad de usuarios',
+        to: '/seguridad-usuarios',
+        administratorOnly: true,
+      },
+    ],
+  },
+] as const
 
 const mobileLinks = [
   { label: 'Inicio', to: '/', icon: Home },
-  { label: 'Servicios', to: '/tablas/INSTALACIONES', icon: Wrench, table: 'INSTALACIONES' },
+  { label: 'Serv. GPS', to: '/tablas/INSTALACIONES', icon: Wrench, table: 'INSTALACIONES' },
   { label: 'Clientes', to: '/tablas/CLIENTES', icon: Users, table: 'CLIENTES' },
   { label: 'Almacén', to: '/tablas/ALMACEN', icon: Package, table: 'ALMACEN' },
 ] as const
@@ -57,14 +123,50 @@ function savePreference(key: string, value: string): void {
   }
 }
 
+function readOpenSections(): ReadonlySet<string> | undefined {
+  const stored = readPreference('traiot-sidebar-sections')
+  if (!stored) return undefined
+
+  try {
+    const values: unknown = JSON.parse(stored)
+    return new Set(
+      Array.isArray(values)
+        ? values.filter((value): value is string => typeof value === 'string')
+        : [],
+    )
+  } catch {
+    return undefined
+  }
+}
+
+function tablePath(tableName: string): string {
+  return '/tablas/' + encodeURIComponent(tableName)
+}
+
+function activeNavigationSection(pathname: string): string | undefined {
+  const decodedPath = decodeURIComponent(pathname)
+  return navigationSections.find((section) => section.items.some((item) => {
+    if (item.kind === 'table') return decodedPath.startsWith('/tablas/' + item.table)
+    if (item.kind === 'route') return decodedPath.startsWith(item.to)
+    return false
+  }))?.id
+}
+
 export function AppShell() {
   const repository = useRepository()
   const queryClient = useQueryClient()
+  const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => readPreference('traiot-sidebar-collapsed') === 'true',
   )
+  const [openSections, setOpenSections] = useState<ReadonlySet<string>>(() => {
+    const stored = readOpenSections()
+    if (stored) return stored
+    const activeSection = activeNavigationSection(location.pathname)
+    return new Set([activeSection ?? 'administracion-comercial'])
+  })
   const [theme, setTheme] = useState<ThemeMode>(() =>
     document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   )
@@ -91,6 +193,16 @@ export function AppShell() {
     setSidebarCollapsed((current) => {
       const next = !current
       savePreference('traiot-sidebar-collapsed', String(next))
+      return next
+    })
+  }
+
+  const toggleSection = (sectionId: string) => {
+    setOpenSections((current) => {
+      const next = new Set(current)
+      if (next.has(sectionId)) next.delete(sectionId)
+      else next.add(sectionId)
+      savePreference('traiot-sidebar-sections', JSON.stringify([...next]))
       return next
     })
   }
@@ -141,11 +253,19 @@ export function AppShell() {
     const required = normalizePermission(table?.permissionView ?? tableName)
     return [...permissions].some((permission) => normalizePermission(permission) === required)
   }
-  const visibleTables = primaryTables.filter((table) => canAccess(table.name))
+  const isAdministrator = isAdministratorRole(currentUser.data.role)
+  const visibleNavigationSections = navigationSections.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      if (item.kind === 'table') return canAccess(item.table)
+      if (item.kind === 'route') return !item.administratorOnly || isAdministrator
+      return true
+    }),
+  })).filter((section) => section.items.length > 0)
   const visibleMobileLinks = mobileLinks.filter(
     (link) => !('table' in link) || canAccess(link.table),
   )
-  const isAdministrator = isAdministratorRole(currentUser.data.role)
+  const activeSection = activeNavigationSection(location.pathname)
 
   return (
     <div className="min-h-screen bg-[#f7f3f1]">
@@ -230,53 +350,63 @@ export function AppShell() {
               RESUMEN
             </span>
           </NavLink>
-          {visibleTables.map((table) => (
-            <NavLink
-              className={({ isActive }) =>
-                cn(
-                  'flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[13px] font-semibold text-white/65 transition hover:bg-white/5 hover:text-white',
-                  sidebarCollapsed && 'lg:justify-center lg:px-0',
-                  isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
-                )
-              }
-              key={table.name}
-              onClick={() => setMenuOpen(false)}
-              title={getTableDisplayName(table).toLocaleUpperCase('es-MX')}
-              to={'/tablas/' + encodeURIComponent(table.name)}
-            >
-              {table.name === 'Perfiles'
-                ? <IdCard className="size-5 shrink-0" strokeWidth={2} />
-                : <TableIcon className="shrink-0" name={table.icon} />}
-              <span
-                className={cn(
-                  'min-w-0 flex-1 whitespace-nowrap',
-                  getTableDisplayName(table).length >= 18 && 'text-[12.5px]',
-                  sidebarCollapsed && 'lg:hidden',
-                )}
-              >
-                {getTableDisplayName(table).toLocaleUpperCase('es-MX')}
-              </span>
-            </NavLink>
-          ))}
-          {isAdministrator && (
-            <NavLink
-              className={({ isActive }) =>
-                cn(
-                  'mt-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[12.5px] font-bold text-white/65 transition hover:bg-white/5 hover:text-white',
-                  sidebarCollapsed && 'lg:justify-center lg:px-0',
-                  isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
-                )
-              }
-              onClick={() => setMenuOpen(false)}
-              title="SEGURIDAD DE USUARIOS"
-              to="/seguridad-usuarios"
-            >
-              <LockKeyhole className="size-5 shrink-0" strokeWidth={2} />
-              <span className={cn('min-w-0 flex-1 whitespace-nowrap text-[11.5px]', sidebarCollapsed && 'lg:hidden')}>
-                SEGURIDAD DE USUARIOS
-              </span>
-            </NavLink>
-          )}
+          <div className="space-y-1">
+            {visibleNavigationSections.map((section) => {
+              const expanded = openSections.has(section.id)
+              const sectionActive = activeSection === section.id
+
+              return (
+                <section key={section.id}>
+                  <button
+                    aria-controls={'sidebar-section-' + section.id}
+                    aria-expanded={expanded}
+                    className={cn(
+                      'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-xl px-2 text-left text-[11px] font-black tracking-[0.04em] text-white/45 transition hover:bg-white/5 hover:text-white/80',
+                      sidebarCollapsed && 'lg:justify-center lg:px-0',
+                      sectionActive && 'text-brand-300',
+                    )}
+                    onClick={() => toggleSection(section.id)}
+                    title={section.number + '. ' + section.label.toLocaleUpperCase('es-MX')}
+                    type="button"
+                  >
+                    <span className={cn(
+                      'grid size-7 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[10px] text-white/65',
+                      sectionActive && 'border-brand-400/40 bg-brand-500/15 text-brand-300',
+                    )}>
+                      {section.number}
+                    </span>
+                    <span className={cn('min-w-0 flex-1 leading-tight', sidebarCollapsed && 'lg:hidden')}>
+                      {section.label.toLocaleUpperCase('es-MX')}
+                    </span>
+                    <ChevronDown className={cn(
+                      'size-4 shrink-0 transition-transform',
+                      expanded && 'rotate-180',
+                      sidebarCollapsed && 'lg:hidden',
+                    )} />
+                  </button>
+
+                  {expanded && (
+                    <div
+                      className={cn(
+                        'ml-3 space-y-0.5 border-l border-white/10 py-1 pl-2',
+                        sidebarCollapsed && 'lg:ml-0 lg:border-l-0 lg:pl-0',
+                      )}
+                      id={'sidebar-section-' + section.id}
+                    >
+                      {section.items.map((item) => (
+                        <SidebarNavigationItem
+                          collapsed={sidebarCollapsed}
+                          item={item}
+                          key={item.kind + '-' + item.label}
+                          onNavigate={() => setMenuOpen(false)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )
+            })}
+          </div>
         </nav>
 
         <footer className="shrink-0 space-y-2 border-t border-white/10 p-3 uppercase">
@@ -369,6 +499,73 @@ export function AppShell() {
         ))}
       </nav>
     </div>
+  )
+}
+
+function SidebarNavigationItem({
+  collapsed,
+  item,
+  onNavigate,
+}: {
+  readonly collapsed: boolean
+  readonly item: NavigationItem
+  readonly onNavigate: () => void
+}) {
+  const sharedClassName = cn(
+    'flex min-h-10 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[12px] font-semibold transition',
+    collapsed && 'lg:justify-center lg:px-0',
+  )
+
+  if (item.kind === 'pending') {
+    return (
+      <div
+        aria-disabled="true"
+        className={cn(sharedClassName, 'cursor-not-allowed text-white/30')}
+        title={item.label.toLocaleUpperCase('es-MX') + ' · PENDIENTE'}
+      >
+        <Construction className="size-5 shrink-0" />
+        <span className={cn('min-w-0 flex-1 whitespace-nowrap', collapsed && 'lg:hidden')}>
+          {item.label.toLocaleUpperCase('es-MX')}
+        </span>
+        <span className={cn(
+          'rounded-full border border-white/10 px-1.5 py-0.5 text-[8px] font-black tracking-wide text-white/35',
+          collapsed && 'lg:hidden',
+        )}>
+          PENDIENTE
+        </span>
+      </div>
+    )
+  }
+
+  const table = item.kind === 'table'
+    ? tableDefinitions.find((candidate) => candidate.name === item.table)
+    : undefined
+  const to = item.kind === 'table' ? tablePath(item.table) : item.to
+
+  return (
+    <NavLink
+      className={({ isActive }) => cn(
+        sharedClassName,
+        'text-white/65 hover:bg-white/5 hover:text-white',
+        isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
+      )}
+      onClick={onNavigate}
+      title={item.label.toLocaleUpperCase('es-MX')}
+      to={to}
+    >
+      {item.kind === 'route'
+        ? <LockKeyhole className="size-5 shrink-0" strokeWidth={2} />
+        : item.table === 'Perfiles'
+          ? <IdCard className="size-5 shrink-0" strokeWidth={2} />
+          : <TableIcon className="shrink-0" name={table?.icon ?? 'LayoutGrid'} />}
+      <span className={cn(
+        'min-w-0 flex-1 whitespace-nowrap',
+        item.label.length >= 18 && 'text-[11px]',
+        collapsed && 'lg:hidden',
+      )}>
+        {item.label.toLocaleUpperCase('es-MX')}
+      </span>
+    </NavLink>
   )
 }
 

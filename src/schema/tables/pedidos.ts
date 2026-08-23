@@ -9,6 +9,7 @@ import { defineTable, migrationRef } from '@/schema/helpers'
 
 export const pedidosTable = defineTable({
   name: 'PEDIDOS',
+  displayName: 'Salidas',
   sheet: 'PEDIDOS',
   label: 'ID PEDIDO',
   legacyBusinessKey: 'ID PEDIDO',

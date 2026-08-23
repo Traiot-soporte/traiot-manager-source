@@ -27,6 +27,7 @@ const postInstallationTests = [
 
 export const instalacionesTable = defineTable({
   name: 'INSTALACIONES',
+  displayName: 'Servicios GPS',
   sheet: 'INSTALACIONES',
   label: 'FOLIO SERVICIO',
   legacyBusinessKey: 'FOLIO SERVICIO',

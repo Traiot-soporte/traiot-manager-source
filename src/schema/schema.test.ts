@@ -55,9 +55,9 @@ describe('registro de metadata', () => {
     }
   })
 
-  it('presenta Gestion Clientes como CRM sin cambiar su hoja ni permisos', () => {
+  it('presenta Gestion Clientes como Seguimiento Clientes sin cambiar su hoja ni permisos', () => {
     const crm = tableDefinitions.find((table) => table.name === 'Gestion Clientes')
-    expect(crm?.displayName).toBe('CRM')
+    expect(crm?.displayName).toBe('Seguimiento Clientes')
     expect(crm?.sheet).toBe('Gestion Clientes')
     expect(crm?.permissionView).toBe('Gestion Clientes')
     expect(crm?.defaultView).toBe('dashboard')
