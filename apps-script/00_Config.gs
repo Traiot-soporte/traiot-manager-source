@@ -103,6 +103,56 @@ function desactivarAutenticacion() {
 }
 
 /**
+ * Diagnostico seguro del acceso por Usuarios. No devuelve hashes, tokens ni
+ * contraseñas y no modifica celdas. Ejecutar desde el editor de Apps Script.
+ */
+function diagnosticarAutenticacion() {
+  var properties = PropertiesService.getScriptProperties();
+  var ownerEmail = normalizeApiEmail_(properties.getProperty('TRAIOT_OWNER_EMAIL'));
+  var executorEmail = normalizeApiEmail_(Session.getEffectiveUser().getEmail());
+
+  if (!ownerEmail || executorEmail !== ownerEmail) {
+    throw new Error('Solo la cuenta propietaria puede ejecutar este diagnostico.');
+  }
+
+  var configured = Boolean(properties.getProperty('TRAIOT_AUTH_CONFIGURED_AT'));
+  var result = {
+    mode: properties.getProperty('TRAIOT_AUTH_MODE') || 'OWNER_ONLY',
+    configured: configured,
+    duplicates: [],
+    users: []
+  };
+
+  if (!configured) {
+    console.log(JSON.stringify(result, null, 2));
+    return result;
+  }
+
+  var spreadsheet = openConfiguredSpreadsheet_();
+  var status = buildAuthAdminStatus_(spreadsheet);
+  var now = Date.now();
+  result.duplicates = status.duplicates;
+  result.users = readAuthUsers_(spreadsheet).map(function (user) {
+    var lockedUntil = normalizeCell_(user.LockedUntil);
+    return {
+      userId: normalizeCell_(user.UserID),
+      name: normalizeCell_(user.UserName),
+      email: normalizeApiEmail_(user.UserEmail),
+      active: user.UserActive === true,
+      credentialConfigured: Boolean(normalizeCell_(user.PasswordHash)),
+      mustChangePassword: user.MustChangePassword === true,
+      failedAttempts: authNumber_(user.FailedAttempts),
+      locked: authDateMillis_(lockedUntil) > now,
+      lockedUntil: lockedUntil,
+      lastLoginAt: normalizeCell_(user.LastLoginAt)
+    };
+  });
+
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
  * Crea el respaldo y prepara la estructura sin transformar filas existentes.
  * Esta funcion es idempotente y puede retomarse despues de una interrupcion.
  */
