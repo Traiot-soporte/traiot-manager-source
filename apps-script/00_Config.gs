@@ -108,13 +108,6 @@ function desactivarAutenticacion() {
  */
 function diagnosticarAutenticacion() {
   var properties = PropertiesService.getScriptProperties();
-  var ownerEmail = normalizeApiEmail_(properties.getProperty('TRAIOT_OWNER_EMAIL'));
-  var executorEmail = normalizeApiEmail_(Session.getEffectiveUser().getEmail());
-
-  if (!ownerEmail || executorEmail !== ownerEmail) {
-    throw new Error('Solo la cuenta propietaria puede ejecutar este diagnostico.');
-  }
-
   var configured = Boolean(properties.getProperty('TRAIOT_AUTH_CONFIGURED_AT'));
   var result = {
     mode: properties.getProperty('TRAIOT_AUTH_MODE') || 'OWNER_ONLY',
