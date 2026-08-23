@@ -50,6 +50,12 @@ fallos bloquean la cuenta durante 15 minutos. Los tokens se almacenan como hash
 en `_AuthSessions`, las acciones de acceso se registran en `_AuthAudit` y ambas
 hojas se mantienen ocultas.
 
+Si el administrador pierde el acceso, puede crear temporalmente la Script
+Property `TRAIOT_RECOVERY_TEMP_PASSWORD` y ejecutar
+`restablecerAccesoAdministrador()` desde el editor. La función elimina esa
+propiedad al leerla, restablece bloqueos, revoca sesiones y escribe únicamente
+el nuevo hash en `Usuarios`.
+
 La interfaz utiliza rutas independientes dentro de la SPA: `#/login` para el
 inicio de sesión, `#/cambiar-contrasena` para el primer acceso y `#/` para el
 centro de operación. `Index.html` es solamente el documento técnico que inicia

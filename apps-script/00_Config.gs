@@ -133,6 +133,7 @@ function diagnosticarAutenticacion() {
       email: normalizeApiEmail_(user.UserEmail),
       active: user.UserActive === true,
       credentialConfigured: Boolean(normalizeCell_(user.PasswordHash)),
+      passwordUpdatedAt: normalizeCell_(user.PasswordUpdatedAt),
       mustChangePassword: user.MustChangePassword === true,
       failedAttempts: authNumber_(user.FailedAttempts),
       locked: authDateMillis_(lockedUntil) > now,
@@ -141,6 +142,57 @@ function diagnosticarAutenticacion() {
     };
   });
 
+  console.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+/**
+ * Recupera al administrador sin guardar una contraseña legible en Sheets.
+ * Antes de ejecutar, crear la Script Property TRAIOT_RECOVERY_TEMP_PASSWORD.
+ * La propiedad se elimina en cuanto la funcion la lee, incluso si es invalida.
+ */
+function restablecerAccesoAdministrador() {
+  var properties = PropertiesService.getScriptProperties();
+  var temporaryPassword = properties.getProperty('TRAIOT_RECOVERY_TEMP_PASSWORD') || '';
+  properties.deleteProperty('TRAIOT_RECOVERY_TEMP_PASSWORD');
+
+  if (!temporaryPassword) {
+    throw new Error(
+      'Crea primero la Script Property TRAIOT_RECOVERY_TEMP_PASSWORD y vuelve a ejecutar.'
+    );
+  }
+
+  validateAuthPassword_(temporaryPassword);
+  var spreadsheet = openConfiguredSpreadsheet_();
+  ensureAuthReady_(spreadsheet);
+  var administrators = readAuthUsers_(spreadsheet).filter(function (user) {
+    var role = normalizeLookupValue_(user.UserRole);
+    return user.UserActive === true && (role === 'ADMIN' || role === 'ADMINISTRADOR');
+  });
+
+  if (administrators.length !== 1) {
+    throw new Error(
+      'La recuperacion requiere exactamente un administrador activo; encontrados: ' +
+      administrators.length + '.'
+    );
+  }
+
+  var target = administrators[0];
+  setTemporaryPassword_({
+    userUuid: '',
+    email: Session.getEffectiveUser().getEmail(),
+    role: 'ADMIN',
+    permissions: ['*']
+  }, target._uuid, temporaryPassword);
+
+  var result = {
+    ok: true,
+    userId: normalizeCell_(target.UserID),
+    email: normalizeApiEmail_(target.UserEmail),
+    attemptsReset: true,
+    sessionsRevoked: true,
+    mustChangePassword: true
+  };
   console.log(JSON.stringify(result, null, 2));
   return result;
 }

@@ -427,13 +427,13 @@ function getAuthDummyHash_() {
 
 function validateAuthPassword_(password) {
   var value = String(password || '');
-  var valid = value.length >= 12 && value.length <= 128 &&
+  var valid = value === value.trim() && value.length >= 12 && value.length <= 128 &&
     /[a-z]/.test(value) && /[A-Z]/.test(value) && /[0-9]/.test(value) &&
     /[^A-Za-z0-9]/.test(value);
 
   if (!valid) {
     throw new Error(
-      'La contraseña debe tener de 12 a 128 caracteres, mayuscula, minuscula, numero y simbolo.'
+      'La contraseña debe tener de 12 a 128 caracteres, sin espacios al inicio o final, mayuscula, minuscula, numero y simbolo.'
     );
   }
 }

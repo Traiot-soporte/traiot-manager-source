@@ -60,6 +60,7 @@ describe('autenticacion privada de Apps Script', () => {
     expect(() => validateAuthPassword_('Temporal#2026A')).not.toThrow()
     expect(() => validateAuthPassword_('demasiado-simple')).toThrow('12 a 128 caracteres')
     expect(() => validateAuthPassword_('Corta#1a')).toThrow('12 a 128 caracteres')
+    expect(() => validateAuthPassword_(' Temporal#2026A')).toThrow('sin espacios')
   })
 
   it('genera un hash bcrypt con pepper y nunca compara texto plano', () => {
