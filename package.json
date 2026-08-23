@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "gas:login": "clasp login",
     "gas:generate-schema": "vite-node scripts/generate-apps-script-schema.ts",
+    "gas:generate-bcrypt": "vite-node scripts/generate-apps-script-bcrypt.ts",
     "gas:generate-html": "vite-node scripts/generate-apps-script-html.ts",
     "gas:open": "clasp open-script",
     "gas:push": "clasp push",
@@ -23,6 +24,7 @@
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
     "@tanstack/react-query": "5.101.4",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "1.33.0",

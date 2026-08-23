@@ -25,6 +25,7 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
     record._deleted = false;
     validateApiRecord_(schemaTable, record);
     assertUniqueApiBusinessKey_(sheet, schemaTable, record);
+    assertUniqueApiUserEmail_(sheet, schemaTable, record);
     persistApiMediaFields_(
       spreadsheet,
       schemaTable,
@@ -77,6 +78,7 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
     nextRecord._deleted = false;
     validateApiRecord_(schemaTable, nextRecord);
     assertUniqueApiBusinessKey_(sheet, schemaTable, nextRecord);
+    assertUniqueApiUserEmail_(sheet, schemaTable, nextRecord);
     persistApiMediaFields_(
       spreadsheet,
       schemaTable,
@@ -518,6 +520,35 @@ function assertUniqueApiBusinessKey_(sheet, schemaTable, record) {
   }
 }
 
+function assertUniqueApiUserEmail_(sheet, schemaTable, record) {
+  if (schemaTable.name !== 'Usuarios') {
+    return;
+  }
+
+  var emailColumn = findApiColumnByName_(schemaTable, 'UserEmail');
+  var values = sheet.getDataRange().getDisplayValues();
+
+  if (!emailColumn || values.length < 2 || isApiBlank_(record.UserEmail)) {
+    return;
+  }
+
+  var headers = values[0].map(String);
+  var emailIndex = requireHeaderIndex_(headers, emailColumn.sourceHeader || emailColumn.name, schemaTable);
+  var uuidIndex = requireHeaderIndex_(headers, '_uuid', schemaTable);
+  var currentUuid = normalizeCell_(record._uuid).toLowerCase();
+  var expectedEmail = normalizeApiEmail_(record.UserEmail);
+
+  for (var rowIndex = 1; rowIndex < values.length; rowIndex += 1) {
+    if (normalizeCell_(values[rowIndex][uuidIndex]).toLowerCase() === currentUuid) {
+      continue;
+    }
+
+    if (normalizeApiEmail_(values[rowIndex][emailIndex]) === expectedEmail) {
+      throw new Error('Ya existe otro usuario con el correo ' + record.UserEmail + '.');
+    }
+  }
+}
+
 function findApiBusinessKeyColumn_(schemaTable) {
   var legacyColumn = schemaTable.legacyBusinessKey
     ? findApiColumnByName_(schemaTable, schemaTable.legacyBusinessKey)
@@ -574,6 +605,10 @@ function buildNextApiTicketFolio_(folios, year) {
 
 function assertApiTableWriteAccess_(user, schemaTable) {
   assertApiTableAccess_(user, schemaTable);
+
+  if (schemaTable.name === 'Usuarios' || schemaTable.name === 'Perfiles') {
+    assertAuthAdministrator_(user);
+  }
 }
 
 function toApiSheetCell_(value, column) {

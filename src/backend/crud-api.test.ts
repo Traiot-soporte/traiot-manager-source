@@ -22,6 +22,10 @@ interface CrudTable {
 }
 
 interface CrudSandbox {
+  readonly assertApiTableWriteAccess_: (
+    user: { role: string; permissions: readonly string[] },
+    table: { name: string; permissionView?: string },
+  ) => void
   readonly coerceApiInput_: (value: unknown, column: CrudColumn) => unknown
   readonly validateApiRecord_: (table: CrudTable, record: Readonly<Record<string, unknown>>) => void
   readonly applyApiBusinessFormulas_: (
@@ -42,7 +46,13 @@ interface CrudSandbox {
 }
 
 function loadCrudSandbox(): CrudSandbox {
-  const sandbox = createContext({})
+  const sandbox = createContext({
+    assertAuthAdministrator_: (user: { role: string; permissions: readonly string[] }) => {
+      if (!user.permissions.includes('*') && user.role !== 'ADMIN') {
+        throw new Error('Se requieren permisos de administrador.')
+      }
+    },
+  })
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/90_CrudApi.gs', 'utf8'), sandbox)
@@ -66,6 +76,21 @@ function column(overrides: Partial<CrudColumn> = {}): CrudColumn {
 }
 
 describe('CRUD de Apps Script', () => {
+  it('reserva la administracion de usuarios y perfiles para administradores', () => {
+    const { assertApiTableWriteAccess_ } = loadCrudSandbox()
+    const support = { role: 'SOPORTE', permissions: ['Usuarios', 'Perfiles'] }
+    const admin = { role: 'ADMIN', permissions: ['*'] }
+
+    expect(() => assertApiTableWriteAccess_(support, {
+      name: 'Usuarios',
+      permissionView: 'Usuarios',
+    })).toThrow('administrador')
+    expect(() => assertApiTableWriteAccess_(admin, {
+      name: 'Usuarios',
+      permissionView: 'Usuarios',
+    })).not.toThrow()
+  })
+
   it('normaliza numeros, booleanos y listas antes de escribir', () => {
     const { coerceApiInput_ } = loadCrudSandbox()
 

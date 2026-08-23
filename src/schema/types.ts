@@ -37,8 +37,11 @@ export type ViewKind =
   | 'dashboard'
 
 export interface UserContext {
+  readonly userUuid?: string
   readonly email: string
+  readonly name?: string
   readonly role: string
+  readonly mustChangePassword?: boolean
   readonly permissions: ReadonlySet<string>
 }
 
@@ -58,6 +61,7 @@ export interface ColumnDef<T extends RowData = RowData> {
   readonly labelColumn?: boolean
   readonly required?: boolean
   readonly hidden?: boolean
+  readonly sensitive?: boolean
   readonly readOnly?: boolean
   readonly virtual?: boolean
   readonly origin?: DataOrigin

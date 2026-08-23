@@ -48,12 +48,16 @@ function getRuntimeConfig_() {
  * Ejecutar una vez desde el editor de Apps Script.
  */
 function configurarBackend() {
-  PropertiesService.getScriptProperties().setProperties({
+  var scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperties({
     TRAIOT_FOLDER_ID: TRAIOT_DEFAULT_CONFIG.folderId,
     TRAIOT_SCHEMA_VERSION: TRAIOT_DEFAULT_CONFIG.schemaVersion,
-    TRAIOT_OWNER_EMAIL: Session.getEffectiveUser().getEmail(),
-    TRAIOT_AUTH_MODE: 'OWNER_ONLY'
+    TRAIOT_OWNER_EMAIL: Session.getEffectiveUser().getEmail()
   });
+
+  if (!scriptProperties.getProperty('TRAIOT_AUTH_MODE')) {
+    scriptProperties.setProperty('TRAIOT_AUTH_MODE', 'OWNER_ONLY');
+  }
 
   var folder = DriveApp.getFolderById(TRAIOT_DEFAULT_CONFIG.folderId);
   var spreadsheetFiles = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
@@ -86,6 +90,16 @@ function configurarBackend() {
     spreadsheetsDetected: spreadsheetsDetected,
     sheetsDetected: sheetsDetected
   };
+}
+
+/**
+ * Recuperacion administrativa: bloquea todo acceso web sin borrar credenciales
+ * ni sesiones. Ejecutar solo desde el editor de Apps Script si el login requiere
+ * mantenimiento; para reactivarlo se debe corregir y volver a desplegar.
+ */
+function desactivarAutenticacion() {
+  PropertiesService.getScriptProperties().setProperty('TRAIOT_AUTH_MODE', 'LOCKED');
+  return { ok: true, mode: 'LOCKED' };
 }
 
 /**

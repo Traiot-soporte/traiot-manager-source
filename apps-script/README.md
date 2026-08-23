@@ -5,7 +5,8 @@ Sheets/Drive. No existe un servidor backend local.
 
 ## Estado actual
 
-- Web App privado: acceso exclusivo de la cuenta propietaria.
+- Web App en preparación: acceso exclusivo de la cuenta propietaria hasta que
+  todos los usuarios tengan una contraseña temporal.
 - La ruta principal entrega la interfaz React empaquetada y utiliza
   `google.script.run` para consultar Sheets sin CORS ni credenciales en el
   navegador.
@@ -18,12 +19,36 @@ Sheets/Drive. No existe un servidor backend local.
 - Permisos: acceso a Google Drive y Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.
-- Acciones HTTP disponibles: `health`, `inventory`, `preflight` y
-  `preparation-plan`; `data-migration-audit` audita filas sin escribir.
+- La única acción HTTP disponible es `health`. Datos, archivos y mutaciones se
+  atienden exclusivamente mediante `google.script.run` y una sesión válida.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
-- Las mutaciones solo estan disponibles mediante el puente privado de la
-  interfaz alojada; todavia no existe acceso publico para la PWA.
+- Las mutaciones solo están disponibles mediante el puente privado de la
+  interfaz alojada.
+
+## Autenticación con la hoja Usuarios
+
+El correo proviene de `Usuarios.UserEmail`. Las contraseñas nunca se escriben
+en texto plano: el backend aplica HMAC-SHA-256 con un secreto de Script
+Properties y después bcrypt. Los hashes, bloqueos y versiones de sesión son
+columnas sensibles que la API no devuelve al navegador.
+
+Flujo de preparación:
+
+1. Corregir correos duplicados entre usuarios activos.
+2. Abrir el detalle de un usuario desde la aplicación y pulsar
+   `PREPARAR SEGURIDAD` una sola vez.
+3. Asignar una contraseña temporal diferente a cada usuario activo desde el
+   panel de su detalle. No pegar contraseñas en Sheets, código o conversaciones.
+4. Cuando el contador indique que todos están listos, pulsar
+   `ACTIVAR PÁGINA DE LOGIN`.
+5. Verificar el acceso y solamente entonces desplegar una versión con acceso
+   anónimo al Web App; la identidad seguirá validándose contra `Usuarios`.
+
+La primera sesión obliga al usuario a reemplazar la contraseña temporal. Cinco
+fallos bloquean la cuenta durante 15 minutos. Los tokens se almacenan como hash
+en `_AuthSessions`, las acciones de acceso se registran en `_AuthAudit` y ambas
+hojas se mantienen ocultas.
 
 ## Funciones manuales
 
@@ -67,6 +92,7 @@ ninguna coincidencia exacta pendiente de escritura.
 
 ## Seguridad
 
-No se debe cambiar `webapp.access` a `ANYONE` o `ANYONE_ANONYMOUS` hasta que la
-validación de identidad, usuarios activos y permisos por operación esté terminada.
+No se debe cambiar `webapp.access` a `ANYONE_ANONYMOUS` hasta que el modo
+`SHEET_PASSWORD` esté activo y el inicio de sesión haya sido verificado. En modo
+`OWNER_ONLY` también se exige que la cuenta activa sea la propietaria.
 Los tokens de `clasp` no pertenecen al código fuente y no deben versionarse.

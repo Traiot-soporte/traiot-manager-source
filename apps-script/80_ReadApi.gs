@@ -6,10 +6,60 @@
 function apiRequest(request) {
   var safeRequest = request || {};
   var action = String(safeRequest.action || '').toLowerCase();
-  var user = resolveApiUser_();
+
+  if (action === 'auth-status') {
+    return getPublicAuthStatus_();
+  }
+
+  if (action === 'login') {
+    return loginWithSheetPassword_(
+      safeRequest.email,
+      safeRequest.password,
+      safeRequest.remember
+    );
+  }
+
+  if (action === 'logout') {
+    return logoutSheetSession_(safeRequest.sessionToken);
+  }
+
+  var user = resolveApiUser_(safeRequest.sessionToken);
+
+  if (action === 'change-password') {
+    return changeSheetPassword_(
+      user,
+      safeRequest.sessionToken,
+      safeRequest.currentPassword,
+      safeRequest.nextPassword
+    );
+  }
 
   if (action === 'current-user') {
     return serializeApiUser_(user);
+  }
+
+  if (user.mustChangePassword) {
+    throw new Error('Debes cambiar la contraseña temporal antes de continuar.');
+  }
+
+  if (action === 'auth-admin-status') {
+    return getAuthAdminStatus_(user);
+  }
+
+  if (action === 'auth-initialize') {
+    return initializeSheetAuthentication_(user);
+  }
+
+  if (action === 'auth-set-password') {
+    return setTemporaryPassword_(
+      user,
+      String(safeRequest.userUuid || ''),
+      safeRequest.password
+    );
+  }
+
+  if (action === 'auth-activate') {
+    return activateSheetAuthentication_(user);
   }
 
   if (action === 'summaries') {
@@ -63,7 +113,7 @@ function apiRequest(request) {
   throw new Error('La accion de lectura solicitada no existe.');
 }
 
-function resolveApiUser_() {
+function resolveApiUser_(sessionToken) {
   var properties = PropertiesService.getScriptProperties();
   var authMode = properties.getProperty('TRAIOT_AUTH_MODE') || 'OWNER_ONLY';
   var ownerEmail = normalizeApiEmail_(
@@ -71,15 +121,30 @@ function resolveApiUser_() {
   );
 
   if (authMode === 'OWNER_ONLY') {
+    if (properties.getProperty('TRAIOT_PUBLIC_AUTH_REQUIRED') === 'true') {
+      throw new Error('El acceso web se encuentra bloqueado hasta reactivar la autenticacion.');
+    }
+
     if (!ownerEmail) {
       throw new Error('No fue posible identificar a la cuenta propietaria.');
     }
 
     return {
+      userUuid: '',
       email: ownerEmail,
+      name: 'Administrador',
       role: 'ADMIN',
+      mustChangePassword: false,
       permissions: ['*']
     };
+  }
+
+  if (authMode === TRAIOT_AUTH_MODE_PASSWORD) {
+    return resolveSheetSessionUser_(sessionToken);
+  }
+
+  if (authMode === 'LOCKED') {
+    throw new Error('El acceso web se encuentra temporalmente deshabilitado.');
   }
 
   var activeEmail = normalizeApiEmail_(Session.getActiveUser().getEmail());
@@ -123,8 +188,11 @@ function findAuthorizedSheetUser_(email) {
 
 function serializeApiUser_(user) {
   return {
+    userUuid: user.userUuid || '',
     email: user.email,
+    name: user.name || '',
     role: user.role,
+    mustChangePassword: Boolean(user.mustChangePassword),
     permissions: user.permissions.slice()
   };
 }
@@ -199,7 +267,7 @@ function mapApiRecordFromRow_(schemaTable, headers, row, preferTechnicalReferenc
   var record = {};
 
   schemaTable.columns.filter(function (column) {
-    return !column.virtual;
+    return !column.virtual && !column.sensitive;
   }).forEach(function (column) {
     var columnIndex = headers.indexOf(column.sourceHeader || column.name);
 

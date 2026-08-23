@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { useRepository } from '@/data/use-repository'
+import { AuthAdminPanel } from '@/modules/auth/auth-admin-panel'
 import { getTableDefinition } from '@/schema'
 import { DetailView } from '@/views/detail-view'
 import { getRowTitle } from '@/views/view-utils'
@@ -17,6 +18,10 @@ export function RecordDetailPage() {
     queryKey: ['row', tableName, rowUuid],
     queryFn: () => repository.get(tableName, rowUuid),
     enabled: Boolean(table && rowUuid),
+  })
+  const currentUser = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => repository.getCurrentUser(),
   })
   const basePath = table ? '/tablas/' + encodeURIComponent(table.name) : '/'
   const remove = useMutation({
@@ -50,6 +55,12 @@ export function RecordDetailPage() {
       </header>
       {remove.isError && <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">No fue posible eliminar el registro.</p>}
       <DetailView row={row.data} table={table} />
+      {table.name === 'Usuarios' && currentUser.data?.permissions.has('*') && (
+        <AuthAdminPanel
+          email={String(row.data.UserEmail ?? '')}
+          userUuid={String(row.data._uuid ?? '')}
+        />
+      )}
     </div>
   )
 }

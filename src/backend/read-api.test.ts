@@ -8,6 +8,7 @@ interface ApiColumn {
   readonly sourceHeader: string
   readonly type: string
   readonly virtual?: boolean
+  readonly sensitive?: boolean
 }
 
 interface ApiTable {
@@ -32,13 +33,14 @@ function loadReadApiSandbox(): ReadApiSandbox {
 
 const table: ApiTable = {
   name: 'CATALOGO',
-  sourceHeaders: ['ID', 'ACTIVO', 'ETIQUETAS'],
+  sourceHeaders: ['ID', 'ACTIVO', 'ETIQUETAS', 'PasswordHash'],
   columns: [
     { name: '_uuid', sourceHeader: '_uuid', type: 'Text' },
     { name: '_deleted', sourceHeader: '_deleted', type: 'Bool' },
     { name: 'ID', sourceHeader: 'ID FISICO', type: 'Text' },
     { name: 'ACTIVO', sourceHeader: 'ACTIVO', type: 'Bool' },
     { name: 'ETIQUETAS', sourceHeader: 'ETIQUETAS', type: 'EnumList' },
+    { name: 'PasswordHash', sourceHeader: 'PasswordHash', type: 'Text', sensitive: true },
   ],
 }
 
@@ -46,8 +48,15 @@ describe('API privada de lectura', () => {
   it('mapea encabezados fisicos, booleanos y listas', () => {
     const { mapApiRowsFromValues_ } = loadReadApiSandbox()
     const rows = mapApiRowsFromValues_(table, [
-      ['ID FISICO', 'ACTIVO', 'ETIQUETAS', '_uuid', '_deleted'],
-      ['A-1', 'TRUE', 'Uno, Dos', '11111111-1111-4111-8111-111111111111', false],
+      ['ID FISICO', 'ACTIVO', 'ETIQUETAS', 'PasswordHash', '_uuid', '_deleted'],
+      [
+        'A-1',
+        'TRUE',
+        'Uno, Dos',
+        '$2b$11$hash-que-nunca-debe-llegar-al-cliente',
+        '11111111-1111-4111-8111-111111111111',
+        false,
+      ],
     ])
 
     expect(rows).toEqual([

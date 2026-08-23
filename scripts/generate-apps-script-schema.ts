@@ -26,6 +26,7 @@ const schema = tableDefinitions.map((table) => {
       type: column.type,
       required: Boolean(column.required),
       hidden: Boolean(column.hidden),
+      sensitive: Boolean(column.sensitive),
       readOnly: Boolean(column.readOnly),
       hasFormula: Boolean(column.formula),
       values: column.values ?? [],

@@ -2,8 +2,12 @@ import { getTableDefinition, tableDefinitions } from '@/schema'
 import type { FormulaContext, RowData, TableSummary, UserContext } from '@/schema'
 import { mockRows } from '@/data/mock-data'
 import type {
+  AuthAdminStatus,
+  AuthStatus,
+  ChangePasswordInput,
   CreateRowInput,
   DeleteRowInput,
+  LoginInput,
   Repository,
   UpdateRowInput,
 } from '@/data/repository'
@@ -56,6 +60,48 @@ export class MockRepository implements Repository {
   async getCurrentUser(): Promise<UserContext> {
     return mockUser
   }
+
+  async getAuthStatus(): Promise<AuthStatus> {
+    return { mode: 'OWNER_ONLY', passwordLoginActive: false, configured: false }
+  }
+
+  hasSession(): boolean {
+    return true
+  }
+
+  async login(input: LoginInput): Promise<UserContext> {
+    void input
+    return mockUser
+  }
+
+  async logout(): Promise<void> {}
+
+  async changePassword(input: ChangePasswordInput): Promise<UserContext> {
+    void input
+    return mockUser
+  }
+
+  async getAuthAdminStatus(): Promise<AuthAdminStatus> {
+    return {
+      configured: false,
+      mode: 'OWNER_ONLY',
+      activeUsers: 0,
+      credentialsReady: 0,
+      duplicates: [],
+      usersMissingPassword: [],
+    }
+  }
+
+  async initializeAuthentication(): Promise<AuthAdminStatus> {
+    return await this.getAuthAdminStatus()
+  }
+
+  async setTemporaryPassword(userUuid: string, password: string): Promise<void> {
+    void userUuid
+    void password
+  }
+
+  async activateAuthentication(): Promise<void> {}
 
   async getSummaries(): Promise<readonly TableSummary[]> {
     return tableDefinitions.map((table) => ({

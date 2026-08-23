@@ -54,4 +54,50 @@ describe('AppsScriptRepository', () => {
       mutationId,
     })
   })
+
+  it('guarda el token al iniciar sesion y lo adjunta a las consultas privadas', async () => {
+    let stored: { token: string; expiresAt: string; remember: boolean } | undefined
+    const session = {
+      get: () => stored,
+      save: (next: typeof stored) => { stored = next },
+      clear: () => { stored = undefined },
+    }
+    const call = vi.fn((request: Readonly<Record<string, unknown>>) => {
+      if (request.action === 'login') {
+        return Promise.resolve({
+          token: 'token-seguro',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          mustChangePassword: true,
+          user: {
+            userUuid: '11111111-1111-4111-8111-111111111111',
+            email: 'soporte@traiot.com.mx',
+            name: 'Manuel Soto',
+            role: 'Administrador',
+            mustChangePassword: true,
+            permissions: ['*'],
+          },
+        })
+      }
+      return Promise.resolve([])
+    })
+    const repository = new AppsScriptRepository(call, () => 'mutation-id', session)
+
+    await repository.login({
+      email: 'soporte@traiot.com.mx',
+      password: 'Temporal#2026A',
+      remember: true,
+    })
+    await repository.list('ALMACEN')
+
+    expect(stored).toEqual({
+      token: 'token-seguro',
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      remember: true,
+    })
+    expect(call).toHaveBeenLastCalledWith({
+      action: 'list',
+      table: 'ALMACEN',
+      sessionToken: 'token-seguro',
+    })
+  })
 })

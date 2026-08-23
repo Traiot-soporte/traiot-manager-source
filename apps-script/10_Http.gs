@@ -31,14 +31,6 @@ function handleHttpRequest_(event, payload) {
 
     if (action === 'health') {
       data = buildHealth_();
-    } else if (action === 'inventory') {
-      data = buildDriveInventory_();
-    } else if (action === 'preflight') {
-      data = buildMigrationPreflight_();
-    } else if (action === 'preparation-plan') {
-      data = buildStructurePlan_(buildMigrationPreflight_());
-    } else if (action === 'data-migration-audit') {
-      data = buildDataMigrationAudit_();
     } else {
       throw createApiError_('INVALID_ACTION', 'La accion solicitada no existe.', false);
     }

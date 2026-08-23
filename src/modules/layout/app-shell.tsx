@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,6 +20,7 @@ import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import { LoginScreen } from '@/modules/auth/login-screen'
+import { ChangePasswordScreen } from '@/modules/auth/change-password-screen'
 import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
@@ -29,10 +30,14 @@ const primaryTables = tableDefinitions.filter(
 
 const mobileLinks = [
   { label: 'Inicio', to: '/', icon: Home },
-  { label: 'Servicios', to: '/tablas/INSTALACIONES', icon: Wrench },
-  { label: 'Clientes', to: '/tablas/CLIENTES', icon: Users },
-  { label: 'Almacén', to: '/tablas/ALMACEN', icon: Package },
+  { label: 'Servicios', to: '/tablas/INSTALACIONES', icon: Wrench, table: 'INSTALACIONES' },
+  { label: 'Clientes', to: '/tablas/CLIENTES', icon: Users, table: 'CLIENTES' },
+  { label: 'Almacén', to: '/tablas/ALMACEN', icon: Package, table: 'ALMACEN' },
 ] as const
+
+function normalizePermission(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase()
+}
 
 function readPreference(key: string): string | null {
   try {
@@ -52,6 +57,7 @@ function savePreference(key: string, value: string): void {
 
 export function AppShell() {
   const repository = useRepository()
+  const queryClient = useQueryClient()
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => readPreference('traiot-sidebar-collapsed') === 'true',
@@ -59,13 +65,18 @@ export function AppShell() {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   )
-  const [sessionActive, setSessionActive] = useState(
-    () => readPreference('traiot-session-active') !== 'false',
-  )
+  const [authRevision, setAuthRevision] = useState(0)
+  const authStatus = useQuery({
+    queryKey: ['auth-status'],
+    queryFn: () => repository.getAuthStatus(),
+  })
+  const passwordLoginActive = authStatus.data?.passwordLoginActive === true
+  const sessionAvailable = repository.hasSession()
+  const authenticated = !passwordLoginActive || sessionAvailable
   const currentUser = useQuery({
-    queryKey: ['current-user'],
+    queryKey: ['current-user', authRevision],
     queryFn: () => repository.getCurrentUser(),
-    enabled: sessionActive,
+    enabled: Boolean(authStatus.data) && authenticated,
   })
 
   useEffect(() => {
@@ -83,22 +94,73 @@ export function AppShell() {
   }
 
   const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-  const login = () => {
-    savePreference('traiot-session-active', 'true')
-    setSessionActive(true)
-  }
-  const logout = () => {
-    savePreference('traiot-session-active', 'false')
-    setMenuOpen(false)
-    setSessionActive(false)
+  const login = async (input: { email: string; password: string; remember: boolean }) => {
+    await repository.login(input)
+    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    setAuthRevision((current) => current + 1)
   }
 
-  if (!sessionActive) {
+  const logout = async () => {
+    await repository.logout()
+    setMenuOpen(false)
+    queryClient.removeQueries()
+    setAuthRevision((current) => current + 1)
+  }
+
+  const changePassword = async (input: { currentPassword: string; nextPassword: string }) => {
+    await repository.changePassword(input)
+    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
+    setAuthRevision((current) => current + 1)
+  }
+
+  if (authStatus.isPending) {
+    return <AuthLoading />
+  }
+
+  if (authStatus.isError) {
+    return <LoginScreen backendUnavailable onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+  }
+
+  if (passwordLoginActive && !sessionAvailable) {
     return <LoginScreen onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
   }
 
+  if (currentUser.isPending) {
+    return <AuthLoading />
+  }
+
+  if (passwordLoginActive && (currentUser.isError || !currentUser.data)) {
+    return <LoginScreen sessionExpired onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+  }
+
+  if (currentUser.isError || !currentUser.data) {
+    return <AuthUnavailable />
+  }
+
+  if (currentUser.data?.mustChangePassword) {
+    return (
+      <ChangePasswordScreen
+        email={currentUser.data.email}
+        onChangePassword={changePassword}
+        onLogout={() => void logout()}
+      />
+    )
+  }
+
   const email = currentUser.data?.email ?? 'usuario@traiot.mx'
-  const displayName = email.split('@')[0]?.replace(/[._-]+/g, ' ') ?? 'Usuario'
+  const displayName = currentUser.data?.name ||
+    email.split('@')[0]?.replace(/[._-]+/g, ' ') || 'Usuario'
+  const permissions = currentUser.data?.permissions ?? new Set<string>()
+  const canAccess = (tableName: string) => {
+    if (permissions.has('*')) return true
+    const table = tableDefinitions.find((candidate) => candidate.name === tableName)
+    const required = normalizePermission(table?.permissionView ?? tableName)
+    return [...permissions].some((permission) => normalizePermission(permission) === required)
+  }
+  const visibleTables = primaryTables.filter((table) => canAccess(table.name))
+  const visibleMobileLinks = mobileLinks.filter(
+    (link) => !('table' in link) || canAccess(link.table),
+  )
 
   return (
     <div className="min-h-screen bg-[#f7f3f1]">
@@ -183,7 +245,7 @@ export function AppShell() {
               RESUMEN
             </span>
           </NavLink>
-          {primaryTables.map((table) => (
+          {visibleTables.map((table) => (
             <NavLink
               className={({ isActive }) =>
                 cn(
@@ -233,7 +295,7 @@ export function AppShell() {
             <button
               aria-label="Cerrar sesión"
               className="grid min-h-10 min-w-10 place-items-center rounded-xl border border-white/10 text-white/65 transition hover:bg-brand-600 hover:text-white"
-              onClick={logout}
+              onClick={() => void logout()}
               title="Cerrar sesión"
               type="button"
             >
@@ -283,7 +345,7 @@ export function AppShell() {
         aria-label="Navegación principal móvil"
         className="fixed inset-x-3 bottom-3 z-30 grid grid-cols-4 rounded-2xl border border-black/5 bg-white/95 p-1.5 shadow-2xl shadow-ink-950/20 backdrop-blur lg:hidden"
       >
-        {mobileLinks.map(({ icon: Icon, label, to }) => (
+        {visibleMobileLinks.map(({ icon: Icon, label, to }) => (
           <NavLink
             className={({ isActive }) =>
               cn(
@@ -301,5 +363,39 @@ export function AppShell() {
         ))}
       </nav>
     </div>
+  )
+}
+
+function AuthLoading() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
+      <div className="text-center">
+        <span className="mx-auto block size-10 animate-spin rounded-full border-4 border-white/15 border-t-brand-400" />
+        <p className="mt-4 text-sm font-bold text-white/60">Protegiendo tu sesión…</p>
+      </div>
+    </main>
+  )
+}
+
+function AuthUnavailable() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
+      <section className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl">
+        <span className="mx-auto grid size-14 place-items-center overflow-hidden rounded-2xl bg-[#191919]">
+          <img alt="" aria-hidden="true" className="size-full scale-[1.5] object-cover" src={logoUrl} />
+        </span>
+        <h1 className="mt-5 text-2xl font-black">Acceso no disponible</h1>
+        <p className="mt-3 text-sm leading-6 text-white/50">
+          La aplicación está protegida o en mantenimiento. Verifica la configuración desde Apps Script.
+        </p>
+        <button
+          className="mt-6 min-h-12 rounded-xl bg-brand-400 px-5 text-sm font-black text-[#191919]"
+          onClick={() => window.location.reload()}
+          type="button"
+        >
+          VOLVER A INTENTAR
+        </button>
+      </section>
+    </main>
   )
 }
