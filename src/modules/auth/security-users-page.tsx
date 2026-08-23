@@ -100,23 +100,23 @@ export function SecurityUsersPage() {
     mutationError(revoke.error) ?? mutationError(setActive.error) ?? formError
 
   return (
-    <div className="space-y-6">
-      <header className="overflow-hidden rounded-[2rem] bg-ink-950 text-white shadow-xl">
-        <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand-400 text-[#191919]">
-              <ShieldCheck className="size-7" />
+    <div className="space-y-4">
+      <header className="overflow-hidden rounded-3xl bg-ink-950 text-white shadow-lg">
+        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-[#191919]">
+              <ShieldCheck className="size-5" />
             </span>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-400">Administración</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight">SEGURIDAD DE USUARIOS</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-400">Administración</p>
+              <h1 className="mt-1 text-2xl font-black tracking-tight">SEGURIDAD DE USUARIOS</h1>
+              <p className="mt-1 max-w-2xl text-xs leading-5 text-white/50 sm:text-sm">
                 Restablece accesos, desbloquea cuentas y controla sesiones sin ver contraseñas.
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs font-black text-emerald-300">
-            <ShieldCheck className="size-4" /> SOLO ADMINISTRADOR
+          <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">
+            <ShieldCheck className="size-3.5" /> SOLO ADMINISTRADOR
           </span>
         </div>
       </header>
@@ -128,10 +128,10 @@ export function SecurityUsersPage() {
         <Metric icon={Activity} label="Sesiones activas" value={activeSessions} />
       </section>
 
-      <div className="relative max-w-xl">
-        <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-ink-800/30" />
+      <div className="relative max-w-lg">
+        <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-800/30" />
         <input
-          className="min-h-13 w-full rounded-2xl border border-black/5 bg-white pl-12 pr-4 text-sm font-semibold outline-none shadow-sm focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
+          className="min-h-11 w-full rounded-xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none shadow-sm focus:border-brand-400 focus:ring-4 focus:ring-brand-100"
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Buscar usuario, correo o rol…"
           value={search}
@@ -142,15 +142,15 @@ export function SecurityUsersPage() {
       {securityUsers.isError && <PageMessage text="No fue posible consultar la seguridad de usuarios." />}
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">{error}</p>}
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-3 xl:grid-cols-2">
         {filteredUsers.map((user) => {
           const isCurrentUser = user.userUuid === currentUser.data.userUuid
           return (
-            <article className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-6" key={user.userUuid}>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <article className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm sm:p-5" key={user.userUuid}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="truncate text-xl font-black text-ink-950">{user.name || user.userId}</h2>
+                    <h2 className="truncate text-lg font-black text-ink-950">{user.name || user.userId}</h2>
                     {isCurrentUser && <Badge tone="orange">TÚ</Badge>}
                     <Badge tone={user.active ? 'green' : 'gray'}>{user.active ? 'ACTIVO' : 'INACTIVO'}</Badge>
                     {user.locked && <Badge tone="red">BLOQUEADO</Badge>}
@@ -159,12 +159,12 @@ export function SecurityUsersPage() {
                   <p className="mt-1 truncate text-sm font-semibold text-ink-800/55">{user.email}</p>
                   <p className="mt-1 text-xs font-black uppercase tracking-wide text-brand-600">{user.role || 'SIN ROL'}</p>
                 </div>
-                <span className="inline-flex items-center gap-2 rounded-xl bg-ink-950 px-3 py-2 text-xs font-black text-white">
+                <span className="inline-flex items-center gap-2 rounded-lg bg-ink-950 px-3 py-1.5 text-[11px] font-black text-white">
                   <Activity className="size-3.5 text-brand-400" /> {user.activeSessions} SESIÓN{user.activeSessions === 1 ? '' : 'ES'}
                 </span>
               </div>
 
-              <dl className="mt-5 grid grid-cols-2 gap-3 border-y border-black/5 py-4 text-sm">
+              <dl className="mt-4 grid grid-cols-2 gap-3 border-y border-black/5 py-3 text-sm">
                 <SecurityDatum label="Último acceso" value={formatSecurityDate(user.lastLoginAt)} />
                 <SecurityDatum label="Contraseña actualizada" value={formatSecurityDate(user.passwordUpdatedAt)} />
                 <SecurityDatum label="Intentos fallidos" value={String(user.failedAttempts)} />
@@ -172,7 +172,7 @@ export function SecurityUsersPage() {
               </dl>
 
               {resetUserUuid === user.userUuid ? (
-                <form className="mt-5 space-y-3 rounded-2xl bg-brand-50 p-4" onSubmit={submitReset}>
+                <form className="mt-4 space-y-3 rounded-2xl bg-brand-50 p-4" onSubmit={submitReset}>
                   <p className="text-xs font-black uppercase tracking-wide text-brand-700">Nueva contraseña temporal</p>
                   <PasswordField onChange={setTemporaryPassword} value={temporaryPassword} visible={passwordVisible} />
                   <PasswordField onChange={setConfirmation} placeholder="Confirmar contraseña" value={confirmation} visible={passwordVisible} />
@@ -187,7 +187,7 @@ export function SecurityUsersPage() {
                   </div>
                 </form>
               ) : (
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <ActionButton icon={KeyRound} label="RESTABLECER" onClick={() => setResetUserUuid(user.userUuid)} />
                   <ActionButton disabled={!user.locked && user.failedAttempts === 0} icon={Unlock} label="DESBLOQUEAR" onClick={() => unlock.mutate(user.userUuid)} />
                   <ActionButton disabled={isCurrentUser || user.activeSessions === 0} icon={LogOut} label="REVOCAR SESIONES" onClick={() => {
@@ -214,7 +214,7 @@ export function SecurityUsersPage() {
 }
 
 function Metric({ icon: Icon, label, value }: { readonly icon: typeof Users; readonly label: string; readonly value: number }) {
-  return <article className="flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm"><span className="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-600"><Icon className="size-5" /></span><div><p className="text-2xl font-black text-ink-950">{value}</p><p className="text-xs font-bold uppercase tracking-wide text-ink-800/40">{label}</p></div></article>
+  return <article className="flex items-center gap-3 rounded-xl border border-black/5 bg-white px-3 py-2.5 shadow-sm"><span className="grid size-9 place-items-center rounded-lg bg-brand-50 text-brand-600"><Icon className="size-4" /></span><div><p className="text-xl font-black leading-none text-ink-950">{value}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-ink-800/40">{label}</p></div></article>
 }
 
 function SecurityDatum({ label, value }: { readonly label: string; readonly value: string }) {
@@ -242,7 +242,11 @@ function formatSecurityDate(value: string): string {
   if (!value) return 'Sin registro'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'America/Mexico_City',
+  }).format(date)
 }
 
 function mutationError(error: unknown): string | undefined {

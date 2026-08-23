@@ -323,7 +323,7 @@ export function AppShell() {
           sidebarCollapsed && 'lg:pl-[76px]',
         )}
       >
-        <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-black/5 bg-[#f7f3f1]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-black/5 bg-[#f7f3f1]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <button
             aria-label="Abrir menú"
             className="grid min-h-11 min-w-11 place-items-center rounded-xl border border-black/10 bg-white lg:hidden"
@@ -334,12 +334,12 @@ export function AppShell() {
           </button>
           <div className="hidden lg:block">
             <p className="text-sm font-bold text-ink-950">Centro de operación</p>
-            <p className="text-xs text-ink-800/60">Viernes, 21 de agosto de 2026</p>
+            <p className="text-xs capitalize text-ink-800/60">{formatOperationDate(new Date())}</p>
           </div>
           <SyncStatus />
         </header>
 
-        <main className="mx-auto w-full max-w-[1500px] px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-10">
+        <main className="mx-auto w-full max-w-[1500px] px-4 pb-28 pt-4 sm:px-6 lg:px-8 lg:pb-10">
           <Outlet />
         </main>
       </div>
@@ -367,4 +367,11 @@ export function AppShell() {
       </nav>
     </div>
   )
+}
+
+function formatOperationDate(date: Date): string {
+  return new Intl.DateTimeFormat('es-MX', {
+    dateStyle: 'full',
+    timeZone: 'America/Mexico_City',
+  }).format(date)
 }
