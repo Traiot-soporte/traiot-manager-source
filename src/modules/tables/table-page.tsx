@@ -10,6 +10,7 @@ import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData, TableDef } from '@/schema'
 import { CalendarView } from '@/views/calendar-view'
 import { CardView } from '@/views/card-view'
+import { CrmCalendarView } from '@/views/crm-calendar-view'
 import { DashboardView } from '@/views/dashboard-view'
 import { DeckView } from '@/views/deck-view'
 import { TableView } from '@/views/table-view'
@@ -92,7 +93,7 @@ function CollectionView({ view, ...props }: { readonly view: CollectionViewKind 
   switch (view) {
     case 'deck': return <DeckView {...props} />
     case 'card': return <CardView {...props} />
-    case 'calendar': return <CalendarView {...props} />
+    case 'calendar': return props.table.name === 'Gestion Clientes' ? <CrmCalendarView {...props} /> : <CalendarView {...props} />
     case 'chart': return <Suspense fallback={<StatusMessage text="Preparando gráfica…" />}><ChartView {...props} /></Suspense>
     case 'dashboard': return <DashboardView {...props} />
     default: return <TableView {...props} />
