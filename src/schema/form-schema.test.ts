@@ -4,6 +4,7 @@ import { buildFormSchema } from '@/schema/form-schema'
 import { tableDefinitions } from '@/schema'
 import { clientesTable } from '@/schema/tables/clientes'
 import { pedidosTable } from '@/schema/tables/pedidos'
+import { usuariosTable } from '@/schema/tables/usuarios'
 
 describe('schema Zod derivado de metadata', () => {
   it('genera campos editables para las 16 tablas', () => {
@@ -40,6 +41,18 @@ describe('schema Zod derivado de metadata', () => {
       FECHA: '2026-08-21',
       'ID PEDIDO': 'PED-TEST',
       'TIPO DE PEDIDO': 'INSTALACION',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it.each([true, false])('acepta UserActive=%s como booleano válido', (active) => {
+    const schema = buildFormSchema(usuariosTable)
+    const result = schema.safeParse({
+      UserID: 'jpruebas',
+      UserEmail: 'jpruebas@traiot.com.mx',
+      UserRole: 'perfil-tecnico',
+      UserActive: active,
     })
 
     expect(result.success).toBe(true)

@@ -24,13 +24,17 @@ function schemaForColumn(column: ColumnDef): z.ZodType<unknown> {
       return
     }
 
-    if ((column.type === 'Number' || column.type === 'Price') && typeof value !== 'number') {
-      context.addIssue({ code: 'custom', message: 'Captura un número válido.' })
+    if (column.type === 'Number' || column.type === 'Price') {
+      if (typeof value !== 'number') {
+        context.addIssue({ code: 'custom', message: 'Captura un número válido.' })
+      }
       return
     }
 
-    if (column.type === 'Bool' && typeof value !== 'boolean') {
-      context.addIssue({ code: 'custom', message: 'Selecciona Sí o No.' })
+    if (column.type === 'Bool') {
+      if (typeof value !== 'boolean') {
+        context.addIssue({ code: 'custom', message: 'Selecciona Sí o No.' })
+      }
       return
     }
 
