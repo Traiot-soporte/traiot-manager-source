@@ -12,15 +12,14 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { Navigate, NavLink, Outlet, useNavigate } from 'react-router'
 
 import { SyncStatus } from '@/components/sync-status'
 import { TableIcon } from '@/components/table-icon'
 import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
-import { LoginScreen } from '@/modules/auth/login-screen'
-import { ChangePasswordScreen } from '@/modules/auth/change-password-screen'
+import { AuthLoading, AuthUnavailable } from '@/modules/auth/login-page'
 import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
@@ -58,6 +57,7 @@ function savePreference(key: string, value: string): void {
 export function AppShell() {
   const repository = useRepository()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(
     () => readPreference('traiot-sidebar-collapsed') === 'true',
@@ -65,7 +65,6 @@ export function AppShell() {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     document.documentElement.classList.contains('dark') ? 'dark' : 'light',
   )
-  const [authRevision, setAuthRevision] = useState(0)
   const authStatus = useQuery({
     queryKey: ['auth-status'],
     queryFn: () => repository.getAuthStatus(),
@@ -74,7 +73,7 @@ export function AppShell() {
   const sessionAvailable = repository.hasSession()
   const authenticated = !passwordLoginActive || sessionAvailable
   const currentUser = useQuery({
-    queryKey: ['current-user', authRevision],
+    queryKey: ['current-user'],
     queryFn: () => repository.getCurrentUser(),
     enabled: Boolean(authStatus.data) && authenticated,
   })
@@ -94,23 +93,11 @@ export function AppShell() {
   }
 
   const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-  const login = async (input: { email: string; password: string; remember: boolean }) => {
-    await repository.login(input)
-    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
-    setAuthRevision((current) => current + 1)
-  }
-
   const logout = async () => {
     await repository.logout()
     setMenuOpen(false)
     queryClient.removeQueries()
-    setAuthRevision((current) => current + 1)
-  }
-
-  const changePassword = async (input: { currentPassword: string; nextPassword: string }) => {
-    await repository.changePassword(input)
-    await queryClient.invalidateQueries({ queryKey: ['current-user'] })
-    setAuthRevision((current) => current + 1)
+    void navigate('/login', { replace: true })
   }
 
   if (authStatus.isPending) {
@@ -118,11 +105,11 @@ export function AppShell() {
   }
 
   if (authStatus.isError) {
-    return <LoginScreen backendUnavailable onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+    return <AuthUnavailable />
   }
 
   if (passwordLoginActive && !sessionAvailable) {
-    return <LoginScreen onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+    return <Navigate replace to="/login" />
   }
 
   if (currentUser.isPending) {
@@ -130,7 +117,7 @@ export function AppShell() {
   }
 
   if (passwordLoginActive && (currentUser.isError || !currentUser.data)) {
-    return <LoginScreen sessionExpired onLogin={login} onToggleTheme={toggleTheme} theme={theme} />
+    return <Navigate replace to="/login" />
   }
 
   if (currentUser.isError || !currentUser.data) {
@@ -138,13 +125,7 @@ export function AppShell() {
   }
 
   if (currentUser.data?.mustChangePassword) {
-    return (
-      <ChangePasswordScreen
-        email={currentUser.data.email}
-        onChangePassword={changePassword}
-        onLogout={() => void logout()}
-      />
-    )
+    return <Navigate replace to="/cambiar-contrasena" />
   }
 
   const email = currentUser.data?.email ?? 'usuario@traiot.mx'
@@ -363,39 +344,5 @@ export function AppShell() {
         ))}
       </nav>
     </div>
-  )
-}
-
-function AuthLoading() {
-  return (
-    <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
-      <div className="text-center">
-        <span className="mx-auto block size-10 animate-spin rounded-full border-4 border-white/15 border-t-brand-400" />
-        <p className="mt-4 text-sm font-bold text-white/60">Protegiendo tu sesión…</p>
-      </div>
-    </main>
-  )
-}
-
-function AuthUnavailable() {
-  return (
-    <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
-      <section className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl">
-        <span className="mx-auto grid size-14 place-items-center overflow-hidden rounded-2xl bg-[#191919]">
-          <img alt="" aria-hidden="true" className="size-full scale-[1.5] object-cover" src={logoUrl} />
-        </span>
-        <h1 className="mt-5 text-2xl font-black">Acceso no disponible</h1>
-        <p className="mt-3 text-sm leading-6 text-white/50">
-          La aplicación está protegida o en mantenimiento. Verifica la configuración desde Apps Script.
-        </p>
-        <button
-          className="mt-6 min-h-12 rounded-xl bg-brand-400 px-5 text-sm font-black text-[#191919]"
-          onClick={() => window.location.reload()}
-          type="button"
-        >
-          VOLVER A INTENTAR
-        </button>
-      </section>
-    </main>
   )
 }

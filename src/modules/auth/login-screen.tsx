@@ -2,11 +2,11 @@ import {
   Activity,
   Eye,
   EyeOff,
+  LayoutDashboard,
   LoaderCircle,
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Wifi,
 } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
@@ -92,12 +92,12 @@ export function LoginScreen({
             <div className="mt-10 grid max-w-xl gap-3 sm:grid-cols-3">
               <TrustItem icon={ShieldCheck} label="Acceso protegido" />
               <TrustItem icon={Activity} label="Datos en tiempo real" />
-              <TrustItem icon={Wifi} label="Google Sheets" />
+              <TrustItem icon={LayoutDashboard} label="CRM integral" />
             </div>
           </div>
 
           <p className="text-xs font-semibold text-white/25">
-            © 2026 TRAIOT · Plataforma de uso interno
+            © 2026 TRAIOT · Desarrollado por: MolTech
           </p>
         </section>
 
