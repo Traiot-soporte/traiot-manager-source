@@ -3,6 +3,7 @@ import type { FormulaContext, RowData, TableSummary, UserContext } from '@/schem
 import { mockRows } from '@/data/mock-data'
 import type {
   AuthAdminStatus,
+  AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
   CreateRowInput,
@@ -96,9 +97,26 @@ export class MockRepository implements Repository {
     return await this.getAuthAdminStatus()
   }
 
+  async listAuthSecurityUsers(): Promise<readonly AuthSecurityUser[]> {
+    return []
+  }
+
   async setTemporaryPassword(userUuid: string, password: string): Promise<void> {
     void userUuid
     void password
+  }
+
+  async unlockAuthUser(userUuid: string): Promise<void> {
+    void userUuid
+  }
+
+  async revokeAuthUserSessions(userUuid: string): Promise<void> {
+    void userUuid
+  }
+
+  async setAuthUserActive(userUuid: string, active: boolean): Promise<void> {
+    void userUuid
+    void active
   }
 
   async activateAuthentication(): Promise<void> {}

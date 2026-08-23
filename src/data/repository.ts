@@ -46,6 +46,23 @@ export interface AuthAdminStatus {
   }[]
 }
 
+export interface AuthSecurityUser {
+  readonly userUuid: string
+  readonly userId: string
+  readonly name: string
+  readonly email: string
+  readonly role: string
+  readonly active: boolean
+  readonly credentialConfigured: boolean
+  readonly mustChangePassword: boolean
+  readonly failedAttempts: number
+  readonly locked: boolean
+  readonly lockedUntil: string
+  readonly lastLoginAt: string
+  readonly passwordUpdatedAt: string
+  readonly activeSessions: number
+}
+
 export interface Repository {
   readonly source: 'mock' | 'apps-script'
   readonly sourceLabel: string
@@ -57,7 +74,11 @@ export interface Repository {
   changePassword(input: ChangePasswordInput): Promise<UserContext>
   getAuthAdminStatus(): Promise<AuthAdminStatus>
   initializeAuthentication(): Promise<AuthAdminStatus>
+  listAuthSecurityUsers(): Promise<readonly AuthSecurityUser[]>
   setTemporaryPassword(userUuid: string, password: string): Promise<void>
+  unlockAuthUser(userUuid: string): Promise<void>
+  revokeAuthUserSessions(userUuid: string): Promise<void>
+  setAuthUserActive(userUuid: string, active: boolean): Promise<void>
   activateAuthentication(): Promise<void>
   getCurrentUser(): Promise<UserContext>
   getSummaries(): Promise<readonly TableSummary[]>

@@ -14,6 +14,7 @@ interface AuthSandbox {
     apiUser: { mustChangePassword: boolean },
     userRecord: { MustChangePassword: boolean },
   ) => boolean
+  assertAuthAdministrator_: (user: { role: string; permissions: readonly string[] }) => void
 }
 
 function bytes(buffer: Buffer): number[] {
@@ -31,6 +32,8 @@ function loadAuthSandbox(): AuthSandbox {
   ])
   let uuidSequence = 0
   const sandbox = createContext({
+    normalizeLookupValue_: (value: unknown) =>
+      (typeof value === 'string' ? value : '').trim().toUpperCase(),
     PropertiesService: {
       getScriptProperties: () => ({
         getProperty: (key: string) => properties.get(key) ?? null,
@@ -96,5 +99,13 @@ describe('autenticacion privada de Apps Script', () => {
       { mustChangePassword: false },
       { MustChangePassword: false },
     )).toBe(true)
+  })
+
+  it('reserva la administración al rol Administrador aunque otro perfil tenga comodín', () => {
+    const { assertAuthAdministrator_ } = loadAuthSandbox()
+
+    expect(() => assertAuthAdministrator_({ role: 'ADMINISTRADOR', permissions: [] })).not.toThrow()
+    expect(() => assertAuthAdministrator_({ role: 'SOPORTE', permissions: ['*'] }))
+      .toThrow('administrador')
   })
 })

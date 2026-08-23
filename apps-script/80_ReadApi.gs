@@ -46,6 +46,10 @@ function apiRequest(request) {
     return getAuthAdminStatus_(user);
   }
 
+  if (action === 'auth-security-users') {
+    return listAuthSecurityUsers_(user);
+  }
+
   if (action === 'auth-initialize') {
     return initializeSheetAuthentication_(user);
   }
@@ -55,6 +59,22 @@ function apiRequest(request) {
       user,
       String(safeRequest.userUuid || ''),
       safeRequest.password
+    );
+  }
+
+  if (action === 'auth-unlock-user') {
+    return unlockAuthUser_(user, String(safeRequest.userUuid || ''));
+  }
+
+  if (action === 'auth-revoke-sessions') {
+    return revokeAuthUserSessions_(user, String(safeRequest.userUuid || ''));
+  }
+
+  if (action === 'auth-set-user-active') {
+    return setAuthUserActive_(
+      user,
+      String(safeRequest.userUuid || ''),
+      safeRequest.active === true
     );
   }
 

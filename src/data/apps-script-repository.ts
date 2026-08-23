@@ -7,6 +7,7 @@ import {
 } from '@/data/auth-session'
 import type {
   AuthAdminStatus,
+  AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
   CreateRowInput,
@@ -120,8 +121,24 @@ export class AppsScriptRepository implements Repository {
     return await this.#authenticatedCall({ action: 'auth-initialize' }) as AuthAdminStatus
   }
 
+  async listAuthSecurityUsers(): Promise<readonly AuthSecurityUser[]> {
+    return await this.#authenticatedCall({ action: 'auth-security-users' }) as readonly AuthSecurityUser[]
+  }
+
   async setTemporaryPassword(userUuid: string, password: string): Promise<void> {
     await this.#authenticatedCall({ action: 'auth-set-password', userUuid, password })
+  }
+
+  async unlockAuthUser(userUuid: string): Promise<void> {
+    await this.#authenticatedCall({ action: 'auth-unlock-user', userUuid })
+  }
+
+  async revokeAuthUserSessions(userUuid: string): Promise<void> {
+    await this.#authenticatedCall({ action: 'auth-revoke-sessions', userUuid })
+  }
+
+  async setAuthUserActive(userUuid: string, active: boolean): Promise<void> {
+    await this.#authenticatedCall({ action: 'auth-set-user-active', userUuid, active })
   }
 
   async activateAuthentication(): Promise<void> {

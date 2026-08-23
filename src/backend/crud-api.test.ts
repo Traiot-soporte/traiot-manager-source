@@ -48,7 +48,7 @@ interface CrudSandbox {
 function loadCrudSandbox(): CrudSandbox {
   const sandbox = createContext({
     assertAuthAdministrator_: (user: { role: string; permissions: readonly string[] }) => {
-      if (!user.permissions.includes('*') && user.role !== 'ADMIN') {
+      if (user.role !== 'ADMIN' && user.role !== 'ADMINISTRADOR') {
         throw new Error('Se requieren permisos de administrador.')
       }
     },
@@ -79,9 +79,14 @@ describe('CRUD de Apps Script', () => {
   it('reserva la administracion de usuarios y perfiles para administradores', () => {
     const { assertApiTableWriteAccess_ } = loadCrudSandbox()
     const support = { role: 'SOPORTE', permissions: ['Usuarios', 'Perfiles'] }
+    const wildcardSupport = { role: 'SOPORTE', permissions: ['*'] }
     const admin = { role: 'ADMIN', permissions: ['*'] }
 
     expect(() => assertApiTableWriteAccess_(support, {
+      name: 'Usuarios',
+      permissionView: 'Usuarios',
+    })).toThrow('administrador')
+    expect(() => assertApiTableWriteAccess_(wildcardSupport, {
       name: 'Usuarios',
       permissionView: 'Usuarios',
     })).toThrow('administrador')

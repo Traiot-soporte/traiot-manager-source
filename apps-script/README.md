@@ -64,6 +64,12 @@ inicio de sesión, `#/cambiar-contrasena` para el primer acceso y `#/` para el
 centro de operación. `Index.html` es solamente el documento técnico que inicia
 React y no funciona como pantalla principal.
 
+`#/seguridad-usuarios` concentra restablecimientos temporales, desbloqueos,
+revocación de sesiones y activación de cuentas. La ruta, el menú y cada acción
+del backend exigen que `UserRole` sea `Administrador`; un permiso comodín por sí
+solo no concede administración. Las acciones registran también el UUID del
+administrador responsable en `_AuthAudit`.
+
 ## Funciones manuales
 
 - `configurarBackend()`: guarda la configuración inicial y confirma acceso a la

@@ -6,6 +6,7 @@ import { NotFoundPage } from '@/modules/not-found-page'
 
 const LoginPage = lazy(() => import('@/modules/auth/login-page').then((module) => ({ default: module.LoginPage })))
 const ChangePasswordPage = lazy(() => import('@/modules/auth/change-password-page').then((module) => ({ default: module.ChangePasswordPage })))
+const SecurityUsersPage = lazy(() => import('@/modules/auth/security-users-page').then((module) => ({ default: module.SecurityUsersPage })))
 const DashboardPage = lazy(() => import('@/modules/dashboard/dashboard-page').then((module) => ({ default: module.DashboardPage })))
 const TablePage = lazy(() => import('@/modules/tables/table-page').then((module) => ({ default: module.TablePage })))
 const RecordDetailPage = lazy(() => import('@/modules/tables/record-detail-page').then((module) => ({ default: module.RecordDetailPage })))
@@ -23,6 +24,7 @@ export function App() {
           <Route element={<RecordFormPage />} path="tablas/:tableName/nuevo" />
           <Route element={<RecordDetailPage />} path="tablas/:tableName/:rowUuid" />
           <Route element={<RecordFormPage />} path="tablas/:tableName/:rowUuid/editar" />
+          <Route element={<SecurityUsersPage />} path="seguridad-usuarios" />
           <Route element={<NotFoundPage />} path="*" />
         </Route>
       </Routes>

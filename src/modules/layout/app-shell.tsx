@@ -6,6 +6,7 @@ import {
   Menu,
   Package,
   Power,
+  ShieldCheck,
   UserRound,
   Users,
   Wrench,
@@ -20,6 +21,7 @@ import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import { AuthLoading, AuthUnavailable } from '@/modules/auth/login-page'
+import { isAdministratorRole } from '@/modules/auth/auth-permissions'
 import { tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
@@ -142,6 +144,7 @@ export function AppShell() {
   const visibleMobileLinks = mobileLinks.filter(
     (link) => !('table' in link) || canAccess(link.table),
   )
+  const isAdministrator = isAdministratorRole(currentUser.data.role)
 
   return (
     <div className="min-h-screen bg-[#f7f3f1]">
@@ -252,6 +255,25 @@ export function AppShell() {
               </span>
             </NavLink>
           ))}
+          {isAdministrator && (
+            <NavLink
+              className={({ isActive }) =>
+                cn(
+                  'mt-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[12.5px] font-bold text-white/65 transition hover:bg-white/5 hover:text-white',
+                  sidebarCollapsed && 'lg:justify-center lg:px-0',
+                  isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
+                )
+              }
+              onClick={() => setMenuOpen(false)}
+              title="SEGURIDAD DE USUARIOS"
+              to="/seguridad-usuarios"
+            >
+              <ShieldCheck className="size-5 shrink-0" />
+              <span className={cn('min-w-0 flex-1 whitespace-nowrap text-[11.5px]', sidebarCollapsed && 'lg:hidden')}>
+                SEGURIDAD DE USUARIOS
+              </span>
+            </NavLink>
+          )}
         </nav>
 
         <footer className="shrink-0 space-y-2 border-t border-white/10 p-3 uppercase">

@@ -29,7 +29,8 @@ var TRAIOT_AUTH_AUDIT_HEADERS = Object.freeze([
   'UserUuid',
   'Event',
   'Success',
-  'Detail'
+  'Detail',
+  'ActorUserUuid'
 ]);
 
 function getPublicAuthStatus_() {
@@ -64,7 +65,7 @@ function initializeSheetAuthentication_(adminUser) {
     var configuredAt = new Date().toISOString();
     PropertiesService.getScriptProperties().setProperty('TRAIOT_AUTH_CONFIGURED_AT', configuredAt);
     SpreadsheetApp.flush();
-    writeAuthAudit_(spreadsheet, '', adminUser.userUuid || '', 'AUTH_INITIALIZED', true, '');
+    writeAuthAudit_(spreadsheet, '', adminUser.userUuid || '', 'AUTH_INITIALIZED', true, '', adminUser.userUuid);
     return buildAuthAdminStatus_(spreadsheet);
   } finally {
     lock.releaseLock();
@@ -87,6 +88,131 @@ function getAuthAdminStatus_(adminUser) {
   }
 
   return buildAuthAdminStatus_(openConfiguredSpreadsheet_());
+}
+
+function listAuthSecurityUsers_(adminUser) {
+  assertAuthAdministrator_(adminUser);
+  var spreadsheet = openConfiguredSpreadsheet_();
+  ensureAuthReady_(spreadsheet);
+  var now = Date.now();
+  var sessions = readAuthSessions_(spreadsheet);
+
+  return readAuthUsers_(spreadsheet).map(function (user) {
+    var sessionVersion = authNumber_(user.SessionVersion);
+    var activeSessions = sessions.filter(function (session) {
+      return normalizeCell_(session.UserUuid) === normalizeCell_(user._uuid) &&
+        !session.RevokedAt && authDateMillis_(session.ExpiresAt) > now &&
+        authNumber_(session.SessionVersion) === sessionVersion;
+    }).length;
+    var lockedUntil = normalizeCell_(user.LockedUntil);
+
+    return {
+      userUuid: normalizeCell_(user._uuid),
+      userId: normalizeCell_(user.UserID),
+      name: normalizeCell_(user.UserName),
+      email: normalizeApiEmail_(user.UserEmail),
+      role: normalizeCell_(user.UserRole),
+      active: user.UserActive === true,
+      credentialConfigured: Boolean(normalizeCell_(user.PasswordHash)),
+      mustChangePassword: user.MustChangePassword === true,
+      failedAttempts: authNumber_(user.FailedAttempts),
+      locked: authDateMillis_(lockedUntil) > now,
+      lockedUntil: lockedUntil,
+      lastLoginAt: normalizeCell_(user.LastLoginAt),
+      passwordUpdatedAt: normalizeCell_(user.PasswordUpdatedAt),
+      activeSessions: activeSessions
+    };
+  });
+}
+
+function unlockAuthUser_(adminUser, userUuid) {
+  return mutateAuthSecurityUser_(adminUser, userUuid, function (spreadsheet, user) {
+    writeAuthUserFields_(user, { FailedAttempts: 0, LockedUntil: '' });
+    writeAuthAudit_(
+      spreadsheet,
+      user.UserEmail,
+      user._uuid,
+      'ACCOUNT_UNLOCKED',
+      true,
+      '',
+      adminUser.userUuid
+    );
+    return { unlocked: true };
+  });
+}
+
+function revokeAuthUserSessions_(adminUser, userUuid) {
+  return mutateAuthSecurityUser_(adminUser, userUuid, function (spreadsheet, user) {
+    var now = new Date().toISOString();
+    var nextVersion = authNumber_(user.SessionVersion) + 1;
+    writeAuthUserFields_(user, { SessionVersion: nextVersion });
+    revokeAuthSessionsForUser_(spreadsheet, user._uuid, now);
+    writeAuthAudit_(
+      spreadsheet,
+      user.UserEmail,
+      user._uuid,
+      'SESSIONS_REVOKED',
+      true,
+      '',
+      adminUser.userUuid
+    );
+    return { sessionsRevoked: true };
+  });
+}
+
+function setAuthUserActive_(adminUser, userUuid, active) {
+  var nextActive = active === true;
+
+  if (!nextActive && normalizeCell_(adminUser.userUuid) === normalizeCell_(userUuid)) {
+    throw new Error('No puedes desactivar tu propia cuenta administrativa.');
+  }
+
+  return mutateAuthSecurityUser_(adminUser, userUuid, function (spreadsheet, user) {
+    var now = new Date().toISOString();
+    var nextVersion = authNumber_(user.SessionVersion) + 1;
+    writeAuthUserFields_(user, {
+      UserActive: nextActive,
+      FailedAttempts: 0,
+      LockedUntil: '',
+      SessionVersion: nextVersion
+    });
+    revokeAuthSessionsForUser_(spreadsheet, user._uuid, now);
+    writeAuthAudit_(
+      spreadsheet,
+      user.UserEmail,
+      user._uuid,
+      nextActive ? 'ACCOUNT_ACTIVATED' : 'ACCOUNT_DEACTIVATED',
+      true,
+      '',
+      adminUser.userUuid
+    );
+    return { active: nextActive, sessionsRevoked: true };
+  });
+}
+
+function mutateAuthSecurityUser_(adminUser, userUuid, callback) {
+  assertAuthAdministrator_(adminUser);
+  var lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(30000)) {
+    throw new Error('Otra operacion de seguridad se encuentra en curso. Intenta nuevamente.');
+  }
+
+  try {
+    var spreadsheet = openConfiguredSpreadsheet_();
+    ensureAuthReady_(spreadsheet);
+    var user = findAuthUserByUuid_(spreadsheet, userUuid);
+
+    if (!user) {
+      throw new Error('No se encontro el usuario solicitado.');
+    }
+
+    var result = callback(spreadsheet, user);
+    SpreadsheetApp.flush();
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function setTemporaryPassword_(adminUser, userUuid, password) {
@@ -118,7 +244,7 @@ function setTemporaryPassword_(adminUser, userUuid, password) {
       SessionVersion: nextVersion
     });
     revokeAuthSessionsForUser_(spreadsheet, userRecord._uuid, now);
-    writeAuthAudit_(spreadsheet, userRecord.UserEmail, userRecord._uuid, 'PASSWORD_TEMPORARY_SET', true, '');
+    writeAuthAudit_(spreadsheet, userRecord.UserEmail, userRecord._uuid, 'PASSWORD_TEMPORARY_SET', true, '', adminUser.userUuid);
     SpreadsheetApp.flush();
 
     return {
@@ -157,7 +283,7 @@ function activateSheetAuthentication_(adminUser) {
       TRAIOT_AUTH_MODE: TRAIOT_AUTH_MODE_PASSWORD,
       TRAIOT_PUBLIC_AUTH_REQUIRED: 'true'
     });
-    writeAuthAudit_(spreadsheet, adminUser.email, adminUser.userUuid || '', 'AUTH_ACTIVATED', true, '');
+    writeAuthAudit_(spreadsheet, adminUser.email, adminUser.userUuid || '', 'AUTH_ACTIVATED', true, '', adminUser.userUuid);
 
     return {
       activated: true,
@@ -359,8 +485,16 @@ function ensureAuthReady_(spreadsheet) {
   }
 
   requireAuthSheet_(spreadsheet, TRAIOT_AUTH_USERS_SHEET);
-  requireAuthSheet_(spreadsheet, TRAIOT_AUTH_SESSIONS_SHEET);
-  requireAuthSheet_(spreadsheet, TRAIOT_AUTH_AUDIT_SHEET);
+  ensureAuthInternalSheet_(
+    spreadsheet,
+    TRAIOT_AUTH_SESSIONS_SHEET,
+    TRAIOT_AUTH_SESSION_HEADERS
+  );
+  ensureAuthInternalSheet_(
+    spreadsheet,
+    TRAIOT_AUTH_AUDIT_SHEET,
+    TRAIOT_AUTH_AUDIT_HEADERS
+  );
   ensureAuthSecrets_();
 }
 
@@ -671,7 +805,7 @@ function revokeAuthSessionsForUser_(spreadsheet, userUuid, revokedAt) {
   });
 }
 
-function writeAuthAudit_(spreadsheet, email, userUuid, eventName, success, detail) {
+function writeAuthAudit_(spreadsheet, email, userUuid, eventName, success, detail, actorUserUuid) {
   var sheet = requireAuthSheet_(spreadsheet, TRAIOT_AUTH_AUDIT_SHEET);
   sheet.appendRow([
     new Date().toISOString(),
@@ -679,7 +813,8 @@ function writeAuthAudit_(spreadsheet, email, userUuid, eventName, success, detai
     userUuid || '',
     eventName,
     Boolean(success),
-    detail || ''
+    detail || '',
+    actorUserUuid || ''
   ]);
 }
 
@@ -729,8 +864,7 @@ function requireAuthHeaderIndex_(headers, header) {
 
 function assertAuthAdministrator_(user) {
   var role = normalizeLookupValue_(user && user.role);
-  var isAdmin = user && (user.permissions.indexOf('*') >= 0 ||
-    role === 'ADMIN' || role === 'ADMINISTRADOR');
+  var isAdmin = user && (role === 'ADMIN' || role === 'ADMINISTRADOR');
 
   if (!isAdmin) {
     throw new Error('Se requieren permisos de administrador.');
