@@ -1,15 +1,20 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  BriefcaseBusiness,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Construction,
+  Cpu,
+  Handshake,
   Home,
   IdCard,
   LockKeyhole,
+  type LucideIcon,
   Menu,
   Package,
   Power,
+  ShieldCheck,
   UserRound,
   Users,
   Wrench,
@@ -41,14 +46,14 @@ type NavigationItem =
 interface NavigationSection {
   readonly id: AppSectionId
   readonly label: string
-  readonly number: number
+  readonly icon: LucideIcon
   readonly items: readonly NavigationItem[]
 }
 
 const navigationSections: readonly NavigationSection[] = [
   {
     id: 'administracion-comercial',
-    number: 1,
+    icon: BriefcaseBusiness,
     label: 'Administración Comercial',
     items: [
       { kind: 'table', label: 'Almacén', table: 'ALMACEN' },
@@ -59,7 +64,7 @@ const navigationSections: readonly NavigationSection[] = [
   },
   {
     id: 'crm',
-    number: 2,
+    icon: Handshake,
     label: 'CRM',
     items: [
       { kind: 'table', label: 'Clientes', table: 'CLIENTES' },
@@ -68,16 +73,17 @@ const navigationSections: readonly NavigationSection[] = [
   },
   {
     id: 'ingenieria',
-    number: 3,
+    icon: Cpu,
     label: 'Ingeniería',
     items: [
       { kind: 'table', label: 'Ticket Soporte', table: 'Ticket Soporte' },
       { kind: 'table', label: 'Laboratorio', table: 'Laboratorio' },
+      { kind: 'table', label: 'Matriz Dispositivos', table: 'MATRIZ DISPOSITIVOS' },
     ],
   },
   {
     id: 'tecnico',
-    number: 4,
+    icon: Wrench,
     label: 'Técnico',
     items: [
       { kind: 'table', label: 'Servicios GPS', table: 'INSTALACIONES' },
@@ -86,7 +92,7 @@ const navigationSections: readonly NavigationSection[] = [
   },
   {
     id: 'seguridad',
-    number: 5,
+    icon: ShieldCheck,
     label: 'Seguridad',
     items: [
       { kind: 'table', label: 'Perfiles', table: 'Perfiles' },
@@ -353,6 +359,7 @@ export function AppShell() {
             {visibleNavigationSections.map((section) => {
               const expanded = openSections.has(section.id)
               const sectionActive = activeSection === section.id
+              const SectionIcon = section.icon
 
               return (
                 <section key={section.id}>
@@ -365,14 +372,14 @@ export function AppShell() {
                       sectionActive && 'text-brand-300',
                     )}
                     onClick={() => toggleSection(section.id)}
-                    title={section.number + '. ' + section.label.toLocaleUpperCase('es-MX')}
+                    title={section.label.toLocaleUpperCase('es-MX')}
                     type="button"
                   >
                     <span className={cn(
                       'grid size-7 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5 text-[10px] text-white/65',
                       sectionActive && 'border-brand-400/40 bg-brand-500/15 text-brand-300',
                     )}>
-                      {section.number}
+                      <SectionIcon className="size-4" strokeWidth={2} />
                     </span>
                     <span className={cn('min-w-0 flex-1 leading-tight', sidebarCollapsed && 'lg:hidden')}>
                       {section.label.toLocaleUpperCase('es-MX')}

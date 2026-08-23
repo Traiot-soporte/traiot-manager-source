@@ -30,7 +30,7 @@ var TRAIOT_TABLE_SECTIONS = Object.freeze({
   'instalacion_fotos': 'tecnico',
   'instalacion_tanques': 'tecnico',
   'instalacion_checklist': 'tecnico',
-  'MATRIZ DISPOSITIVOS': 'tecnico',
+  'MATRIZ DISPOSITIVOS': 'ingenieria',
   'Perfiles': 'seguridad',
   'Usuarios': 'seguridad',
   'Menu': 'seguridad'

@@ -154,6 +154,8 @@ describe('API privada de lectura', () => {
     expect(canApiViewTable_(sales, { name: 'CLIENTES' })).toBe(true)
     expect(canApiViewTable_(sales, { name: 'ALMACEN' })).toBe(false)
     expect(canApiViewTable_(support, { name: 'Ticket Soporte' })).toBe(true)
+    expect(canApiViewTable_(support, { name: 'MATRIZ DISPOSITIVOS' })).toBe(true)
+    expect(canApiViewTable_({ role: 'Tecnico' }, { name: 'MATRIZ DISPOSITIVOS' })).toBe(false)
     expect(canApiViewTable_(support, { name: 'Usuarios' })).toBe(false)
   })
 })
