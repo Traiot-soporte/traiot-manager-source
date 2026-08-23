@@ -6,6 +6,7 @@ import {
   FlaskConical,
   Fuel,
   Handshake,
+  IdCard,
   Images,
   LayoutGrid,
   LifeBuoy,
@@ -36,6 +37,7 @@ const iconMap: Readonly<Record<string, LucideIcon>> = {
   FlaskConical,
   Cpu,
   Users,
+  IdCard,
   ShieldCheck,
   LayoutGrid,
 }

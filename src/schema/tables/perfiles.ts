@@ -7,7 +7,7 @@ export const perfilesTable = defineTable({
   legacyBusinessKey: 'PerfilID',
   permissionView: 'Perfiles',
   module: 'Administración',
-  icon: 'ShieldCheck',
+  icon: 'IdCard',
   description: 'Perfiles y permisos efectivos de acceso.',
   defaultView: 'table',
   columns: [

@@ -6331,7 +6331,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
     "sheet": "Perfiles",
     "module": "Administración",
     "description": "Perfiles y permisos efectivos de acceso.",
-    "icon": "ShieldCheck",
+    "icon": "IdCard",
     "permissionView": "Perfiles",
     "legacyBusinessKey": "PerfilID",
     "labelColumn": "PerfilID",

@@ -6,7 +6,7 @@ import {
   Menu,
   Package,
   Power,
-  ShieldCheck,
+  ShieldUser,
   UserRound,
   Users,
   Wrench,
@@ -268,7 +268,7 @@ export function AppShell() {
               title="SEGURIDAD DE USUARIOS"
               to="/seguridad-usuarios"
             >
-              <ShieldCheck className="size-5 shrink-0" />
+              <ShieldUser className="size-5 shrink-0" />
               <span className={cn('min-w-0 flex-1 whitespace-nowrap text-[11.5px]', sidebarCollapsed && 'lg:hidden')}>
                 SEGURIDAD DE USUARIOS
               </span>
