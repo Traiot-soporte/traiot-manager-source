@@ -13,7 +13,7 @@ const expectedAppSheetColumns: Readonly<Record<string, number>> = {
   'Ticket Soporte': 15,
   INSTALACIONES: 93,
   Laboratorio: 25,
-  'MATRIZ DISPOSITIVOS': 46,
+  'MATRIZ DISPOSITIVOS': 11,
   Usuarios: 5,
   Perfiles: 3,
   Menu: 4,
@@ -33,7 +33,7 @@ describe('registro de metadata', () => {
       expect(appsheetColumnCount(table!), tableName).toBe(expectedCount)
       total += expectedCount
     }
-    expect(total).toBe(313)
+    expect(total).toBe(278)
   })
 
   it('agrega las columnas de sincronización a todas las tablas', () => {
@@ -103,8 +103,46 @@ describe('registro de metadata', () => {
 
   it('configura Matriz Dispositivos sin calendario y con ficha técnica enlazable', () => {
     const devices = tableDefinitions.find((table) => table.name === 'MATRIZ DISPOSITIVOS')
+    const removedColumns = [
+      'Red',
+      'BLE',
+      'IP',
+      'Agua_exterior',
+      'Ambiente',
+      'Voltaje',
+      'Temp_operacion',
+      'Temp_almacenamiento',
+      'Montaje_instalacion',
+      'DI',
+      'DO',
+      'AI_Config',
+      'RS232',
+      'RS485',
+      'CAN',
+      'One_Wire',
+      'RFID',
+      'OBD',
+      'WiFi',
+      'USB_Config',
+      'Carga_transmision_datos',
+      'Antena_red_GNSS',
+      'Indicador_LED',
+      'Interruptor_fisico',
+      'Output_5V_12V',
+      'BLE_accessory_support',
+      'Sensor_temp',
+      'Sensor_luz_hall',
+      'Acelerometro',
+      'Geocercas',
+      'FOTA',
+      'Protocolos',
+      'Seguridad',
+      'Frecuencia_reporte (min)',
+      'Calculadora_bateria',
+    ]
 
     expect(devices?.disabledViews).toContain('calendar')
+    expect(devices?.columns.filter((column) => removedColumns.includes(column.name))).toEqual([])
     expect(devices?.columns.find((column) => column.name === 'Ficha_Tecnica')).toMatchObject({
       label: 'Ficha técnica',
       type: 'Url',
