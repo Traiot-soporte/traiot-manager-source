@@ -55,6 +55,14 @@ describe('registro de metadata', () => {
     }
   })
 
+  it('presenta Gestion Clientes como CRM sin cambiar su hoja ni permisos', () => {
+    const crm = tableDefinitions.find((table) => table.name === 'Gestion Clientes')
+    expect(crm?.displayName).toBe('CRM')
+    expect(crm?.sheet).toBe('Gestion Clientes')
+    expect(crm?.permissionView).toBe('Gestion Clientes')
+    expect(crm?.defaultView).toBe('dashboard')
+  })
+
   it('conserva el doble espacio del canal de atención', () => {
     const support = tableDefinitions.find((table) => table.name === 'Ticket Soporte')
     const channel = support?.columns.find((column) => column.name === '🎫Canal de  Atención')

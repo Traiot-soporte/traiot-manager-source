@@ -23,7 +23,7 @@ import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import { AuthLoading, AuthUnavailable } from '@/modules/auth/login-page'
 import { isAdministratorRole } from '@/modules/auth/auth-permissions'
-import { tableDefinitions } from '@/schema'
+import { getTableDisplayName, tableDefinitions } from '@/schema'
 import logoUrl from '../../../logo.jpeg'
 
 const primaryTables = tableDefinitions.filter(
@@ -241,7 +241,7 @@ export function AppShell() {
               }
               key={table.name}
               onClick={() => setMenuOpen(false)}
-              title={table.name.toLocaleUpperCase('es-MX')}
+              title={getTableDisplayName(table).toLocaleUpperCase('es-MX')}
               to={'/tablas/' + encodeURIComponent(table.name)}
             >
               {table.name === 'Perfiles'
@@ -250,11 +250,11 @@ export function AppShell() {
               <span
                 className={cn(
                   'min-w-0 flex-1 whitespace-nowrap',
-                  table.name.length >= 18 && 'text-[12.5px]',
+                  getTableDisplayName(table).length >= 18 && 'text-[12.5px]',
                   sidebarCollapsed && 'lg:hidden',
                 )}
               >
-                {table.name.toLocaleUpperCase('es-MX')}
+                {getTableDisplayName(table).toLocaleUpperCase('es-MX')}
               </span>
             </NavLink>
           ))}

@@ -86,6 +86,7 @@ export interface ChildTableDef {
 
 export interface TableDef<T extends RowData = RowData> {
   readonly name: string
+  readonly displayName?: string
   readonly sheet: string
   readonly key: string
   readonly label: string

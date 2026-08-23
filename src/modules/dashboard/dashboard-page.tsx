@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
-import { getTableDefinition } from '@/schema'
+import { getTableDefinition, getTableDisplayName } from '@/schema'
 
 const moduleOrder = [
   'Operación',
@@ -91,7 +91,7 @@ export function DashboardPage() {
                       </span>
                       <ArrowRight className="size-5 text-ink-800/25 transition group-hover:translate-x-1 group-hover:text-brand-600" />
                     </div>
-                    <h3 className="mt-5 text-lg font-black text-ink-950">{summary.name}</h3>
+                    <h3 className="mt-5 text-lg font-black text-ink-950">{table ? getTableDisplayName(table) : summary.name}</h3>
                     <p className="mt-1 line-clamp-2 text-sm leading-5 text-ink-800/55">
                       {summary.description}
                     </p>

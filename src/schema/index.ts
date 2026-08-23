@@ -45,6 +45,10 @@ export function getTableDefinition(name: string): TableDef | undefined {
   return tableDefinitionMap.get(name)
 }
 
+export function getTableDisplayName(table: TableDef): string {
+  return table.displayName ?? table.name
+}
+
 export function isTableName(name: string): name is TableName {
   return tableDefinitionMap.has(name)
 }

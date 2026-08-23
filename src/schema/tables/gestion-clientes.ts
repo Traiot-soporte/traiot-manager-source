@@ -9,6 +9,7 @@ import { defineTable, migrationRef } from '@/schema/helpers'
 
 export const gestionClientesTable = defineTable({
   name: 'Gestion Clientes',
+  displayName: 'CRM',
   sheet: 'Gestion Clientes',
   label: 'Id_CRM',
   legacyBusinessKey: 'Id_CRM',
@@ -16,7 +17,7 @@ export const gestionClientesTable = defineTable({
   module: 'CRM',
   icon: 'Handshake',
   description: 'Bitácora de prospección y seguimiento comercial.',
-  defaultView: 'table',
+  defaultView: 'dashboard',
   columns: [
     migrationRef('cliente_uuid', 'Cliente interno', 'CLIENTES'),
     { name: 'Id_CRM', type: 'Text', labelColumn: true, required: true },

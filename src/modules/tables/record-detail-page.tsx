@@ -7,7 +7,7 @@ import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { AuthAdminPanel } from '@/modules/auth/auth-admin-panel'
 import { isAdministratorRole } from '@/modules/auth/auth-permissions'
-import { getTableDefinition } from '@/schema'
+import { getTableDefinition, getTableDisplayName } from '@/schema'
 import { DetailView } from '@/views/detail-view'
 import { getRowTitle } from '@/views/view-utils'
 
@@ -45,10 +45,11 @@ export function RecordDetailPage() {
   const askToRemove = () => {
     if (window.confirm('¿Deseas eliminar este registro? Se ocultará mediante borrado lógico.')) remove.mutate()
   }
+  const tableDisplayName = getTableDisplayName(table)
 
   return (
     <div className="space-y-4">
-      <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={basePath}><ArrowLeft className="size-4" />Volver a {table.name}</Link>
+      <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={basePath}><ArrowLeft className="size-4" />Volver a {tableDisplayName}</Link>
       <ModuleHeader
         action={repository.writable && <div className="flex flex-col gap-2 sm:flex-row">
           <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white/10 px-5 text-sm font-black hover:bg-white/15" to={basePath + '/' + encodeURIComponent(rowUuid) + '/editar'}><Pencil className="size-4" />Editar</Link>

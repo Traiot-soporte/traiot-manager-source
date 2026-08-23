@@ -6,7 +6,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
-import { getTableDefinition } from '@/schema'
+import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData, TableDef } from '@/schema'
 import { CalendarView } from '@/views/calendar-view'
 import { CardView } from '@/views/card-view'
@@ -67,7 +67,7 @@ export function TablePage() {
         eyebrow={table.module}
         footer={<><span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>{repository.sourceLabel}</span></>}
         icon={<TableIcon className="size-5" name={table.icon} />}
-        title={table.name}
+        title={getTableDisplayName(table)}
         tone="light"
       />
 

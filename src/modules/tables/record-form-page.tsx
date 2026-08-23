@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
-import { getTableDefinition } from '@/schema'
+import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
 import { FormView } from '@/views/form-view'
 
@@ -24,6 +24,7 @@ export function RecordFormPage() {
 
   if (!table) return <FormMessage text="Tabla no encontrada" to="/" />
   const basePath = '/tablas/' + encodeURIComponent(table.name)
+  const tableDisplayName = getTableDisplayName(table)
   const editing = Boolean(rowUuid)
   if (user.isPending || (editing && row.isPending)) return <FormMessage text="Preparando formulario…" to={basePath} />
   if (user.isError || !user.data) return <FormMessage text="No fue posible cargar el usuario." to={basePath} />
@@ -50,7 +51,7 @@ export function RecordFormPage() {
         description={`Formulario de ${table.columns.length} campos.`}
         eyebrow={editing ? 'Edición' : 'Nuevo registro'}
         icon={<TableIcon className="size-5" name={table.icon} />}
-        title={editing ? 'EDITAR ' + table.name : 'CREAR EN ' + table.name}
+        title={editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName}
       />
       <FormView cancelTo={cancelTo} initialRow={row.data} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
     </div>
