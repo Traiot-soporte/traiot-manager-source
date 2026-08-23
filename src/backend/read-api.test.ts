@@ -22,6 +22,10 @@ interface ReadApiSandbox {
     table: ApiTable,
     values: readonly (readonly unknown[])[],
   ) => readonly Readonly<Record<string, unknown>>[]
+  readonly isCrmCalendarRowVisible_: (
+    row: Readonly<Record<string, unknown>>,
+    user: Readonly<Record<string, unknown>>,
+  ) => boolean
 }
 
 function loadReadApiSandbox(): ReadApiSandbox {
@@ -79,5 +83,20 @@ describe('API privada de lectura', () => {
     ])
 
     expect(rows).toEqual([])
+  })
+
+  it('solo entrega eventos personales a su propietario', () => {
+    const { isCrmCalendarRowVisible_ } = loadReadApiSandbox()
+    const owner = { userUuid: '11111111-1111-4111-8111-111111111111' }
+    const anotherUser = { userUuid: '22222222-2222-4222-8222-222222222222' }
+    const personal = {
+      Calendario: 'Personal',
+      _calendarOwnerUuid: owner.userUuid,
+    }
+
+    expect(isCrmCalendarRowVisible_(personal, owner)).toBe(true)
+    expect(isCrmCalendarRowVisible_(personal, anotherUser)).toBe(false)
+    expect(isCrmCalendarRowVisible_({ Calendario: 'Empresarial' }, anotherUser)).toBe(true)
+    expect(isCrmCalendarRowVisible_({ Calendario: '' }, anotherUser)).toBe(true)
   })
 })

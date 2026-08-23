@@ -2064,7 +2064,9 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "Responsable",
       "Estatus_prospeccion",
       "Estatus_cliente",
-      "Notas"
+      "Notas",
+      "Calendario",
+      "_calendarOwnerUuid"
     ],
     "columns": [
       {
@@ -2323,6 +2325,37 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "hidden": false,
         "sensitive": false,
         "readOnly": false,
+        "hasFormula": false,
+        "values": [],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Calendario",
+        "sourceHeader": "Calendario",
+        "origin": "migration",
+        "type": "Enum",
+        "required": true,
+        "hidden": false,
+        "sensitive": false,
+        "readOnly": false,
+        "hasFormula": false,
+        "values": [
+          "Personal",
+          "Empresarial"
+        ],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "_calendarOwnerUuid",
+        "sourceHeader": "_calendarOwnerUuid",
+        "origin": "system",
+        "type": "Text",
+        "required": false,
+        "hidden": true,
+        "sensitive": false,
+        "readOnly": true,
         "hasFormula": false,
         "values": [],
         "syncTo": "",

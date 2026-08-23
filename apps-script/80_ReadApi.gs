@@ -89,13 +89,13 @@ function apiRequest(request) {
   if (action === 'list') {
     var listTable = requireApiTable_(safeRequest.table);
     assertApiTableAccess_(user, listTable);
-    return listApiRows_(listTable);
+    return listApiRows_(listTable, user);
   }
 
   if (action === 'get') {
     var getTable = requireApiTable_(safeRequest.table);
     assertApiTableAccess_(user, getTable);
-    return getApiRow_(getTable, String(safeRequest.rowUuid || ''));
+    return getApiRow_(getTable, String(safeRequest.rowUuid || ''), user);
   }
 
   if (action === 'media') {
@@ -228,26 +228,120 @@ function buildApiSummaries_(user) {
       module: schemaTable.module,
       description: schemaTable.description,
       icon: schemaTable.icon,
-      rowCount: countApiRows_(spreadsheet, schemaTable)
+      rowCount: schemaTable.name === 'Gestion Clientes'
+        ? readVisibleApiRows_(spreadsheet, schemaTable, user).length
+        : countApiRows_(spreadsheet, schemaTable)
     };
   });
 }
 
-function listApiRows_(schemaTable) {
-  return readApiRows_(openConfiguredSpreadsheet_(), schemaTable);
+function listApiRows_(schemaTable, user) {
+  return readVisibleApiRows_(openConfiguredSpreadsheet_(), schemaTable, user);
 }
 
-function getApiRow_(schemaTable, rowUuid) {
+function getApiRow_(schemaTable, rowUuid, user) {
   if (!isUuid_(rowUuid)) {
     return null;
   }
 
   var normalizedUuid = rowUuid.toLowerCase();
-  var rows = listApiRows_(schemaTable);
+  var rows = listApiRows_(schemaTable, user);
 
   return rows.filter(function (row) {
     return normalizeCell_(row._uuid).toLowerCase() === normalizedUuid;
   })[0] || null;
+}
+
+function readVisibleApiRows_(spreadsheet, schemaTable, user) {
+  if (schemaTable.name === 'Gestion Clientes') {
+    ensureCrmCalendarStorage_(spreadsheet, false);
+  }
+
+  var rows = readApiRows_(spreadsheet, schemaTable);
+  return schemaTable.name === 'Gestion Clientes'
+    ? rows.filter(function (row) { return isCrmCalendarRowVisible_(row, user); })
+    : rows;
+}
+
+function isCrmCalendarRowVisible_(row, user) {
+  if (normalizeCrmCalendarScope_(row && row.Calendario) !== 'Personal') {
+    return true;
+  }
+
+  var ownerUuid = normalizeCell_(row && row._calendarOwnerUuid).toLowerCase();
+  var userUuid = normalizeCell_(user && user.userUuid).toLowerCase();
+  return Boolean(ownerUuid && userUuid && ownerUuid === userUuid);
+}
+
+function normalizeCrmCalendarScope_(value) {
+  return normalizeLookupValue_(value) === 'PERSONAL' ? 'Personal' : 'Empresarial';
+}
+
+function ensureCrmCalendarStorage_(spreadsheet, force) {
+  var propertyKey = 'TRAIOT_CRM_CALENDAR_STORAGE_V1';
+  var properties = PropertiesService.getScriptProperties();
+
+  if (!force && properties.getProperty(propertyKey) === 'true') {
+    return { migrated: false, ready: true };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    if (!force && properties.getProperty(propertyKey) === 'true') {
+      return { migrated: false, ready: true };
+    }
+
+    var schemaTable = requireApiTable_('Gestion Clientes');
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    var requiredHeaders = ['Calendario', '_calendarOwnerUuid'];
+    var addedHeaders = [];
+
+    requiredHeaders.forEach(function (header) {
+      if (headers.indexOf(header) < 0) {
+        sheet.getRange(1, headers.length + 1).setValue(header);
+        headers.push(header);
+        addedHeaders.push(header);
+      }
+    });
+
+    var rowsMigrated = 0;
+    var lastRow = sheet.getLastRow();
+    var scopeColumn = headers.indexOf('Calendario') + 1;
+
+    if (lastRow > 1 && scopeColumn > 0) {
+      var scopeRange = sheet.getRange(2, scopeColumn, lastRow - 1, 1);
+      var scopes = scopeRange.getValues();
+
+      scopes.forEach(function (row) {
+        if (!normalizeCell_(row[0])) {
+          row[0] = 'Empresarial';
+          rowsMigrated += 1;
+        }
+      });
+
+      if (rowsMigrated > 0) {
+        scopeRange.setValues(scopes);
+      }
+    }
+
+    SpreadsheetApp.flush();
+    properties.setProperty(propertyKey, 'true');
+    return {
+      migrated: addedHeaders.length > 0 || rowsMigrated > 0,
+      ready: true,
+      addedHeaders: addedHeaders,
+      rowsMigrated: rowsMigrated
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function migrarCalendariosCrm() {
+  return ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), true);
 }
 
 function openConfiguredSpreadsheet_() {

@@ -4,6 +4,9 @@
  */
 function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'Gestion Clientes') {
+    ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+  }
 
   return runIdempotentApiMutation_(mutationId, function () {
     var spreadsheet = openConfiguredSpreadsheet_();
@@ -17,7 +20,8 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
       submittedValues,
       { _uuid: rowUuid },
       true,
-      now
+      now,
+      user
     );
 
     record._uuid = rowUuid;
@@ -49,6 +53,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
 
 function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'Gestion Clientes') {
+    ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+  }
 
   if (!isUuid_(rowUuid)) {
     throw new Error('El identificador del registro no es valido.');
@@ -63,6 +70,8 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       throw new Error('El registro solicitado no existe o fue eliminado.');
     }
 
+    assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
+
     var now = new Date().toISOString();
     var nextRecord = prepareApiMutationRecord_(
       spreadsheet,
@@ -70,7 +79,8 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       submittedChanges,
       snapshot.record,
       false,
-      now
+      now,
+      user
     );
 
     nextRecord._uuid = rowUuid.toLowerCase();
@@ -102,6 +112,9 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
 
 function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'Gestion Clientes') {
+    ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+  }
 
   if (!isUuid_(rowUuid)) {
     throw new Error('El identificador del registro no es valido.');
@@ -115,6 +128,8 @@ function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
     if (!snapshot || snapshot.record._deleted === true) {
       throw new Error('El registro solicitado no existe o ya fue eliminado.');
     }
+
+    assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
 
     var deletedColumn = requireHeaderIndex_(snapshot.headers, '_deleted', schemaTable) + 1;
     var updatedAtColumn = requireHeaderIndex_(snapshot.headers, '_updatedAt', schemaTable) + 1;
@@ -165,7 +180,8 @@ function prepareApiMutationRecord_(
   submittedValues,
   currentRecord,
   isCreate,
-  now
+  now,
+  user
 ) {
   var submitted = submittedValues && typeof submittedValues === 'object' ? submittedValues : {};
   var record = currentRecord ? copyApiObject_(currentRecord) : {};
@@ -200,8 +216,49 @@ function prepareApiMutationRecord_(
     record.FOLIO = nextApiTicketFolio_(spreadsheet, now);
   }
 
+  applyCrmCalendarOwnership_(user, schemaTable, record, isCreate);
+
   applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
   return record;
+}
+
+function applyCrmCalendarOwnership_(user, schemaTable, record, isCreate) {
+  if (schemaTable.name !== 'Gestion Clientes') {
+    return;
+  }
+
+  var requestedScope = normalizeCell_(record.Calendario);
+  var scope = requestedScope
+    ? normalizeCrmCalendarScope_(requestedScope)
+    : (isCreate ? 'Personal' : 'Empresarial');
+
+  record.Calendario = scope;
+
+  if (scope === 'Personal') {
+    var userUuid = normalizeCell_(user && user.userUuid).toLowerCase();
+
+    if (!isUuid_(userUuid)) {
+      throw new Error('No fue posible identificar al propietario del calendario personal.');
+    }
+
+    record._calendarOwnerUuid = userUuid;
+  } else {
+    record._calendarOwnerUuid = '';
+  }
+}
+
+function assertCrmCalendarMutationAccess_(user, schemaTable, record) {
+  if (schemaTable.name !== 'Gestion Clientes' ||
+      normalizeCrmCalendarScope_(record && record.Calendario) !== 'Personal') {
+    return;
+  }
+
+  var ownerUuid = normalizeCell_(record && record._calendarOwnerUuid).toLowerCase();
+  var userUuid = normalizeCell_(user && user.userUuid).toLowerCase();
+
+  if (!ownerUuid || !userUuid || ownerUuid !== userUuid) {
+    throw new Error('Este evento pertenece al calendario personal de otro usuario.');
+  }
 }
 
 function applyApiReference_(
@@ -383,6 +440,11 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
   }).forEach(function (column) {
     columnNames.push(column.name);
   });
+
+  if (schemaTable.name === 'Gestion Clientes') {
+    columnNames.push('Calendario');
+    columnNames.push('_calendarOwnerUuid');
+  }
 
   return columnNames.filter(function (columnName, index, values) {
     return values.indexOf(columnName) === index;

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
@@ -15,6 +15,7 @@ export function RecordFormPage() {
   const repository = useRepository()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const user = useQuery({ queryKey: ['current-user'], queryFn: () => repository.getCurrentUser() })
   const row = useQuery({
     queryKey: ['row', tableName, rowUuid],
@@ -43,6 +44,12 @@ export function RecordFormPage() {
   }
 
   const cancelTo = editing && rowUuid ? basePath + '/' + encodeURIComponent(rowUuid) : basePath
+  const requestedCalendar = searchParams.get('calendario')
+  const initialRow = editing
+    ? row.data
+    : table.name === 'Gestion Clientes' && (requestedCalendar === 'Personal' || requestedCalendar === 'Empresarial')
+      ? { Calendario: requestedCalendar }
+      : undefined
 
   return (
     <div className="space-y-4">
@@ -53,7 +60,7 @@ export function RecordFormPage() {
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName}
       />
-      <FormView cancelTo={cancelTo} initialRow={row.data} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
+      <FormView cancelTo={cancelTo} initialRow={initialRow} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
     </div>
   )
 }

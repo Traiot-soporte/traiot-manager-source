@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Building2, ChevronLeft, ChevronRight, UserRound } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, Plus, UserRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -25,12 +25,12 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
   const currentUser = useQuery({ queryKey: ['current-user'], queryFn: () => repository.getCurrentUser() })
   const [scope, setScope] = useState<CalendarScope>('personal')
   const [month, setMonth] = useState(() => mexicoCurrentMonth())
-  const currentUserName = currentUser.data?.name ?? ''
+  const currentUserUuid = currentUser.data?.userUuid ?? ''
   const visibleRows = useMemo(
     () => scope === 'company'
-      ? rows
-      : rows.filter((row) => sameResponsible(row.Responsable, currentUserName)),
-    [currentUserName, rows, scope],
+      ? rows.filter((row) => calendarScope(row) === 'Empresarial')
+      : rows.filter((row) => calendarScope(row) === 'Personal' && row._calendarOwnerUuid === currentUserUuid),
+    [currentUserUuid, rows, scope],
   )
   const eventsByDay = useMemo(() => groupEventsByDay(visibleRows), [visibleRows])
   const calendarDays = buildMonthCells(month)
@@ -49,9 +49,14 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
           <h2 className="mt-1 text-lg font-black text-ink-950">CALENDARIO DE SEGUIMIENTOS</h2>
           <p className="mt-1 text-xs text-ink-800/50">El color identifica al responsable de cada evento.</p>
         </div>
-        <div className="inline-flex self-start rounded-xl border border-black/5 bg-[#f7f3f1] p-1">
-          <ScopeButton active={scope === 'personal'} icon={UserRound} label="MI CALENDARIO" onClick={() => setScope('personal')} />
-          <ScopeButton active={scope === 'company'} icon={Building2} label="EMPRESARIAL" onClick={() => setScope('company')} />
+        <div className="flex flex-wrap items-center gap-2 self-start">
+          <div className="inline-flex rounded-xl border border-black/5 bg-[#f7f3f1] p-1">
+            <ScopeButton active={scope === 'personal'} icon={UserRound} label="MI CALENDARIO" onClick={() => setScope('personal')} />
+            <ScopeButton active={scope === 'company'} icon={Building2} label="EMPRESARIAL" onClick={() => setScope('company')} />
+          </div>
+          <Link className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-500 px-3 text-[11px] font-black text-[#191919] hover:bg-brand-400" to={basePath + '/nuevo?calendario=' + (scope === 'personal' ? 'Personal' : 'Empresarial')}>
+            <Plus className="size-4" /> AGREGAR {scope === 'personal' ? 'PERSONAL' : 'EMPRESARIAL'}
+          </Link>
         </div>
       </section>
 
@@ -94,7 +99,7 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
       </section>
 
       {scope === 'personal' && !currentUser.isPending && visibleRows.length === 0 && (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">No encontramos seguimientos asignados a “{currentUserName || 'tu usuario'}”. Revisa que el campo Responsable coincida con el nombre del usuario.</p>
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">Tu calendario personal está vacío. Usa “Agregar personal” para crear un evento privado para tu cuenta.</p>
       )}
 
       <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
@@ -158,10 +163,8 @@ function responsibleName(row: RowData): string {
   return String(row.Responsable ?? '').trim() || 'Sin responsable'
 }
 
-function sameResponsible(value: unknown, userName: string): boolean {
-  const responsible = normalizeName(value)
-  const user = normalizeName(userName)
-  return Boolean(responsible && user && responsible === user)
+function calendarScope(row: RowData): 'Personal' | 'Empresarial' {
+  return normalizeName(row.Calendario) === 'PERSONAL' ? 'Personal' : 'Empresarial'
 }
 
 function normalizeName(value: unknown): string {

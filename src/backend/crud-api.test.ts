@@ -43,6 +43,17 @@ interface CrudSandbox {
     extension: string,
   ) => string
   readonly isApiEditableColumn_: (column: CrudColumn) => boolean
+  readonly applyCrmCalendarOwnership_: (
+    user: Readonly<Record<string, unknown>>,
+    table: CrudTable,
+    record: Record<string, unknown>,
+    isCreate: boolean,
+  ) => void
+  readonly assertCrmCalendarMutationAccess_: (
+    user: Readonly<Record<string, unknown>>,
+    table: CrudTable,
+    record: Readonly<Record<string, unknown>>,
+  ) => void
 }
 
 function loadCrudSandbox(): CrudSandbox {
@@ -152,5 +163,27 @@ describe('CRUD de Apps Script', () => {
       '11111111-1111-4111-8111-111111111111.imagen-check-1.' +
       '22222222-2222-4222-8222-222222222222.jpg',
     )
+  })
+
+  it('asigna y protege el propietario de calendarios personales del CRM', () => {
+    const { applyCrmCalendarOwnership_, assertCrmCalendarMutationAccess_ } = loadCrudSandbox()
+    const table = { name: 'Gestion Clientes', columns: [] }
+    const owner = { userUuid: '11111111-1111-4111-8111-111111111111' }
+    const anotherUser = { userUuid: '22222222-2222-4222-8222-222222222222' }
+    const personal: Record<string, unknown> = { Calendario: 'Personal' }
+
+    applyCrmCalendarOwnership_(owner, table, personal, true)
+    expect(personal).toEqual({
+      Calendario: 'Personal',
+      _calendarOwnerUuid: owner.userUuid,
+    })
+    expect(() => assertCrmCalendarMutationAccess_(owner, table, personal)).not.toThrow()
+    expect(() => assertCrmCalendarMutationAccess_(anotherUser, table, personal)).toThrow(
+      'otro usuario',
+    )
+
+    const company: Record<string, unknown> = { Calendario: 'Empresarial' }
+    applyCrmCalendarOwnership_(owner, table, company, true)
+    expect(company._calendarOwnerUuid).toBe('')
   })
 })
