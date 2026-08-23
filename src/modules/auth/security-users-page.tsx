@@ -5,9 +5,9 @@ import {
   EyeOff,
   KeyRound,
   LoaderCircle,
+  LockKeyhole,
   LogOut,
   Search,
-  ShieldUser,
   Unlock,
   UserCheck,
   Users,
@@ -104,11 +104,11 @@ export function SecurityUsersPage() {
     <div className="space-y-4">
       <ModuleHeader
         action={<span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">
-            <ShieldUser className="size-3.5" /> SOLO ADMINISTRADOR
+            <LockKeyhole className="size-3.5" /> SOLO ADMINISTRADOR
           </span>}
         description="Restablece accesos, desbloquea cuentas y controla sesiones sin ver contraseñas."
         eyebrow="Administración"
-        icon={<ShieldUser className="size-5" />}
+        icon={<LockKeyhole className="size-5" />}
         title="SEGURIDAD DE USUARIOS"
       />
 

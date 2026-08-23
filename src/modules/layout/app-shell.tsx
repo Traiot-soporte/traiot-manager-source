@@ -3,10 +3,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Home,
+  IdCard,
+  LockKeyhole,
   Menu,
   Package,
   Power,
-  ShieldUser,
   UserRound,
   Users,
   Wrench,
@@ -243,7 +244,9 @@ export function AppShell() {
               title={table.name.toLocaleUpperCase('es-MX')}
               to={'/tablas/' + encodeURIComponent(table.name)}
             >
-              <TableIcon className="shrink-0" name={table.icon} />
+              {table.name === 'Perfiles'
+                ? <IdCard className="size-5 shrink-0" strokeWidth={2} />
+                : <TableIcon className="shrink-0" name={table.icon} />}
               <span
                 className={cn(
                   'min-w-0 flex-1 whitespace-nowrap',
@@ -268,7 +271,7 @@ export function AppShell() {
               title="SEGURIDAD DE USUARIOS"
               to="/seguridad-usuarios"
             >
-              <ShieldUser className="size-5 shrink-0" />
+              <LockKeyhole className="size-5 shrink-0" strokeWidth={2} />
               <span className={cn('min-w-0 flex-1 whitespace-nowrap text-[11.5px]', sidebarCollapsed && 'lg:hidden')}>
                 SEGURIDAD DE USUARIOS
               </span>
