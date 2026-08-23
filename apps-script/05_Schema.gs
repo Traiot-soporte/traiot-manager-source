@@ -2264,13 +2264,19 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "name": "Responsable",
         "sourceHeader": "Responsable",
         "origin": "appsheet",
-        "type": "Text",
-        "required": false,
+        "type": "EnumList",
+        "required": true,
         "hidden": false,
         "sensitive": false,
         "readOnly": false,
         "hasFormula": false,
-        "values": [],
+        "values": [
+          "Luis Baca",
+          "Jesús Ortiz",
+          "Oscar Malagón",
+          "Rembrand Castaneda",
+          "Manuel Soto"
+        ],
         "syncTo": "",
         "refTable": ""
       },

@@ -63,6 +63,11 @@ describe('registro de metadata', () => {
     expect(crm?.defaultView).toBe('dashboard')
     expect(crm?.columns.find((column) => column.name === 'Id_CRM')?.readOnly)
       .toBe(true)
+    expect(crm?.columns.find((column) => column.name === 'Responsable')).toMatchObject({
+      type: 'EnumList',
+      required: true,
+      values: ['Luis Baca', 'Jesús Ortiz', 'Oscar Malagón', 'Rembrand Castaneda', 'Manuel Soto'],
+    })
     expect(crm?.columns.find((column) => column.name === 'Calendario')?.values)
       .toEqual(['Personal', 'Empresarial'])
     expect(crm?.columns.find((column) => column.name === '_calendarOwnerUuid')?.origin)

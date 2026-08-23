@@ -2,6 +2,7 @@ import {
   activeCustomerStatuses,
   crmActions,
   crmCustomerTypes,
+  crmResponsibles,
   prospectStatuses,
 } from '@/schema/catalogs'
 import { refValue } from '@/schema/formulas'
@@ -59,7 +60,14 @@ export const gestionClientesTable = defineTable({
     },
     { name: 'Tipo_cliente', type: 'Enum', values: crmCustomerTypes },
     { name: 'Accion', type: 'Enum', values: crmActions },
-    { name: 'Responsable', type: 'Text' },
+    {
+      name: 'Responsable',
+      label: 'Responsables',
+      type: 'EnumList',
+      required: true,
+      values: crmResponsibles,
+      description: 'Selecciona uno o varios responsables del seguimiento.',
+    },
     {
       name: 'Estatus_prospeccion',
       type: 'Enum',

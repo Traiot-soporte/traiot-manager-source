@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 import { useRepository } from '@/data/use-repository'
 import { cn } from '@/lib/utils'
 import type { RowData } from '@/schema'
+import { crmResponsibles } from '@/schema/catalogs'
 import type { CollectionViewProps } from '@/views/types'
 
 type CalendarScope = 'personal' | 'company'
@@ -125,7 +126,8 @@ function ScopeButton({ active, icon: Icon, label, onClick }: { readonly active: 
 
 function CalendarEvent({ basePath, colorByResponsible, row }: { readonly basePath: string; readonly colorByResponsible: ReadonlyMap<string, ResponsibleColor>; readonly row: RowData }) {
   const responsible = responsibleName(row)
-  const color = colorForResponsible(responsible, colorByResponsible)
+  const primaryResponsible = responsibleNames(row)[0] ?? 'Sin responsable'
+  const color = colorForResponsible(primaryResponsible, colorByResponsible)
   const action = String(row.Accion ?? 'Seguimiento')
   return (
     <Link className="block truncate rounded-md border-l-[3px] px-2 py-1.5 text-[10px] font-black leading-4 transition hover:brightness-95" style={{ backgroundColor: color.background, borderLeftColor: color.border, color: color.text }} title={`${action} · ${responsible}`} to={basePath + '/' + encodeURIComponent(String(row._uuid))}>
@@ -166,9 +168,18 @@ function buildMonthCells(month: Date): readonly ({ key: string; number: number }
 }
 
 function responsibleName(row: RowData): string {
-  const responsible = String(row.Responsable ?? '').trim()
-  if (!responsible) return 'Sin responsable'
-  return responsible.toLocaleLowerCase('es-MX').replace(/(^|[\s/])\p{L}/gu, (match) => match.toLocaleUpperCase('es-MX'))
+  return responsibleNames(row).join(' / ') || 'Sin responsable'
+}
+
+function responsibleNames(row: RowData): readonly string[] {
+  const rawValues = Array.isArray(row.Responsable)
+    ? row.Responsable.map(String)
+    : String(row.Responsable ?? '').split(/\s*(?:,|\/)\s*/)
+
+  return [...new Set(rawValues.map((value) => {
+    const normalized = normalizeName(value)
+    return crmResponsibles.find((responsible) => normalizeName(responsible) === normalized) ?? value.trim()
+  }).filter(Boolean))]
 }
 
 function calendarScope(row: RowData): 'Personal' | 'Empresarial' {
@@ -186,9 +197,11 @@ type ResponsibleColor = (typeof responsibleColors)[number] | typeof unassignedCo
 function uniqueResponsibles(rows: readonly RowData[]): readonly string[] {
   const labels = new Map<string, string>()
   for (const row of rows) {
-    const label = responsibleName(row)
-    const key = normalizeName(label)
-    if (!labels.has(key)) labels.set(key, label)
+    const names = responsibleNames(row)
+    for (const label of names.length > 0 ? names : ['Sin responsable']) {
+      const key = normalizeName(label)
+      if (!labels.has(key)) labels.set(key, label)
+    }
   }
   return [...labels.values()].sort((left, right) => left.localeCompare(right, 'es-MX'))
 }

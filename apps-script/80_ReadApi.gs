@@ -426,7 +426,7 @@ function serializeApiCell_(value, column) {
   }
 
   if (column.type === 'EnumList' || column.type === 'List') {
-    return Array.isArray(value) ? value.slice() : splitApiList_(value);
+    return serializeApiListCell_(value, column);
   }
 
   if (typeof value === 'number' || typeof value === 'boolean') {
@@ -457,6 +457,30 @@ function normalizeApiBoolean_(value) {
 function splitApiList_(value) {
   return normalizeCell_(value).split(/\s*,\s*/).filter(function (item) {
     return item !== '';
+  });
+}
+
+function serializeApiListCell_(value, column) {
+  var values = Array.isArray(value) ? value.slice() : splitApiList_(value);
+
+  if (column.name === 'Responsable') {
+    values = values.reduce(function (result, item) {
+      return result.concat(normalizeCell_(item).split(/\s*\/\s*/));
+    }, []).filter(function (item) {
+      return item !== '';
+    });
+  }
+
+  if (!column.values || column.values.length === 0) {
+    return values;
+  }
+
+  return values.map(function (item) {
+    var normalized = normalizeLookupValue_(item);
+    var canonical = column.values.filter(function (option) {
+      return normalizeLookupValue_(option) === normalized;
+    })[0];
+    return canonical || String(item);
   });
 }
 

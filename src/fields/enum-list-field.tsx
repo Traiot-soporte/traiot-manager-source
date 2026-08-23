@@ -1,5 +1,6 @@
 import { FieldShell } from '@/fields/field-shell'
 import type { FieldComponentProps } from '@/fields/types'
+import { cn } from '@/lib/utils'
 
 export function EnumListField({ column, disabled, error, onChange, value }: FieldComponentProps) {
   const inputId = 'field-' + encodeURIComponent(column.name)
@@ -35,7 +36,12 @@ export function EnumListField({ column, disabled, error, onChange, value }: Fiel
     <FieldShell column={column} error={error} inputId={inputId}>
       <div
         aria-describedby={error ? inputId + '-error' : undefined}
-        className="grid max-h-72 gap-2 overflow-y-auto rounded-xl border border-black/10 bg-white p-2"
+        className={cn(
+          'grid gap-2 rounded-xl border border-black/10 bg-white p-2',
+          column.name === 'Responsable'
+            ? 'sm:grid-cols-2'
+            : 'max-h-72 overflow-y-auto',
+        )}
         id={inputId}
       >
         {column.values.map((option) => (

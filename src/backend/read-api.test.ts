@@ -7,6 +7,7 @@ interface ApiColumn {
   readonly name: string
   readonly sourceHeader: string
   readonly type: string
+  readonly values?: readonly string[]
   readonly virtual?: boolean
   readonly sensitive?: boolean
 }
@@ -98,5 +99,31 @@ describe('API privada de lectura', () => {
     expect(isCrmCalendarRowVisible_(personal, anotherUser)).toBe(false)
     expect(isCrmCalendarRowVisible_({ Calendario: 'Empresarial' }, anotherUser)).toBe(true)
     expect(isCrmCalendarRowVisible_({ Calendario: '' }, anotherUser)).toBe(true)
+  })
+
+  it('normaliza responsables historicos combinados al catalogo vigente', () => {
+    const { mapApiRowsFromValues_ } = loadReadApiSandbox()
+    const crmTable: ApiTable = {
+      name: 'Gestion Clientes',
+      sourceHeaders: ['Id_CRM', 'Responsable'],
+      columns: [
+        { name: '_uuid', sourceHeader: '_uuid', type: 'Text' },
+        { name: '_deleted', sourceHeader: '_deleted', type: 'Bool' },
+        { name: 'Id_CRM', sourceHeader: 'Id_CRM', type: 'Text' },
+        {
+          name: 'Responsable',
+          sourceHeader: 'Responsable',
+          type: 'EnumList',
+          values: ['Luis Baca', 'Jesús Ortiz', 'Oscar Malagón', 'Rembrand Castaneda', 'Manuel Soto'],
+        },
+      ],
+    }
+
+    const rows = mapApiRowsFromValues_(crmTable, [
+      ['Id_CRM', 'Responsable', '_uuid', '_deleted'],
+      ['291', 'LUIS BACA/Manuel Soto', '11111111-1111-4111-8111-111111111111', false],
+    ])
+
+    expect(rows[0]?.Responsable).toEqual(['Luis Baca', 'Manuel Soto'])
   })
 })

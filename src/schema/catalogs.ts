@@ -21,6 +21,13 @@ export const crmActions = [
   '🏠Visita',
   '📱Videollamada',
 ] as const
+export const crmResponsibles = [
+  'Luis Baca',
+  'Jesús Ortiz',
+  'Oscar Malagón',
+  'Rembrand Castaneda',
+  'Manuel Soto',
+] as const
 export const prospectStatuses = [
   '⏳Por contactar',
   '📞Primer contacto',
