@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Braces, Plus, Search } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
@@ -66,7 +66,7 @@ export function TablePage() {
             )}
         description={table.description}
         eyebrow={table.module}
-        footer={<><span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>{repository.sourceLabel}</span></>}
+        footer={<span>{rows.data?.length ?? 0} registros</span>}
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={getTableDisplayName(table)}
         tone="light"
@@ -82,7 +82,7 @@ export function TablePage() {
       </div>
 
       {rows.isPending && <StatusMessage text="Cargando registros…" />}
-      {rows.isError && <StatusMessage error text="No fue posible leer los registros del repositorio." />}
+      {rows.isError && <StatusMessage error text="No fue posible consultar los registros." />}
       {rows.data && filteredRows.length === 0 && <StatusMessage text={search ? 'No hay resultados para esta búsqueda.' : 'Aún no hay registros. Crea el primero con el botón superior.'} />}
       {rows.data && filteredRows.length > 0 && <CollectionView basePath={basePath} rows={filteredRows} table={table} view={view} />}
     </div>

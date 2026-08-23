@@ -51,7 +51,7 @@ type ApiCaller = (request: Readonly<Record<string, unknown>>) => Promise<unknown
 
 export class AppsScriptRepository implements Repository {
   readonly source = 'apps-script' as const
-  readonly sourceLabel = 'Google Sheets'
+  readonly sourceLabel = 'Servidor'
   readonly writable = true
   readonly #call: ApiCaller
   readonly #createMutationId: () => string

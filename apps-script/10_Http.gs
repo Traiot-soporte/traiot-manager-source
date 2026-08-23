@@ -81,7 +81,7 @@ function buildHealth_() {
   var config = getRuntimeConfig_();
 
   return {
-    service: 'TRAIOT Manager Backend',
+    service: 'TRAIOT Manager',
     status: 'ok',
     phase: 'inventory',
     schemaVersion: config.schemaVersion,

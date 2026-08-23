@@ -23,7 +23,7 @@ export function SyncStatus() {
       className={connected
         ? 'flex min-h-11 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-900'
         : 'flex min-h-11 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 text-xs font-bold text-red-800'}
-      title={connected ? 'Conexión verificada con el backend.' : 'No hay conexión con el backend.'}
+      title={connected ? 'Conexión verificada con el servidor.' : 'No hay conexión con el servidor.'}
     >
       <Icon aria-hidden="true" className="size-4" />
       <span>{connected ? 'Conectado' : 'Desconectado'}</span>

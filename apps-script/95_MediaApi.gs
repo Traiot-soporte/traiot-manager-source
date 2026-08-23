@@ -71,7 +71,7 @@ function readApiMedia_(schemaTable, storedValue) {
   var files = folder.getFilesByName(fileName);
 
   if (!files.hasNext()) {
-    throw new Error('No se encontro el archivo solicitado en Google Drive.');
+    throw new Error('No se encontro el archivo solicitado en el almacenamiento.');
   }
 
   var blob = files.next().getBlob();

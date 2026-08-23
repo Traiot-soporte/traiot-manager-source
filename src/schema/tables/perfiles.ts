@@ -32,7 +32,7 @@ export const perfilesTable = defineTable({
       virtual: true,
       readOnly: true,
       hidden: true,
-      description: 'Relación heredada de AppSheet; no se sincroniza.',
+      description: 'Relación interna de configuración; no se modifica.',
     },
   ],
 })

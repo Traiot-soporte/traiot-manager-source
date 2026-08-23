@@ -24,7 +24,7 @@ export function callAppsScript<T>(request: Readonly<Record<string, unknown>>): P
   const runner = window.google?.script?.run
 
   if (!runner) {
-    return Promise.reject(new Error('El puente privado de Apps Script no esta disponible.'))
+    return Promise.reject(new Error('El servicio privado no está disponible.'))
   }
 
   return new Promise<T>((resolve, reject) => {
@@ -37,10 +37,19 @@ export function callAppsScript<T>(request: Readonly<Record<string, unknown>>): P
 
 function normalizeAppsScriptError(error: unknown): Error {
   if (error && typeof error === 'object' && 'message' in error) {
-    return new Error(String(error.message))
+    return new Error(sanitizeServiceMessage(String(error.message)))
   }
 
-  return new Error(
-    typeof error === 'string' && error ? error : 'Apps Script no pudo completar la solicitud.',
-  )
+  const message = typeof error === 'string' && error
+    ? error
+    : 'El servicio no pudo completar la solicitud.'
+  return new Error(sanitizeServiceMessage(message))
+}
+
+function sanitizeServiceMessage(message: string): string {
+  return message
+    .replace(/Google\s*Sheets?/gi, 'servidor')
+    .replace(/Google\s*Drive/gi, 'almacenamiento')
+    .replace(/Apps\s*Script/gi, 'servicio')
+    .replace(/Spreadsheet(?:App)?/gi, 'servicio de datos')
 }

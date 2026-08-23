@@ -93,7 +93,7 @@ export function AuthUnavailable() {
         </span>
         <h1 className="mt-5 text-2xl font-black">Acceso no disponible</h1>
         <p className="mt-3 text-sm leading-6 text-white/50">
-          La aplicación está protegida o en mantenimiento. Verifica la configuración desde Apps Script.
+          La aplicación está protegida o en mantenimiento. Intenta nuevamente en unos minutos.
         </p>
         <button
           className="mt-6 min-h-12 rounded-xl bg-brand-400 px-5 text-sm font-black text-[#191919]"

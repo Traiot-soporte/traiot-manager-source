@@ -835,7 +835,7 @@ function requireAuthSheet_(spreadsheet, sheetName) {
   var sheet = spreadsheet.getSheetByName(sheetName);
 
   if (!sheet) {
-    throw new Error('Falta la hoja interna ' + sheetName + '.');
+    throw new Error('Falta un recurso interno de seguridad.');
   }
 
   return sheet;

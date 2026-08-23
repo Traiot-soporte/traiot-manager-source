@@ -180,7 +180,7 @@ export function LoginScreen({
                 {(error || sessionExpired || backendUnavailable) && (
                   <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm font-semibold leading-5 text-red-100" role="alert">
                     {backendUnavailable
-                      ? 'No fue posible conectar con Apps Script. Actualiza la página e intenta nuevamente.'
+                      ? 'No fue posible conectar con el servicio. Actualiza la página e intenta nuevamente.'
                       : error ?? 'Tu sesión venció. Ingresa nuevamente.'}
                   </div>
                 )}

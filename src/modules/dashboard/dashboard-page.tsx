@@ -30,6 +30,7 @@ export function DashboardPage() {
     (summary) => !summary.name.startsWith('instalacion_'),
   )
   const totalRows = (summaries.data ?? []).reduce((total, summary) => total + summary.rowCount, 0)
+  const moduleCount = new Set(visibleSummaries.map((summary) => summary.module)).size
 
   return (
     <div className="space-y-6">
@@ -43,19 +44,20 @@ export function DashboardPage() {
       />
 
       <section className="grid gap-3 sm:grid-cols-3">
-        <Metric icon={Layers3} label="Tablas definidas" value="16" />
-        <Metric icon={Database} label={connected ? 'Filas reales' : 'Filas demo'} value={String(totalRows)} />
-        <Metric icon={connected ? Cloud : WifiOff} label="Backend" value={connected ? 'Apps Script · conectado' : 'Sin conexión'} />
+        <Metric icon={Layers3} label="Módulos disponibles" value={String(moduleCount)} />
+        <Metric icon={Database} label="Registros totales" value={String(totalRows)} />
+        <Metric icon={connected ? Cloud : WifiOff} label="Estado del servicio" value={connected ? 'Conectado' : 'Desconectado'} />
       </section>
 
       {summaries.isPending && (
         <div className="rounded-2xl border border-black/5 bg-white p-6 text-sm text-ink-800/60">
-          Preparando los datos de demostración…
+          Preparando la información…
         </div>
       )}
 
       {moduleOrder.map((moduleName) => {
         const moduleTables = visibleSummaries.filter((summary) => summary.module === moduleName)
+        const moduleRecords = moduleTables.reduce((total, summary) => total + summary.rowCount, 0)
         if (moduleTables.length === 0) {
           return null
         }
@@ -70,14 +72,12 @@ export function DashboardPage() {
                 <h2 className="mt-1 text-2xl font-black text-ink-950">{moduleName}</h2>
               </div>
               <span className="text-xs font-bold text-ink-800/45">
-                {moduleTables.length} {moduleTables.length === 1 ? 'tabla' : 'tablas'}
+                {moduleRecords} {moduleRecords === 1 ? 'registro' : 'registros'}
               </span>
             </div>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {moduleTables.map((summary) => {
                 const table = getTableDefinition(summary.name)
-                const fieldCount =
-                  table?.columns.filter((column) => column.origin !== 'system').length ?? 0
 
                 return (
                   <Link
@@ -95,10 +95,8 @@ export function DashboardPage() {
                     <p className="mt-1 line-clamp-2 text-sm leading-5 text-ink-800/55">
                       {summary.description}
                     </p>
-                    <div className="mt-4 flex gap-2 text-[11px] font-bold text-ink-800/50">
-                      <span>{summary.rowCount} {connected ? 'registros' : 'registros demo'}</span>
-                      <span>·</span>
-                      <span>{fieldCount} campos</span>
+                    <div className="mt-4 text-[11px] font-bold text-ink-800/50">
+                      {summary.rowCount} {summary.rowCount === 1 ? 'registro' : 'registros'}
                     </div>
                   </Link>
                 )

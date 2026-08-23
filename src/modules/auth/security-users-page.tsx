@@ -146,7 +146,7 @@ export function SecurityUsersPage() {
               <ShieldCheck className="size-4 text-brand-600" /> ROLES Y PERMISOS
             </p>
             <p className="mt-1 text-xs text-ink-800/50">
-              Matriz fija aplicada tanto en la interfaz como en Apps Script.
+              Matriz de acceso aplicada en todo el sistema.
             </p>
           </div>
           <button
@@ -156,7 +156,7 @@ export function SecurityUsersPage() {
             type="button"
           >
             <RefreshCw className={syncRoles.isPending ? 'size-3.5 animate-spin' : 'size-3.5'} />
-            SINCRONIZAR CON SHEETS
+            SINCRONIZAR CON SERVIDOR
           </button>
         </div>
         <div className="mt-3 grid gap-2 lg:grid-cols-5">

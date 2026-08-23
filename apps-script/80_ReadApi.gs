@@ -207,7 +207,7 @@ function resolveApiUser_(sessionToken) {
   var activeEmail = normalizeApiEmail_(Session.getActiveUser().getEmail());
 
   if (!activeEmail) {
-    throw new Error('No fue posible identificar la cuenta de Google activa.');
+    throw new Error('No fue posible identificar la cuenta activa.');
   }
 
   return findAuthorizedSheetUser_(activeEmail);
@@ -387,7 +387,7 @@ function readApiRows_(spreadsheet, schemaTable) {
   var sheet = spreadsheet.getSheetByName(schemaTable.sheet);
 
   if (!sheet) {
-    throw new Error('No se encontro la hoja ' + schemaTable.sheet + '.');
+    throw new Error('No se encontro la informacion de ' + schemaTable.name + '.');
   }
 
   return mapApiRowsFromValues_(schemaTable, sheet.getDataRange().getValues());

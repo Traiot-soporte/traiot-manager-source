@@ -544,7 +544,7 @@ function requireApiSheet_(spreadsheet, schemaTable) {
   var sheet = spreadsheet.getSheetByName(schemaTable.sheet);
 
   if (!sheet) {
-    throw new Error('No se encontro la hoja ' + schemaTable.sheet + '.');
+    throw new Error('No se encontro la informacion de ' + schemaTable.name + '.');
   }
 
   return sheet;

@@ -74,7 +74,7 @@ export function AuthAdminPanel({ email, userUuid }: AuthAdminPanelProps) {
           <div className="rounded-2xl border border-brand-100 bg-brand-50 p-5">
             <h3 className="font-black text-ink-950">Preparar autenticación</h3>
             <p className="mt-2 text-sm leading-6 text-ink-800/55">
-              Agregará campos protegidos a Usuarios y creará las hojas internas de sesiones y auditoría.
+              Preparará la protección de usuarios, el control de sesiones y la auditoría de accesos.
             </p>
             <button
               className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-5 text-sm font-black text-white disabled:opacity-60"
