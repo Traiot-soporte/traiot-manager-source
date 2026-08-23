@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
+import { ModuleHeader } from '@/components/module-header'
 import { useRepository } from '@/data/use-repository'
 import { isAdministratorRole } from '@/modules/auth/auth-permissions'
 
@@ -101,25 +102,15 @@ export function SecurityUsersPage() {
 
   return (
     <div className="space-y-4">
-      <header className="overflow-hidden rounded-3xl bg-ink-950 text-white shadow-lg">
-        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-[#191919]">
-              <ShieldCheck className="size-5" />
-            </span>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-400">Administración</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight">SEGURIDAD DE USUARIOS</h1>
-              <p className="mt-1 max-w-2xl text-xs leading-5 text-white/50 sm:text-sm">
-                Restablece accesos, desbloquea cuentas y controla sesiones sin ver contraseñas.
-              </p>
-            </div>
-          </div>
-          <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">
+      <ModuleHeader
+        action={<span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black text-emerald-300">
             <ShieldCheck className="size-3.5" /> SOLO ADMINISTRADOR
-          </span>
-        </div>
-      </header>
+          </span>}
+        description="Restablece accesos, desbloquea cuentas y controla sesiones sin ver contraseñas."
+        eyebrow="Administración"
+        icon={<ShieldCheck className="size-5" />}
+        title="SEGURIDAD DE USUARIOS"
+      />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric icon={Users} label="Usuarios" value={users.length} />

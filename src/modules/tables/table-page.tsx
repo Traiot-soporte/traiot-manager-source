@@ -3,6 +3,7 @@ import { Braces, Plus, Search } from 'lucide-react'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 
+import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { getTableDefinition } from '@/schema'
@@ -51,19 +52,9 @@ export function TablePage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[2rem] bg-white shadow-sm">
-        <div className="p-6 sm:p-8">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div className="flex gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-ink-950 text-brand-400"><TableIcon className="size-7" name={table.icon} /></span>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-600">{table.module}</p>
-                <h1 className="mt-1 text-2xl font-black text-ink-950 sm:text-3xl">{table.name}</h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-800/55">{table.description}</p>
-              </div>
-            </div>
-            {repository.writable ? (
+    <div className="space-y-4">
+      <ModuleHeader
+        action={repository.writable ? (
               <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
                 <Plus className="size-5" /> Nuevo registro
               </Link>
@@ -72,12 +63,13 @@ export function TablePage() {
                 Solo lectura
               </span>
             )}
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 border-t border-black/5 bg-brand-50 px-6 py-3 text-xs font-bold text-brand-600 sm:px-8">
-          <span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>{repository.sourceLabel}</span>
-        </div>
-      </section>
+        description={table.description}
+        eyebrow={table.module}
+        footer={<><span>{rows.data?.length ?? 0} registros</span><span>·</span><span className="inline-flex items-center gap-1"><Braces className="size-3.5" />{table.columns.length} campos</span><span>·</span><span>{repository.sourceLabel}</span></>}
+        icon={<TableIcon className="size-5" name={table.icon} />}
+        title={table.name}
+        tone="light"
+      />
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <label className="relative block w-full xl:max-w-md">

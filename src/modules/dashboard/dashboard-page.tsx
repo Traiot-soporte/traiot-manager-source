@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Cloud, Database, Layers3, WifiOff } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { getTableDefinition } from '@/schema'
@@ -31,27 +32,20 @@ export function DashboardPage() {
   const totalRows = (summaries.data ?? []).reduce((total, summary) => total + summary.rowCount, 0)
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] bg-ink-950 px-6 py-8 text-white sm:px-10 sm:py-10">
-        <div className="absolute -right-16 -top-20 size-64 rounded-full bg-brand-400/20 blur-3xl" />
-        <div className="relative max-w-3xl">
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-400">
-            Operación GPS · IoT
-          </p>
-          <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">
-            Todo tu negocio, listo para trabajar sin señal.
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
-            {connected
-              ? 'Datos reales consultados de forma privada mediante Google Apps Script.'
-              : 'Esta vista utiliza datos simulados mientras se revisa la interfaz local.'}
-          </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-3">
-            <Metric icon={Layers3} label="Tablas definidas" value="16" />
-            <Metric icon={Database} label={connected ? 'Filas reales' : 'Filas demo'} value={String(totalRows)} />
-            <Metric icon={connected ? Cloud : WifiOff} label="Backend" value={connected ? 'Apps Script · conectado' : 'Sin conexion'} />
-          </div>
-        </div>
+    <div className="space-y-6">
+      <ModuleHeader
+        description={connected
+          ? 'Control integral de inventario, instalaciones, clientes y soporte.'
+          : 'Vista de demostración del centro de operación.'}
+        eyebrow="Operación GPS · IoT"
+        icon={<Layers3 className="size-5" />}
+        title="RESUMEN"
+      />
+
+      <section className="grid gap-3 sm:grid-cols-3">
+        <Metric icon={Layers3} label="Tablas definidas" value="16" />
+        <Metric icon={Database} label={connected ? 'Filas reales' : 'Filas demo'} value={String(totalRows)} />
+        <Metric icon={connected ? Cloud : WifiOff} label="Backend" value={connected ? 'Apps Script · conectado' : 'Sin conexión'} />
       </section>
 
       {summaries.isPending && (
@@ -125,10 +119,12 @@ interface MetricProps {
 
 function Metric({ icon: Icon, label, value }: MetricProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <Icon className="size-5 text-brand-400" />
-      <p className="mt-3 text-xs font-bold text-white/45">{label}</p>
-      <p className="mt-1 text-sm font-black text-white">{value}</p>
+    <div className="flex items-center gap-3 rounded-xl border border-black/5 bg-white px-3 py-2.5 shadow-sm">
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600"><Icon className="size-4" /></span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-black text-ink-950">{value}</p>
+        <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-ink-800/40">{label}</p>
+      </div>
     </div>
   )
 }

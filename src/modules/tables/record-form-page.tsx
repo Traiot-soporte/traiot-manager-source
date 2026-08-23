@@ -2,6 +2,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
 
+import { ModuleHeader } from '@/components/module-header'
+import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { getTableDefinition } from '@/schema'
 import type { RowData } from '@/schema'
@@ -42,9 +44,14 @@ export function RecordFormPage() {
   const cancelTo = editing && rowUuid ? basePath + '/' + encodeURIComponent(rowUuid) : basePath
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
-      <header className="rounded-3xl bg-ink-950 p-6 text-white sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-brand-400">{editing ? 'Edición' : 'Nuevo registro'}</p><h1 className="mt-2 text-2xl font-black sm:text-3xl">{editing ? 'Editar ' + table.name : 'Crear en ' + table.name}</h1><p className="mt-2 text-sm text-white/55">Formulario generado desde la metadata de {table.columns.length} campos.</p></header>
+      <ModuleHeader
+        description={`Formulario de ${table.columns.length} campos.`}
+        eyebrow={editing ? 'Edición' : 'Nuevo registro'}
+        icon={<TableIcon className="size-5" name={table.icon} />}
+        title={editing ? 'EDITAR ' + table.name : 'CREAR EN ' + table.name}
+      />
       <FormView cancelTo={cancelTo} initialRow={row.data} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
     </div>
   )
