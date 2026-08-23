@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ZoomIn, X } from 'lucide-react'
+import { ExternalLink, ZoomIn, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -7,6 +7,7 @@ import { useRepository } from '@/data/use-repository'
 import { formatCell } from '@/lib/format'
 import { getTableDefinition } from '@/schema'
 import type { CellValue, ColumnDef } from '@/schema'
+import { safeExternalUrl, urlActionLabel } from '@/views/url-utils'
 import { getRowTitle } from '@/views/view-utils'
 
 interface CellDisplayProps {
@@ -98,6 +99,24 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
           document.body,
         )}
       </>
+    )
+  }
+
+  if (column.type === 'Url') {
+    const href = safeExternalUrl(value)
+    if (!href) return <>{formatCell(value, column.type)}</>
+
+    return (
+      <a
+        className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 font-black text-brand-600 transition hover:border-brand-400 hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
+        title={href}
+      >
+        <span>{urlActionLabel(column.name)}</span>
+        <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+      </a>
     )
   }
 

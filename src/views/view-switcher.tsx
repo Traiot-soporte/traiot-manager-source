@@ -13,14 +13,15 @@ const options = [
 ] as const
 
 interface ViewSwitcherProps {
+  readonly views: readonly CollectionViewKind[]
   readonly value: CollectionViewKind
   readonly onChange: (value: CollectionViewKind) => void
 }
 
-export function ViewSwitcher({ onChange, value }: ViewSwitcherProps) {
+export function ViewSwitcher({ onChange, value, views }: ViewSwitcherProps) {
   return (
     <div aria-label="Cambiar vista" className="flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-black/5 bg-white p-1 shadow-sm" role="group">
-      {options.map(({ icon: Icon, kind, label }) => (
+      {options.filter(({ kind }) => views.includes(kind)).map(({ icon: Icon, kind, label }) => (
         <button
           aria-pressed={value === kind}
           className={cn(

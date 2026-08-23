@@ -10,6 +10,7 @@ export const matrizDispositivosTable = defineTable({
   icon: 'Cpu',
   description: 'Fichas técnicas y comparador de dispositivos GPS.',
   defaultView: 'card',
+  disabledViews: ['calendar'],
   columns: [
     { name: 'Modelo', type: 'Text', labelColumn: true, required: true },
     { name: 'Marca', type: 'Text' },
@@ -60,6 +61,6 @@ export const matrizDispositivosTable = defineTable({
     ]),
     { name: 'Frecuencia_reporte (min)', type: 'Number' },
     { name: 'Calculadora_bateria', type: 'Number' },
-    { name: 'Ficha_Tecnica', type: 'Url' },
+    { name: 'Ficha_Tecnica', label: 'Ficha técnica', type: 'Url' },
   ],
 })

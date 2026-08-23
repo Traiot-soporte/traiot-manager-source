@@ -100,4 +100,14 @@ describe('registro de metadata', () => {
       'NOTAS IMAGEN 5',
     ])
   })
+
+  it('configura Matriz Dispositivos sin calendario y con ficha técnica enlazable', () => {
+    const devices = tableDefinitions.find((table) => table.name === 'MATRIZ DISPOSITIVOS')
+
+    expect(devices?.disabledViews).toContain('calendar')
+    expect(devices?.columns.find((column) => column.name === 'Ficha_Tecnica')).toMatchObject({
+      label: 'Ficha técnica',
+      type: 'Url',
+    })
+  })
 })

@@ -231,6 +231,7 @@ export const mockRows: Readonly<Record<string, readonly RowData[]>> = {
       'Bateria(miliamperios)': 250,
       Uso_recomendado: 'Flotillas y carga',
       'Frecuencia_reporte (min)': 1,
+      Ficha_Tecnica: 'https://drive.google.com/file/d/1hPPLax0EeaYzzHdq9c-GcXWHic_pw8cm/view?usp=drive_link',
     }),
   ],
   Usuarios: [

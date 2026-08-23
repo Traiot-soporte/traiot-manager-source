@@ -7,23 +7,19 @@ import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
-import type { RowData, TableDef } from '@/schema'
+import type { RowData } from '@/schema'
 import { CalendarView } from '@/views/calendar-view'
 import { CardView } from '@/views/card-view'
 import { CrmCalendarView } from '@/views/crm-calendar-view'
 import { DashboardView } from '@/views/dashboard-view'
 import { DeckView } from '@/views/deck-view'
 import { TableView } from '@/views/table-view'
-import { isCollectionViewKind, type CollectionViewKind } from '@/views/view-kinds'
+import { getAvailableCollectionViews, resolveCollectionView, type CollectionViewKind } from '@/views/view-kinds'
 import { ViewSwitcher } from '@/views/view-switcher'
 
 const ChartView = lazy(() =>
   import('@/views/chart-view').then((module) => ({ default: module.ChartView })),
 )
-
-function defaultCollectionView(table: TableDef): CollectionViewKind {
-  return isCollectionViewKind(table.defaultView) ? table.defaultView : 'table'
-}
 
 export function TablePage() {
   const { tableName = '' } = useParams()
@@ -37,7 +33,8 @@ export function TablePage() {
     enabled: Boolean(table),
   })
   const requestedView = searchParams.get('vista')
-  const view = table && isCollectionViewKind(requestedView) ? requestedView : table ? defaultCollectionView(table) : 'table'
+  const availableViews = table ? getAvailableCollectionViews(table) : []
+  const view = table ? resolveCollectionView(table, requestedView) : 'table'
   const filteredRows = useMemo(
     () => filterRows(rows.data ?? [], search),
     [rows.data, search],
@@ -78,7 +75,7 @@ export function TablePage() {
           <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-800/35" />
           <input className="min-h-12 w-full rounded-2xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" onChange={(event) => setSearch(event.target.value)} placeholder="Buscar en todos los campos…" type="search" value={search} />
         </label>
-        <ViewSwitcher onChange={changeView} value={view} />
+        <ViewSwitcher onChange={changeView} value={view} views={availableViews} />
       </div>
 
       {rows.isPending && <StatusMessage text="Cargando registros…" />}

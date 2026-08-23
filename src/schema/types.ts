@@ -96,6 +96,7 @@ export interface TableDef<T extends RowData = RowData> {
   readonly icon: string
   readonly description: string
   readonly defaultView: ViewKind
+  readonly disabledViews?: readonly ViewKind[]
   readonly columns: readonly ColumnDef<T>[]
   readonly childTables?: readonly ChildTableDef[]
 }
