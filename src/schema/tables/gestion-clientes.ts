@@ -20,7 +20,15 @@ export const gestionClientesTable = defineTable({
   defaultView: 'dashboard',
   columns: [
     migrationRef('cliente_uuid', 'Cliente interno', 'CLIENTES'),
-    { name: 'Id_CRM', type: 'Text', labelColumn: true, required: true },
+    {
+      name: 'Id_CRM',
+      label: 'Consecutivo CRM',
+      type: 'Text',
+      labelColumn: true,
+      required: true,
+      readOnly: true,
+      description: 'Se asigna automáticamente al crear el registro.',
+    },
     { name: 'Fecha_contacto', type: 'Date', required: true },
     {
       name: 'Nombre_empresa',

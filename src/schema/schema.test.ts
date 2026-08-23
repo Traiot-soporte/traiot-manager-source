@@ -61,6 +61,8 @@ describe('registro de metadata', () => {
     expect(crm?.sheet).toBe('Gestion Clientes')
     expect(crm?.permissionView).toBe('Gestion Clientes')
     expect(crm?.defaultView).toBe('dashboard')
+    expect(crm?.columns.find((column) => column.name === 'Id_CRM')?.readOnly)
+      .toBe(true)
     expect(crm?.columns.find((column) => column.name === 'Calendario')?.values)
       .toEqual(['Personal', 'Empresarial'])
     expect(crm?.columns.find((column) => column.name === '_calendarOwnerUuid')?.origin)

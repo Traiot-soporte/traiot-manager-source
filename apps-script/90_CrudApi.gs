@@ -216,6 +216,10 @@ function prepareApiMutationRecord_(
     record.FOLIO = nextApiTicketFolio_(spreadsheet, now);
   }
 
+  if (schemaTable.name === 'Gestion Clientes' && isCreate) {
+    record.Id_CRM = nextApiCrmId_(spreadsheet);
+  }
+
   applyCrmCalendarOwnership_(user, schemaTable, record, isCreate);
 
   applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
@@ -663,6 +667,70 @@ function buildNextApiTicketFolio_(folios, year) {
   }, 0);
 
   return prefix + String(maximum + 1).padStart(4, '0');
+}
+
+function nextApiCrmId_(spreadsheet) {
+  var schemaTable = requireApiTable_('Gestion Clientes');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var idIndex = requireHeaderIndex_(headers, 'Id_CRM', schemaTable);
+  var ids = sheet.getLastRow() > 1
+    ? sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getValues()
+      .map(function (row) { return row[0]; })
+    : [];
+
+  return buildNextApiCrmId_(ids);
+}
+
+function buildNextApiCrmId_(ids) {
+  var maximum = (ids || []).reduce(function (currentMaximum, value) {
+    var sequence = parseApiCrmSequence_(value);
+    return sequence !== null && sequence > currentMaximum ? sequence : currentMaximum;
+  }, 0);
+
+  return String(maximum + 1);
+}
+
+function parseApiCrmSequence_(value) {
+  var normalized = normalizeCell_(value).replace(',', '.');
+  var numericValue = Number(normalized);
+
+  if (!normalized || !Number.isFinite(numericValue) || numericValue < 1) {
+    return null;
+  }
+
+  return Math.floor(numericValue + 0.000000001);
+}
+
+function diagnosticarConsecutivoCrm() {
+  var spreadsheet = openConfiguredSpreadsheet_();
+  var schemaTable = requireApiTable_('Gestion Clientes');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var idIndex = requireHeaderIndex_(headers, 'Id_CRM', schemaTable);
+  var lastRow = sheet.getLastRow();
+  var values = lastRow > 1
+    ? sheet.getRange(2, idIndex + 1, lastRow - 1, 1).getValues()
+      .map(function (row) { return row[0]; })
+    : [];
+  var decimalIds = values.filter(function (value) {
+    var normalized = normalizeCell_(value).replace(',', '.');
+    var numericValue = Number(normalized);
+    return normalized && Number.isFinite(numericValue) && !Number.isInteger(numericValue);
+  });
+  var nextId = buildNextApiCrmId_(values);
+
+  return {
+    spreadsheetId: spreadsheet.getId(),
+    sheet: sheet.getName(),
+    sheetId: sheet.getSheetId(),
+    range: 'A2:A' + lastRow,
+    rowsInspected: values.length,
+    decimalIds: decimalIds.length,
+    maximumSequence: Number(nextId) - 1,
+    nextId: nextId,
+    lastValues: values.slice(Math.max(values.length - 15, 0)).map(String)
+  };
 }
 
 function assertApiTableWriteAccess_(user, schemaTable) {

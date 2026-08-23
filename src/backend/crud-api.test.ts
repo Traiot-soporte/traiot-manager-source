@@ -36,6 +36,7 @@ interface CrudSandbox {
   ) => void
   readonly calculateApiLaboratorySemaphore_: (status: unknown, days: number | null) => string
   readonly buildNextApiTicketFolio_: (folios: readonly string[], year: string) => string
+  readonly buildNextApiCrmId_: (ids: readonly unknown[]) => string
   readonly buildApiMediaFileName_: (
     rowUuid: string,
     columnName: string,
@@ -140,6 +141,14 @@ describe('CRUD de Apps Script', () => {
 
     expect(buildNextApiTicketFolio_(['TS-2026-0001', 'TS-2025-0099', 'TS-2026-0012'], '2026'))
       .toBe('TS-2026-0013')
+  })
+
+  it('genera un consecutivo global entero para nuevos registros del CRM', () => {
+    const { buildNextApiCrmId_ } = loadCrudSandbox()
+
+    expect(buildNextApiCrmId_([275, '278.6666667', '291.2380952', '', 'invalido']))
+      .toBe('292')
+    expect(buildNextApiCrmId_([])).toBe('1')
   })
 
   it('permite campos visibles de tablas normalizadas y protege campos ocultos', () => {
