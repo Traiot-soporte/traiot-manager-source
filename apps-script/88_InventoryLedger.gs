@@ -4,7 +4,7 @@
  * El saldo existente de ALMACEN se conserva como SALDO INICIAL. A partir de
  * ese punto solo COMPRAS recibidas y PEDIDOS aprobados modifican existencias.
  */
-var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V1';
+var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V2';
 
 function ensureInventoryStorage_(spreadsheet, force) {
   var properties = PropertiesService.getScriptProperties();
@@ -53,18 +53,32 @@ function ensureInventoryStorage_(spreadsheet, force) {
     var almacenHeaders = readApiHeaders_(almacenSheet);
     var stockIndex = requireHeaderIndex_(almacenHeaders, 'STOCK', almacenSchema);
     var noticeIndex = requireHeaderIndex_(almacenHeaders, 'AVISO DE COMPRA', almacenSchema);
+    var purchasesIndex = requireHeaderIndex_(almacenHeaders, 'COMPRAS', almacenSchema);
+    var exitsIndex = requireHeaderIndex_(almacenHeaders, 'PEDIDOS', almacenSchema);
     var productRows = readApiRows_(spreadsheet, almacenSchema);
+    var derivedCounters = buildInventoryAggregateCounters_(spreadsheet);
     var baselineRecords = [];
     var now = new Date().toISOString();
 
     productRows.forEach(function (product) {
       var productUuid = normalizeCell_(product._uuid).toLowerCase();
       var movementId = 'KDX-INICIAL-' + productUuid;
-      var stock = apiNumber_(product.STOCK);
+      var counters = derivedCounters[productUuid] || { purchases: 0, exits: 0 };
+      var purchases = hasInventoryNumericValue_(product.COMPRAS)
+        ? apiNumber_(product.COMPRAS)
+        : counters.purchases;
+      var exits = hasInventoryNumericValue_(product.PEDIDOS)
+        ? apiNumber_(product.PEDIDOS)
+        : counters.exits;
+      var stock = hasInventoryNumericValue_(product.STOCK)
+        ? apiNumber_(product.STOCK)
+        : purchases - exits;
       var snapshot = findApiRowSnapshot_(almacenSheet, almacenSchema, productUuid);
 
       if (snapshot) {
         almacenSheet.getRange(snapshot.rowNumber, stockIndex + 1).setValue(stock);
+        almacenSheet.getRange(snapshot.rowNumber, purchasesIndex + 1).setValue(purchases);
+        almacenSheet.getRange(snapshot.rowNumber, exitsIndex + 1).setValue(exits);
         almacenSheet.getRange(snapshot.rowNumber, noticeIndex + 1).setValue(
           calculateInventoryPurchaseNotice_(stock, product['STOCK MINIMO'], product['STOCK MAXIMO'])
         );
@@ -202,12 +216,23 @@ function planInventoryMutation_(spreadsheet, schemaTable, beforeRecord, afterRec
       );
     }
 
+    var counterField = schemaTable.name === 'COMPRAS' ? 'COMPRAS' : 'PEDIDOS';
+    var counterDelta = schemaTable.name === 'COMPRAS' ? movement.delta : -movement.delta;
+    var previousCounter = apiNumber_(productSnapshot.record[counterField]);
+    var nextCounter = previousCounter + counterDelta;
+    if (nextCounter < 0) {
+      throw new Error('El acumulado de ' + counterField.toLowerCase() + ' no puede ser negativo.');
+    }
+
     products.push({
       sheet: almacenSheet,
       schema: almacenSchema,
       snapshot: productSnapshot,
       previousStock: previousStock,
       nextStock: nextStock,
+      counterField: counterField,
+      previousCounter: previousCounter,
+      nextCounter: nextCounter,
       notice: calculateInventoryPurchaseNotice_(
         nextStock,
         productSnapshot.record['STOCK MINIMO'],
@@ -250,6 +275,10 @@ function commitInventoryPlan_(spreadsheet, plan) {
       var noticeColumn = requireHeaderIndex_(headers, 'AVISO DE COMPRA', product.schema) + 1;
       product.sheet.getRange(product.snapshot.rowNumber, stockColumn).setValue(product.nextStock);
       product.sheet.getRange(product.snapshot.rowNumber, noticeColumn).setValue(product.notice);
+      product.sheet.getRange(
+        product.snapshot.rowNumber,
+        requireHeaderIndex_(headers, product.counterField, product.schema) + 1
+      ).setValue(product.nextCounter);
       updatedProducts.push(product);
     });
 
@@ -266,6 +295,10 @@ function commitInventoryPlan_(spreadsheet, plan) {
         product.snapshot.rowNumber,
         requireHeaderIndex_(headers, 'AVISO DE COMPRA', product.schema) + 1
       ).setValue(product.snapshot.record['AVISO DE COMPRA'] || '');
+      product.sheet.getRange(
+        product.snapshot.rowNumber,
+        requireHeaderIndex_(headers, product.counterField, product.schema) + 1
+      ).setValue(product.previousCounter);
     });
     if (plan.entries.length > 0 && kardexSheet.getLastRow() >= ledgerStartRow) {
       kardexSheet.getRange(ledgerStartRow, 1, plan.entries.length, kardexHeaders.length).clearContent();
@@ -314,6 +347,30 @@ function calculateInventoryPurchaseNotice_(stock, minimum, maximum) {
   if (normalizedMinimum > 0 && normalizedStock <= normalizedMinimum) return 'REABASTECER';
   if (normalizedMaximum > 0 && normalizedStock > normalizedMaximum) return 'SOBRESTOCK';
   return 'NIVEL ADECUADO';
+}
+
+function buildInventoryAggregateCounters_(spreadsheet) {
+  var counters = {};
+  ['COMPRAS', 'PEDIDOS'].forEach(function (tableName) {
+    var rows = readApiRows_(spreadsheet, requireApiTable_(tableName));
+    rows.forEach(function (row) {
+      var contribution = inventoryContributionForRecord_(tableName, row);
+      if (!contribution) return;
+      if (!counters[contribution.productUuid]) {
+        counters[contribution.productUuid] = { purchases: 0, exits: 0 };
+      }
+      if (tableName === 'COMPRAS') {
+        counters[contribution.productUuid].purchases += Math.abs(contribution.quantity);
+      } else {
+        counters[contribution.productUuid].exits += Math.abs(contribution.quantity);
+      }
+    });
+  });
+  return counters;
+}
+
+function hasInventoryNumericValue_(value) {
+  return value !== null && value !== undefined && normalizeCell_(value) !== '' && Number.isFinite(Number(value));
 }
 
 function inventoryProductLabel_(product) {

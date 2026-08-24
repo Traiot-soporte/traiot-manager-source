@@ -40,6 +40,22 @@ describe('registro de metadata', () => {
     expect(total).toBe(278)
   })
 
+  it('modela los acumulados de Almacén sin selectores de relaciones', () => {
+    const warehouse = tableDefinitions.find((table) => table.name === 'ALMACEN')
+    expect(warehouse?.columns.find((column) => column.name === 'PROVEEDOR')).toMatchObject({
+      type: 'Text',
+    })
+    expect(warehouse?.columns.find((column) => column.name === 'COMPRAS')).toMatchObject({
+      type: 'Number',
+      readOnly: true,
+    })
+    expect(warehouse?.columns.find((column) => column.name === 'PEDIDOS')).toMatchObject({
+      label: 'SALIDAS',
+      type: 'Number',
+      readOnly: true,
+    })
+  })
+
   it('agrega las columnas de sincronización a todas las tablas', () => {
     for (const table of tableDefinitions) {
       expect(table.key).toBe('_uuid')

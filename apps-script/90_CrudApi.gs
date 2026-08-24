@@ -411,6 +411,8 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'ALMACEN') {
     record['PRECIO VENTA PARA ASESOR'] = roundApiCurrency_(apiNumber_(record.COSTO) * 1.16);
     record.STOCK = apiNumber_(record.STOCK);
+    record.COMPRAS = apiNumber_(record.COMPRAS);
+    record.PEDIDOS = apiNumber_(record.PEDIDOS);
     record['AVISO DE COMPRA'] = calculateInventoryPurchaseNotice_(
       record.STOCK,
       record['STOCK MINIMO'],
@@ -563,6 +565,8 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
   if (schemaTable.name === 'ALMACEN') {
     columnNames.push('STOCK');
     columnNames.push('AVISO DE COMPRA');
+    columnNames.push('COMPRAS');
+    columnNames.push('PEDIDOS');
   }
 
   return columnNames.filter(function (columnName, index, values) {

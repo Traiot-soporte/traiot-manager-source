@@ -176,15 +176,15 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "name": "PROVEEDOR",
         "sourceHeader": "PROVEEDOR",
         "origin": "appsheet",
-        "type": "Ref",
+        "type": "Text",
         "required": false,
         "hidden": false,
         "sensitive": false,
         "readOnly": false,
         "hasFormula": false,
         "values": [],
-        "syncTo": "proveedor_uuid",
-        "refTable": "PROVEEDORES"
+        "syncTo": "",
+        "refTable": ""
       },
       {
         "name": "NOMBRE",
@@ -461,29 +461,29 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "name": "COMPRAS",
         "sourceHeader": "COMPRAS",
         "origin": "appsheet",
-        "type": "Ref",
+        "type": "Number",
         "required": false,
         "hidden": false,
         "sensitive": false,
-        "readOnly": false,
+        "readOnly": true,
         "hasFormula": false,
         "values": [],
         "syncTo": "",
-        "refTable": "COMPRAS"
+        "refTable": ""
       },
       {
         "name": "PEDIDOS",
         "sourceHeader": "PEDIDOS",
         "origin": "appsheet",
-        "type": "Ref",
+        "type": "Number",
         "required": false,
         "hidden": false,
         "sensitive": false,
-        "readOnly": false,
+        "readOnly": true,
         "hasFormula": false,
         "values": [],
         "syncTo": "",
-        "refTable": "PEDIDOS"
+        "refTable": ""
       },
       {
         "name": "STOCK",

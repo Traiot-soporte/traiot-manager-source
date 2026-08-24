@@ -19,9 +19,8 @@ export const almacenTable = defineTable({
     { name: 'IMAGEN', type: 'Image', required: true },
     {
       name: 'PROVEEDOR',
-      type: 'Ref',
-      ref: { table: 'PROVEEDORES', keyColumn: '_uuid' },
-      syncTo: 'proveedor_uuid',
+      type: 'Text',
+      description: 'Marca o fabricante del dispositivo GPS.',
     },
     { name: 'NOMBRE', type: 'Text' },
     { name: 'UNIDAD DE MEDIDA', type: 'Text', hidden: true },
@@ -48,8 +47,19 @@ export const almacenTable = defineTable({
     { name: 'TIEMPO DE ENTREGA', type: 'Text', hidden: true },
     { name: 'CLAVE SAT', type: 'Text', hidden: true },
     { name: 'ESTATUS', type: 'Text' },
-    { name: 'COMPRAS', type: 'Ref', ref: { table: 'COMPRAS', keyColumn: '_uuid' } },
-    { name: 'PEDIDOS', type: 'Ref', ref: { table: 'PEDIDOS', keyColumn: '_uuid' } },
+    {
+      name: 'COMPRAS',
+      type: 'Number',
+      readOnly: true,
+      description: 'Total acumulado de unidades recibidas.',
+    },
+    {
+      name: 'PEDIDOS',
+      label: 'SALIDAS',
+      type: 'Number',
+      readOnly: true,
+      description: 'Total acumulado de unidades con salida aprobada.',
+    },
     { name: 'STOCK', type: 'Number', readOnly: true },
     {
       name: 'Related PEDIDOSs',
