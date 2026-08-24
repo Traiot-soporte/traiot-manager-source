@@ -287,6 +287,9 @@ function getApiRow_(schemaTable, rowUuid, user) {
 }
 
 function readVisibleApiRows_(spreadsheet, schemaTable, user) {
+  if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
+    ensureProductCategoryStorage_(spreadsheet, false);
+  }
   if (schemaTable.name === 'ALMACEN' || schemaTable.name === 'KARDEX') {
     ensureInventoryStorage_(spreadsheet, false);
   }

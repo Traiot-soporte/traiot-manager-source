@@ -19,7 +19,6 @@ export const permissionSections = [
 export const purchaseStatuses = ['RECIBIDA', 'EN CAMINO', 'CANCELADA'] as const
 
 export const orderTypes = ['VENTA EQUIPO', 'INSTALACION', 'REVISION'] as const
-export const orderCategories = ['GPS', 'SENSOR', 'CCTV'] as const
 export const orderCustomerTypes = [
   'TRAIOT PLUS',
   'HABITUAL',

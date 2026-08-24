@@ -42,6 +42,7 @@ interface CrudSandbox {
     ids: readonly unknown[],
     reservedSequence: number,
   ) => string
+  readonly canonicalApiProductCategory_: (value: unknown) => string
   readonly buildApiMediaFileName_: (
     rowUuid: string,
     columnName: string,
@@ -186,6 +187,15 @@ describe('CRUD de Apps Script', () => {
     expect(coerceApiInput_('12.5', column({ type: 'Price' }))).toBe(12.5)
     expect(coerceApiInput_('VERDADERO', column({ type: 'Bool' }))).toBe(true)
     expect(coerceApiInput_('Uno, Dos', column({ type: 'EnumList' }))).toEqual(['Uno', 'Dos'])
+  })
+
+  it('normaliza las categorías autoritativas de producto', () => {
+    const { canonicalApiProductCategory_ } = loadCrudSandbox()
+
+    expect(canonicalApiProductCategory_('Gps')).toBe('GPS')
+    expect(canonicalApiProductCategory_('Sensor')).toBe('SENSOR')
+    expect(canonicalApiProductCategory_('Accesorio')).toBe('ACCESORIO')
+    expect(canonicalApiProductCategory_('sin clasificar')).toBe('')
   })
 
   it('rechaza obligatorios vacios y opciones fuera del catalogo', () => {

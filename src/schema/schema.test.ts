@@ -5,7 +5,7 @@ import { tableDefinitions } from '@/schema'
 
 const expectedAppSheetColumns: Readonly<Record<string, number>> = {
   ALMACEN: 29,
-  COMPRAS: 15,
+  COMPRAS: 16,
   PEDIDOS: 26,
   PROVEEDORES: 26,
   CLIENTES: 13,
@@ -37,7 +37,7 @@ describe('registro de metadata', () => {
       expect(appsheetColumnCount(table!), tableName).toBe(expectedCount)
       total += expectedCount
     }
-    expect(total).toBe(278)
+    expect(total).toBe(279)
   })
 
   it('modela los acumulados de Almacén sin selectores de relaciones', () => {
@@ -67,11 +67,26 @@ describe('registro de metadata', () => {
       compact: true,
       required: true,
     })
+    expect(purchases?.columns.find((column) => column.name === 'CATEGORIA')).toMatchObject({
+      readOnly: true,
+      values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
+    })
     for (const name of ['COSTO DE ENVIO', 'ESTATUS COMPRA', 'VALIDADOR COMPRA']) {
       expect(purchases?.columns.find((column) => column.name === name)).toMatchObject({
         exportable: false,
         hidden: true,
       })
+    }
+  })
+
+  it('hereda la categoría de Almacén en Compras y Salidas', () => {
+    for (const tableName of ['COMPRAS', 'PEDIDOS']) {
+      const table = tableDefinitions.find((candidate) => candidate.name === tableName)
+      expect(table?.columns.find((column) => column.name === 'CATEGORIA')).toMatchObject({
+        readOnly: true,
+        values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
+      })
+      expect(table?.columns.find((column) => column.name === 'CATEGORIA')?.formula).toBeTypeOf('function')
     }
   })
 

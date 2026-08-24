@@ -15,6 +15,8 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
     enabled: Boolean(refTable),
   })
   const stringValue = typeof value === 'string' ? value : ''
+  const selectedRow = rows.data?.find((row) => String(row._uuid ?? '') === stringValue)
+  const isProductReference = column.ref?.table === 'ALMACEN'
 
   return (
     <FieldShell column={column} error={error} inputId={inputId}>
@@ -29,8 +31,10 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
         <option value="">{rows.isPending ? 'Cargando opciones…' : 'Selecciona una opción'}</option>
         {rows.data?.map((row) => {
           const uuid = String(row._uuid ?? '')
-          const optionLabel =
-            row[refTable?.label ?? ''] ?? row[refTable?.legacyBusinessKey ?? ''] ?? uuid
+          const baseLabel = row[refTable?.label ?? ''] ?? row[refTable?.legacyBusinessKey ?? ''] ?? uuid
+          const optionLabel = isProductReference
+            ? [baseLabel, row.CATEGORIA, row.NOMBRE].filter(Boolean).join(' · ')
+            : baseLabel
           return (
             <option key={uuid} value={uuid}>
               {String(optionLabel)}
@@ -38,6 +42,12 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
           )
         })}
       </select>
+      {isProductReference && selectedRow && (
+        <p className="mt-2 rounded-xl bg-brand-50 px-3 py-2 text-xs font-bold text-ink-800/65">
+          Categoría: <strong className="text-brand-700">{String(selectedRow.CATEGORIA ?? 'Sin categoría')}</strong>
+          {selectedRow.NOMBRE ? ' · ' + String(selectedRow.NOMBRE) : ''}
+        </p>
+      )}
     </FieldShell>
   )
 }

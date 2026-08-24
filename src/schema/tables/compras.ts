@@ -1,3 +1,4 @@
+import { productCategories } from '@/schema/catalogs'
 import { asNumber, refValue, roundCurrency } from '@/schema/formulas'
 import { defineTable, migrationRef } from '@/schema/helpers'
 
@@ -34,6 +35,14 @@ export const comprasTable = defineTable({
       type: 'Text',
       readOnly: true,
       formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'NOMBRE', context),
+    },
+    {
+      name: 'CATEGORIA',
+      type: 'Enum',
+      values: productCategories,
+      readOnly: true,
+      formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'CATEGORIA', context),
+      description: 'Se hereda automáticamente de Almacén.',
     },
     {
       name: 'PROVEEDOR',

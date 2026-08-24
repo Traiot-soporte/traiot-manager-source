@@ -780,6 +780,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "ID COMPRA",
       "ID PRODUCTO",
       "NOMBRE",
+      "CATEGORIA",
       "PROVEEDOR",
       "COSTO",
       "KIT INSTALACION",
@@ -800,6 +801,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "ID COMPRA",
       "ID PRODUCTO",
       "NOMBRE",
+      "CATEGORIA",
       "PROVEEDOR",
       "COSTO",
       "KIT INSTALACION",
@@ -921,6 +923,25 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "readOnly": true,
         "hasFormula": true,
         "values": [],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "CATEGORIA",
+        "sourceHeader": "CATEGORIA",
+        "origin": "appsheet",
+        "type": "Enum",
+        "required": false,
+        "hidden": false,
+        "sensitive": false,
+        "readOnly": true,
+        "hasFormula": true,
+        "values": [
+          "GPS",
+          "SENSOR",
+          "ACCESORIO",
+          "CCTV"
+        ],
         "syncTo": "",
         "refTable": ""
       },
@@ -1289,11 +1310,12 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "required": false,
         "hidden": false,
         "sensitive": false,
-        "readOnly": false,
-        "hasFormula": false,
+        "readOnly": true,
+        "hasFormula": true,
         "values": [
           "GPS",
           "SENSOR",
+          "ACCESORIO",
           "CCTV"
         ],
         "syncTo": "",

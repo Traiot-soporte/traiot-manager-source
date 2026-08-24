@@ -4,6 +4,9 @@
  */
 function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
+    ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
+  }
   if (isInventoryApiTable_(schemaTable.name)) {
     ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -74,6 +77,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
 
 function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
+    ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
+  }
   if (isInventoryApiTable_(schemaTable.name)) {
     ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -413,6 +419,93 @@ function applyApiReference_(
   record[column.syncTo] = normalizedValue.toLowerCase();
 }
 
+var TRAIOT_PRODUCT_CATEGORY_STORAGE_PROPERTY = 'TRAIOT_PRODUCT_CATEGORY_STORAGE_V1';
+
+function ensureProductCategoryStorage_(spreadsheet, force) {
+  var properties = PropertiesService.getScriptProperties();
+  var targetNames = ['COMPRAS', 'PEDIDOS'];
+  var storageReady = targetNames.every(function (tableName) {
+    var schemaTable = requireApiTable_(tableName);
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    return readApiHeaders_(sheet).indexOf('CATEGORIA') >= 0;
+  });
+
+  if (!force && storageReady &&
+      properties.getProperty(TRAIOT_PRODUCT_CATEGORY_STORAGE_PROPERTY) === 'true') {
+    return { ready: true, synchronized: false };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var productSchema = requireApiTable_('ALMACEN');
+    var products = readApiRows_(spreadsheet, productSchema);
+    var productIndex = {};
+
+    products.forEach(function (product) {
+      var category = canonicalApiProductCategory_(product.CATEGORIA);
+      var uuid = normalizeCell_(product._uuid).toLowerCase();
+      var businessId = normalizeCell_(product['ID PRODUCTO']).toUpperCase();
+      if (uuid) productIndex[uuid] = category;
+      if (businessId) productIndex[businessId] = category;
+    });
+
+    var synchronizedRows = 0;
+    var addedHeaders = [];
+
+    targetNames.forEach(function (tableName) {
+      var schemaTable = requireApiTable_(tableName);
+      var sheet = requireApiSheet_(spreadsheet, schemaTable);
+      var headers = readApiHeaders_(sheet);
+
+      if (headers.indexOf('CATEGORIA') < 0) {
+        sheet.getRange(1, headers.length + 1).setValue('CATEGORIA');
+        headers.push('CATEGORIA');
+        addedHeaders.push(tableName + '.CATEGORIA');
+      }
+
+      var lastRow = sheet.getLastRow();
+      if (lastRow < 2) return;
+
+      var uuidIndex = headers.indexOf('producto_uuid');
+      var businessIdIndex = headers.indexOf('ID PRODUCTO');
+      var categoryIndex = headers.indexOf('CATEGORIA');
+      var values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+      var categories = values.map(function (row) {
+        var uuid = uuidIndex >= 0 ? normalizeCell_(row[uuidIndex]).toLowerCase() : '';
+        var businessId = businessIdIndex >= 0
+          ? normalizeCell_(row[businessIdIndex]).toUpperCase()
+          : '';
+        var category = productIndex[uuid] || productIndex[businessId] ||
+          canonicalApiProductCategory_(row[categoryIndex]);
+        if (category !== canonicalApiProductCategory_(row[categoryIndex])) {
+          synchronizedRows += 1;
+        }
+        return [category || ''];
+      });
+
+      sheet.getRange(2, categoryIndex + 1, categories.length, 1).setValues(categories);
+    });
+
+    SpreadsheetApp.flush();
+    properties.setProperty(TRAIOT_PRODUCT_CATEGORY_STORAGE_PROPERTY, 'true');
+    return {
+      ready: true,
+      synchronized: true,
+      addedHeaders: addedHeaders,
+      synchronizedRows: synchronizedRows
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function canonicalApiProductCategory_(value) {
+  var category = normalizeLookupValue_(value);
+  return ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'].indexOf(category) >= 0 ? category : '';
+}
+
 function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'ALMACEN') {
     record['PRECIO VENTA PARA ASESOR'] = roundApiCurrency_(apiNumber_(record.COSTO) * 1.16);
@@ -429,6 +522,7 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'COMPRAS') {
     var purchasedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(purchasedProduct, record, ['NOMBRE', 'PROVEEDOR', 'COSTO', 'KIT INSTALACION']);
+    record.CATEGORIA = canonicalApiProductCategory_(purchasedProduct && purchasedProduct.CATEGORIA);
     record.SUBTOTAL = roundApiCurrency_(
       apiNumber_(record.COSTO) * apiNumber_(record.CANTIDAD) + apiNumber_(record['KIT INSTALACION'])
     );
@@ -438,6 +532,7 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'PEDIDOS') {
     var orderedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(orderedProduct, record, ['NOMBRE', 'PRECIO VENTA PARA ASESOR']);
+    record.CATEGORIA = canonicalApiProductCategory_(orderedProduct && orderedProduct.CATEGORIA);
     var orderedClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
     copyApiFields_(orderedClient, record, [
       'ID CLIENTE',

@@ -69,12 +69,14 @@ function PurchaseDashboardView(props: CollectionViewProps) {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <PurchaseCountCard value={metrics.purchases} />
-        <PurchaseSalesCard icon={TrendingUp} label="Equipo más vendido" metric={metrics.mostSoldEquipment} />
-        <PurchaseSalesCard icon={TrendingDown} label="Equipo menos vendido" metric={metrics.leastSoldEquipment} />
-        <PurchaseSalesCard icon={TrendingUp} label="Accesorio más vendido" metric={metrics.mostSoldAccessory} />
-        <PurchaseSalesCard icon={TrendingDown} label="Accesorio menos vendido" metric={metrics.leastSoldAccessory} />
+        <PurchaseSalesCard icon={TrendingUp} label="GPS más vendido" metric={metrics.categories.GPS.mostSold} />
+        <PurchaseSalesCard icon={TrendingDown} label="GPS menos vendido" metric={metrics.categories.GPS.leastSold} />
+        <PurchaseSalesCard icon={TrendingUp} label="Sensor más vendido" metric={metrics.categories.SENSOR.mostSold} />
+        <PurchaseSalesCard icon={TrendingDown} label="Sensor menos vendido" metric={metrics.categories.SENSOR.leastSold} />
+        <PurchaseSalesCard icon={TrendingUp} label="Accesorio más vendido" metric={metrics.categories.ACCESORIO.mostSold} />
+        <PurchaseSalesCard icon={TrendingDown} label="Accesorio menos vendido" metric={metrics.categories.ACCESORIO.leastSold} />
       </section>
 
       {(orders.isPending || products.isPending) && (

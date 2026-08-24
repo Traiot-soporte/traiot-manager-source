@@ -1,8 +1,8 @@
 import {
-  orderCategories,
   orderCustomerTypes,
   orderStatuses,
   orderTypes,
+  productCategories,
 } from '@/schema/catalogs'
 import { asNumber, refValue, roundCurrency } from '@/schema/formulas'
 import { defineTable, migrationRef } from '@/schema/helpers'
@@ -36,7 +36,14 @@ export const pedidosTable = defineTable({
       readOnly: true,
       formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'NOMBRE', context),
     },
-    { name: 'CATEGORIA', type: 'Enum', values: orderCategories },
+    {
+      name: 'CATEGORIA',
+      type: 'Enum',
+      values: productCategories,
+      readOnly: true,
+      formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'CATEGORIA', context),
+      description: 'Se hereda automáticamente de Almacén.',
+    },
     {
       name: 'PRECIO VENTA PARA ASESOR',
       type: 'Price',
@@ -44,7 +51,7 @@ export const pedidosTable = defineTable({
       formula: (row, context) =>
         refValue(row, 'producto_uuid', 'ALMACEN', 'PRECIO VENTA PARA ASESOR', context),
     },
-    { name: 'EQUIPOS A VENDER', type: 'Number' },
+    { name: 'EQUIPOS A VENDER', label: 'CANTIDAD', type: 'Number', compact: true },
     { name: 'COSTO INSTALACION', type: 'Price' },
     { name: 'ENVIO', type: 'Price' },
     {
