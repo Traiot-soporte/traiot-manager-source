@@ -1,3 +1,4 @@
+import { crmLifecycleStages } from '@/schema/catalogs'
 import { defineTable } from '@/schema/helpers'
 
 export const clientesTable = defineTable({
@@ -21,6 +22,33 @@ export const clientesTable = defineTable({
     { name: 'TELEFONO CONTACTO', type: 'Text' },
     { name: 'IMAGEN', type: 'Image' },
     { name: 'ESTATUS', type: 'Enum', values: ['Activo', 'Inactivo'] },
+    {
+      name: 'Etapa_CRM',
+      label: 'Etapa CRM',
+      type: 'Enum',
+      origin: 'migration',
+      required: true,
+      values: crmLifecycleStages,
+      section: 'Ciclo comercial',
+      description: 'Estado actual de la empresa. Al convertir un prospecto desde Seguimiento se actualiza automáticamente.',
+      defaultValue: () => 'Prospecto',
+    },
+    {
+      name: 'Fecha_conversion',
+      label: 'Fecha de conversión',
+      type: 'DateTime',
+      origin: 'migration',
+      readOnly: true,
+      section: 'Ciclo comercial',
+    },
+    {
+      name: 'Convertido_por',
+      label: 'Convertido por',
+      type: 'Text',
+      origin: 'migration',
+      readOnly: true,
+      section: 'Ciclo comercial',
+    },
     {
       name: 'Related PEDIDOSs',
       type: 'List',

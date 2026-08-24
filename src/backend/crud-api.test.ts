@@ -59,6 +59,14 @@ interface CrudSandbox {
     table: Readonly<Record<string, unknown>>,
     record: Record<string, unknown>,
   ) => void
+  readonly inferCrmLifecycleFromHistory_: (
+    rows: readonly Readonly<Record<string, unknown>>[],
+  ) => { readonly stage: string; readonly convertedAt: string; readonly convertedBy: string }
+  readonly applyCrmActivityLifecycle_: (
+    record: Record<string, unknown>,
+    clientStage: string,
+    isCreate: boolean,
+  ) => boolean
 }
 
 function loadCrudSandbox(): CrudSandbox {
@@ -72,6 +80,7 @@ function loadCrudSandbox(): CrudSandbox {
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/87_RolePermissions.gs', 'utf8'), sandbox)
+  runInContext(readFileSync('apps-script/89_CrmLifecycle.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/90_CrudApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/95_MediaApi.gs', 'utf8'), sandbox)
   return sandbox as CrudSandbox
@@ -154,6 +163,50 @@ describe('CRUD de Apps Script', () => {
     expect(buildNextApiCrmId_([275, '278.6666667', '291.2380952', '', 'invalido']))
       .toBe('292')
     expect(buildNextApiCrmId_([])).toBe('1')
+  })
+
+  it('deduce una sola etapa comercial a partir del historial del CRM', () => {
+    const { inferCrmLifecycleFromHistory_ } = loadCrudSandbox()
+
+    expect(inferCrmLifecycleFromHistory_([]).stage).toBe('Cliente')
+    expect(inferCrmLifecycleFromHistory_([{
+      Id_CRM: '10',
+      Fecha_contacto: '2026-08-20',
+      Tipo_cliente: '🔵Prospecto',
+      Estatus_prospeccion: '🤝En negociación',
+    }]).stage).toBe('Prospecto')
+    expect(inferCrmLifecycleFromHistory_([{
+      Id_CRM: '11',
+      Fecha_contacto: '2026-08-22',
+      Tipo_cliente: '🔵Prospecto',
+      Estatus_prospeccion: '✅Cliente',
+      Responsable: ['Manuel Soto'],
+    }])).toEqual({
+      stage: 'Cliente',
+      convertedAt: '2026-08-22',
+      convertedBy: 'Manuel Soto',
+    })
+  })
+
+  it('convierte el seguimiento y normaliza actividades nuevas según la etapa maestra', () => {
+    const { applyCrmActivityLifecycle_ } = loadCrudSandbox()
+    const conversion: Record<string, unknown> = {
+      Tipo_cliente: '🔵Prospecto',
+      Estatus_prospeccion: '✅Cliente',
+    }
+
+    expect(applyCrmActivityLifecycle_(conversion, 'Prospecto', true)).toBe(true)
+    expect(conversion).toMatchObject({
+      Tipo_cliente: '🟢Activo',
+      Estatus_cliente: '🟢Activo',
+    })
+
+    const activeActivity: Record<string, unknown> = { Tipo_cliente: '🔵Prospecto' }
+    expect(applyCrmActivityLifecycle_(activeActivity, 'Cliente', true)).toBe(false)
+    expect(activeActivity).toMatchObject({
+      Tipo_cliente: '🟢Activo',
+      Estatus_cliente: '🟢Activo',
+    })
   })
 
   it('permite campos visibles de tablas normalizadas y protege campos ocultos', () => {

@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 import type { CollectionViewProps } from '@/views/types'
 import { CardView } from '@/views/card-view'
+import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { TableView } from '@/views/table-view'
 
@@ -181,19 +182,22 @@ function MatrixBreakdownDialog({ column, onClose, rows }: {
 
 function CrmDashboardView(props: CollectionViewProps) {
   const { rows } = props
+  const accounts = getCurrentCrmAccounts(rows)
+  const activeCustomers = accounts.filter((account) => account.stage === 'Cliente')
+  const prospects = accounts.filter((account) => account.stage === 'Prospecto')
   const recentRows = [...rows]
     .sort((left, right) => String(right.Fecha_contacto ?? '').localeCompare(String(left.Fecha_contacto ?? '')))
     .slice(0, 8)
-  const activeCustomers = rows.filter((row) => normalizeCrmValue(row.Tipo_cliente).includes('ACTIVO')).length
-  const prospects = rows.filter((row) => normalizeCrmValue(row.Tipo_cliente).includes('PROSPECTO')).length
-  const attention = rows.filter((row) => /REQUIERE ATENCION|RIESGO|PERDIDO/.test(normalizeCrmValue(row.Estatus_cliente))).length
+  const attention = activeCustomers.filter((account) =>
+    /REQUIERE ATENCION|RIESGO|PERDIDO/.test(normalizeCrmValue(account.latestRow.Estatus_cliente)),
+  ).length
 
   return (
     <div className="space-y-4">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <CrmMetric icon={Database} label="Seguimientos" value={rows.length} />
-        <CrmMetric icon={UserCheck} label="Clientes" value={activeCustomers} />
-        <CrmMetric icon={UsersRound} label="Prospectos" value={prospects} />
+        <CrmMetric icon={UserCheck} label="Clientes" value={activeCustomers.length} />
+        <CrmMetric icon={UsersRound} label="Prospectos" value={prospects.length} />
         <CrmMetric icon={CircleAlert} label="Requieren atención" value={attention} />
       </section>
 
@@ -209,8 +213,8 @@ function CrmDashboardView(props: CollectionViewProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <CrmStatusChart column="Estatus_cliente" rows={rows} title="ESTADO DE CLIENTES" />
-        <CrmStatusChart column="Estatus_prospeccion" rows={rows} title="ESTADO DE PROSPECTOS" />
+        <CrmStatusChart column="Estatus_cliente" rows={activeCustomers.map((account) => account.latestRow)} title="ESTADO DE CLIENTES" />
+        <CrmStatusChart column="Estatus_prospeccion" rows={prospects.map((account) => account.latestRow)} title="ESTADO DE PROSPECTOS" />
       </section>
     </div>
   )

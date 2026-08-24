@@ -72,6 +72,17 @@ describe('registro de metadata', () => {
       .toEqual(['Personal', 'Empresarial'])
     expect(crm?.columns.find((column) => column.name === '_calendarOwnerUuid')?.origin)
       .toBe('system')
+    expect(crm?.columns.find((column) => column.name === 'Etapa_actual')).toMatchObject({
+      virtual: true,
+      readOnly: true,
+    })
+
+    const clients = tableDefinitions.find((table) => table.name === 'CLIENTES')
+    expect(clients?.columns.find((column) => column.name === 'Etapa_CRM')).toMatchObject({
+      type: 'Enum',
+      required: true,
+      values: ['Prospecto', 'Cliente', 'Descartado'],
+    })
   })
 
   it('conserva el doble espacio del canal de atención', () => {

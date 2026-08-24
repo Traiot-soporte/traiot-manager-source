@@ -288,11 +288,16 @@ function readVisibleApiRows_(spreadsheet, schemaTable, user) {
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(spreadsheet, false);
   }
+  if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
+    ensureCrmLifecycleStorage_(spreadsheet, false);
+  }
 
   var rows = readApiRows_(spreadsheet, schemaTable);
-  return schemaTable.name === 'Gestion Clientes'
-    ? rows.filter(function (row) { return isCrmCalendarRowVisible_(row, user); })
-    : rows;
+  if (schemaTable.name === 'Gestion Clientes') {
+    rows = enrichCrmLifecycleRows_(spreadsheet, rows);
+    return rows.filter(function (row) { return isCrmCalendarRowVisible_(row, user); });
+  }
+  return rows;
 }
 
 function isCrmCalendarRowVisible_(row, user) {

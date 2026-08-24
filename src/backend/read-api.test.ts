@@ -38,6 +38,7 @@ function loadReadApiSandbox(): ReadApiSandbox {
   const sandbox = createContext({})
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
+  runInContext(readFileSync('apps-script/89_CrmLifecycle.gs', 'utf8'), sandbox)
   return sandbox as ReadApiSandbox
 }
 

@@ -1832,7 +1832,10 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
       "CONTACTO",
       "TELEFONO CONTACTO",
       "IMAGEN",
-      "ESTATUS"
+      "ESTATUS",
+      "Etapa_CRM",
+      "Fecha_conversion",
+      "Convertido_por"
     ],
     "columns": [
       {
@@ -2017,6 +2020,52 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
           "Activo",
           "Inactivo"
         ],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Etapa_CRM",
+        "sourceHeader": "Etapa_CRM",
+        "origin": "migration",
+        "type": "Enum",
+        "required": true,
+        "hidden": false,
+        "sensitive": false,
+        "readOnly": false,
+        "hasFormula": false,
+        "values": [
+          "Prospecto",
+          "Cliente",
+          "Descartado"
+        ],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Fecha_conversion",
+        "sourceHeader": "Fecha_conversion",
+        "origin": "migration",
+        "type": "DateTime",
+        "required": false,
+        "hidden": false,
+        "sensitive": false,
+        "readOnly": true,
+        "hasFormula": false,
+        "values": [],
+        "syncTo": "",
+        "refTable": ""
+      },
+      {
+        "name": "Convertido_por",
+        "sourceHeader": "Convertido_por",
+        "origin": "migration",
+        "type": "Text",
+        "required": false,
+        "hidden": false,
+        "sensitive": false,
+        "readOnly": true,
+        "hasFormula": false,
+        "values": [],
         "syncTo": "",
         "refTable": ""
       }

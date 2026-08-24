@@ -7,6 +7,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
   }
+  if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
+    ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), false);
+  }
 
   return runIdempotentApiMutation_(mutationId, function () {
     var spreadsheet = openConfiguredSpreadsheet_();
@@ -55,6 +58,9 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
   assertApiTableWriteAccess_(user, schemaTable);
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+  }
+  if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
+    ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), false);
   }
 
   if (!isUuid_(rowUuid)) {
@@ -225,6 +231,15 @@ function prepareApiMutationRecord_(
   applyApiRoleRules_(schemaTable, record);
 
   applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
+  applyCrmLifecycleRules_(
+    spreadsheet,
+    schemaTable,
+    record,
+    currentRecord,
+    isCreate,
+    now,
+    user
+  );
   return record;
 }
 

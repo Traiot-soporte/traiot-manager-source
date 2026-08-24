@@ -105,6 +105,9 @@ export function FormView({
             <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
               No necesitas capturar ningún ID. Para un cliente nuevo, regístralo primero en Clientes; después selecciónalo aquí y captura la actividad. Al guardar, el sistema asignará automáticamente el siguiente consecutivo.
             </p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
+              Cuando el Estatus de prospección sea ✅Cliente, la empresa cambiará automáticamente a Cliente y dejará de aparecer como prospecto, sin perder su historial.
+            </p>
           </div>
         </aside>
       )}

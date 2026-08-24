@@ -73,6 +73,7 @@ export const gestionClientesTable = defineTable({
       type: 'Enum',
       values: prospectStatuses,
       showIf: (row) => row['Tipo_cliente'] === '🔵Prospecto',
+      description: 'Al seleccionar ✅Cliente, la empresa se convierte automáticamente y deja de aparecer como prospecto.',
     },
     {
       name: 'Estatus_cliente',
@@ -97,6 +98,15 @@ export const gestionClientesTable = defineTable({
       label: 'Propietario del calendario',
       type: 'Text',
       origin: 'system',
+      hidden: true,
+      readOnly: true,
+    },
+    {
+      name: 'Etapa_actual',
+      label: 'Etapa actual de la empresa',
+      type: 'Text',
+      origin: 'system',
+      virtual: true,
       hidden: true,
       readOnly: true,
     },
