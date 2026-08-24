@@ -3,7 +3,6 @@ import type { RowData, TableDef } from '@/schema'
 export function getDisplayColumns(table: TableDef) {
   return table.columns.filter(
     (column) =>
-      column.origin !== 'system' &&
       !column.hidden &&
       !column.virtual &&
       column.type !== 'List' &&

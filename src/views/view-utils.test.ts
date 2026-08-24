@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { clientesTable } from '@/schema/tables/clientes'
+import { kardexTable } from '@/schema/tables/kardex'
 import { getDisplayColumns, getListColumns, getRowTitle } from '@/views/view-utils'
 
 describe('utilidades de vistas genéricas', () => {
@@ -23,5 +24,25 @@ describe('utilidades de vistas genéricas', () => {
     expect(getRowTitle(clientesTable, { _uuid: 'client-001', 'ID CLIENTE': 'CLI-001' })).toBe(
       'CLI-001',
     )
+  })
+
+  it('muestra los campos auditables del Kardex y oculta sus identificadores internos', () => {
+    const names = getDisplayColumns(kardexTable).map((column) => column.name)
+
+    expect(names).toEqual([
+      'MOVIMIENTO ID',
+      'FECHA',
+      'TIPO',
+      'PRODUCTO',
+      'CANTIDAD',
+      'SALDO ANTERIOR',
+      'SALDO NUEVO',
+      'ORIGEN',
+      'REFERENCIA',
+      'USUARIO',
+      'MOTIVO',
+    ])
+    expect(names).not.toContain('producto_uuid')
+    expect(names).not.toContain('ORIGEN UUID')
   })
 })
