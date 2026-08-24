@@ -116,7 +116,8 @@ export function buildExportBaseName(tableName: string, date = new Date()): strin
     String(date.getMonth() + 1).padStart(2, '0'),
     String(date.getDate()).padStart(2, '0'),
   ].join('-')
-  return tableName.toLocaleUpperCase('es-MX').replace(/[^A-Z0-9ÁÉÍÓÚÑ]+/g, '_') + '_' + localDate
+  const publicName = tableName === 'PEDIDOS' ? 'SALIDAS' : tableName
+  return publicName.toLocaleUpperCase('es-MX').replace(/[^A-Z0-9ÁÉÍÓÚÑ]+/g, '_') + '_' + localDate
 }
 
 export function buildPrintableHtml(title: string, dataset: ExportDataset): string {

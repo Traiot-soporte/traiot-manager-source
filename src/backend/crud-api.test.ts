@@ -43,6 +43,12 @@ interface CrudSandbox {
     reservedSequence: number,
   ) => string
   readonly formatApiPurchaseId_: (sequence: number) => string
+  readonly buildNextApiOrderId_: (
+    ids: readonly unknown[],
+    year: string,
+    reservedSequence: number,
+  ) => string
+  readonly formatApiOrderId_: (year: string, sequence: number) => string
   readonly canonicalApiProductCategory_: (value: unknown) => string
   readonly buildApiMediaFileName_: (
     rowUuid: string,
@@ -248,6 +254,23 @@ describe('CRUD de Apps Script', () => {
     expect(formatApiPurchaseId_(1)).toBe('TRT-001')
     expect(formatApiPurchaseId_(40)).toBe('TRT-040')
     expect(formatApiPurchaseId_(1000)).toBe('TRT-1000')
+  })
+
+  it('genera salidas consecutivas anuales sin reutilizar folios reservados o eliminados', () => {
+    const { buildNextApiOrderId_ } = loadCrudSandbox()
+
+    expect(buildNextApiOrderId_(['PED-2026-0001', 'PED-2026-0084'], '2026', 0))
+      .toBe('PED-2026-0085')
+    expect(buildNextApiOrderId_(['8', 'PED-2026-0009', 'PED-2025-0999'], '2026', 10))
+      .toBe('PED-2026-0011')
+  })
+
+  it('mantiene la nomenclatura anual de salidas con cuatro dígitos', () => {
+    const { formatApiOrderId_ } = loadCrudSandbox()
+
+    expect(formatApiOrderId_('2026', 1)).toBe('PED-2026-0001')
+    expect(formatApiOrderId_('2026', 84)).toBe('PED-2026-0084')
+    expect(formatApiOrderId_('2026', 10000)).toBe('PED-2026-10000')
   })
 
   it('deduce una sola etapa comercial a partir del historial del CRM', () => {

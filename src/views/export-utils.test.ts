@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { almacenTable } from '@/schema/tables/almacen'
 import { comprasTable } from '@/schema/tables/compras'
+import { pedidosTable } from '@/schema/tables/pedidos'
 import { buildExportBaseName, buildExportDataset, buildPrintableHtml, buildXlsxBytes, getExportColumns } from '@/views/export-utils'
 
 describe('exportaciones operativas', () => {
@@ -38,5 +39,13 @@ describe('exportaciones operativas', () => {
     expect(names).not.toContain('ESTATUS COMPRA')
     expect(names).not.toContain('VALIDADOR COMPRA')
     expect(buildExportBaseName('COMPRAS', new Date(2026, 7, 24))).toBe('COMPRAS_2026-08-24')
+  })
+
+  it('nombra Salidas y omite sus campos internos', () => {
+    const names = getExportColumns(pedidosTable).map((column) => column.name)
+
+    expect(names).not.toContain('ESTATUS PEDIDO')
+    expect(names).not.toContain('VALIDADOR VENTA')
+    expect(buildExportBaseName('PEDIDOS', new Date(2026, 7, 24))).toBe('SALIDAS_2026-08-24')
   })
 })

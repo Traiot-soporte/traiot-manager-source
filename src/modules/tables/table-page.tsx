@@ -43,6 +43,9 @@ export function TablePage() {
 
   if (!table) return <MissingTable />
   const basePath = '/tablas/' + encodeURIComponent(table.name)
+  const createLabel = table.name === 'COMPRAS'
+    ? 'Nueva compra'
+    : table.name === 'PEDIDOS' ? 'Nueva salida' : 'Nuevo registro'
 
   const changeView = (nextView: CollectionViewKind) => {
     const next = new URLSearchParams(searchParams)
@@ -57,7 +60,7 @@ export function TablePage() {
           <ExportActions rows={rows.data ?? []} table={table} />
           {repository.writable && !table.readOnly ? (
               <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
-                <Plus className="size-5" /> Nuevo registro
+                <Plus className="size-5" /> {createLabel}
               </Link>
             ) : (
               <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">

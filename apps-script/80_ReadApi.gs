@@ -290,6 +290,9 @@ function readVisibleApiRows_(spreadsheet, schemaTable, user) {
   if (schemaTable.name === 'COMPRAS') {
     ensurePurchaseIdNomenclature_(spreadsheet, false);
   }
+  if (schemaTable.name === 'PEDIDOS') {
+    ensureOrderIdNomenclature_(spreadsheet, false);
+  }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(spreadsheet, false);
   }

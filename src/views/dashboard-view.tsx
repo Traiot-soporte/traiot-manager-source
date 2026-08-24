@@ -1,4 +1,4 @@
-import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, ShoppingBag, Tags, TimerReset, TrendingDown, TrendingUp, UserCheck, UsersRound, X } from 'lucide-react'
+import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, PackageMinus, ShoppingBag, Tags, TimerReset, TrendingDown, TrendingUp, UserCheck, UsersRound, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -10,6 +10,7 @@ import { CardView } from '@/views/card-view'
 import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
+import { outboundDashboardMetrics } from '@/views/outbound-dashboard'
 import { purchaseDashboardMetrics, type PurchaseVolumeMetric } from '@/views/purchase-dashboard'
 import { TableView } from '@/views/table-view'
 
@@ -25,6 +26,9 @@ export function DashboardView(props: CollectionViewProps) {
   }
   if (props.table.name === 'COMPRAS') {
     return <PurchaseDashboardView {...props} />
+  }
+  if (props.table.name === 'PEDIDOS') {
+    return <OutboundDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -69,13 +73,13 @@ function PurchaseDashboardView(props: CollectionViewProps) {
   return (
     <div className="space-y-5">
       <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
-        <PurchaseCountCard value={metrics.purchases} />
-        <PurchaseVolumeCard icon={TrendingUp} label="GPS más comprado" metric={metrics.categories.GPS.mostPurchased} />
-        <PurchaseVolumeCard icon={TrendingDown} label="GPS menos comprado" metric={metrics.categories.GPS.leastPurchased} />
-        <PurchaseVolumeCard icon={TrendingUp} label="Sensor más comprado" metric={metrics.categories.SENSOR.mostPurchased} />
-        <PurchaseVolumeCard icon={TrendingDown} label="Sensor menos comprado" metric={metrics.categories.SENSOR.leastPurchased} />
-        <PurchaseVolumeCard icon={TrendingUp} label="Accesorio más comprado" metric={metrics.categories.ACCESORIO.mostPurchased} />
-        <PurchaseVolumeCard icon={TrendingDown} label="Accesorio menos comprado" metric={metrics.categories.ACCESORIO.leastPurchased} />
+        <OperationCountCard icon={ShoppingBag} label="Compras" value={metrics.purchases} />
+        <OperationVolumeCard icon={TrendingUp} label="GPS más comprado" metric={metrics.categories.GPS.mostPurchased} />
+        <OperationVolumeCard icon={TrendingDown} label="GPS menos comprado" metric={metrics.categories.GPS.leastPurchased} />
+        <OperationVolumeCard icon={TrendingUp} label="Sensor más comprado" metric={metrics.categories.SENSOR.mostPurchased} />
+        <OperationVolumeCard icon={TrendingDown} label="Sensor menos comprado" metric={metrics.categories.SENSOR.leastPurchased} />
+        <OperationVolumeCard icon={TrendingUp} label="Accesorio más comprado" metric={metrics.categories.ACCESORIO.mostPurchased} />
+        <OperationVolumeCard icon={TrendingDown} label="Accesorio menos comprado" metric={metrics.categories.ACCESORIO.leastPurchased} />
       </section>
 
       {products.isPending && (
@@ -99,17 +103,62 @@ function PurchaseDashboardView(props: CollectionViewProps) {
   )
 }
 
-function PurchaseCountCard({ value }: { readonly value: number }) {
+function OutboundDashboardView(props: CollectionViewProps) {
+  const repository = useRepository()
+  const products = useQuery({ queryKey: ['table', 'ALMACEN'], queryFn: () => repository.list('ALMACEN') })
+  const metrics = outboundDashboardMetrics(props.rows, products.data ?? [])
+  const recentRows = [...props.rows]
+    .sort((left, right) => String(right.FECHA ?? '').localeCompare(String(left.FECHA ?? '')))
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+        <OperationCountCard icon={PackageMinus} label="Salidas" value={metrics.exits} />
+        <OperationVolumeCard icon={TrendingUp} label="GPS más despachado" metric={metrics.categories.GPS.mostDispatched} />
+        <OperationVolumeCard icon={TrendingDown} label="GPS menos despachado" metric={metrics.categories.GPS.leastDispatched} />
+        <OperationVolumeCard icon={TrendingUp} label="Sensor más despachado" metric={metrics.categories.SENSOR.mostDispatched} />
+        <OperationVolumeCard icon={TrendingDown} label="Sensor menos despachado" metric={metrics.categories.SENSOR.leastDispatched} />
+        <OperationVolumeCard icon={TrendingUp} label="Accesorio más despachado" metric={metrics.categories.ACCESORIO.mostDispatched} />
+        <OperationVolumeCard icon={TrendingDown} label="Accesorio menos despachado" metric={metrics.categories.ACCESORIO.leastDispatched} />
+      </section>
+
+      {products.isPending && (
+        <p className="rounded-xl bg-brand-50 px-4 py-3 text-xs font-bold text-brand-700">Calculando indicadores de salidas…</p>
+      )}
+      {products.isError && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">Las salidas están disponibles, pero no fue posible calcular temporalmente los indicadores por categoría.</p>
+      )}
+
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Despachos registrados</p>
+            <h2 className="mt-1 text-lg font-black text-ink-950">SALIDAS RECIENTES</h2>
+          </div>
+          <span className="text-xs font-bold text-ink-800/40">Últimas {recentRows.length}</span>
+        </div>
+        <TableView {...props} rows={recentRows} />
+      </section>
+    </div>
+  )
+}
+
+function OperationCountCard({ icon: Icon, label, value }: {
+  readonly icon: typeof ShoppingBag
+  readonly label: string
+  readonly value: number
+}) {
   return (
     <article className="rounded-xl border border-black/5 bg-white p-3 shadow-sm">
-      <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><ShoppingBag className="size-4" /></span>
+      <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><Icon className="size-4" /></span>
       <p className="mt-3 text-2xl font-black leading-none text-ink-950">{value}</p>
-      <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-ink-800/45">Compras</p>
+      <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-ink-800/45">{label}</p>
     </article>
   )
 }
 
-function PurchaseVolumeCard({ icon: Icon, label, metric }: {
+function OperationVolumeCard({ icon: Icon, label, metric }: {
   readonly icon: typeof TrendingUp
   readonly label: string
   readonly metric: PurchaseVolumeMetric | undefined

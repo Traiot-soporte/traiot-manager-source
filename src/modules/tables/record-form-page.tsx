@@ -53,14 +53,20 @@ export function RecordFormPage() {
       : undefined
   const formTitle = table.name === 'COMPRAS'
     ? editing ? 'EDITAR COMPRA' : 'NUEVA COMPRA'
+    : table.name === 'PEDIDOS'
+      ? editing ? 'EDITAR SALIDA' : 'NUEVA SALIDA'
     : editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName
   const formDescription = table.name === 'COMPRAS'
     ? 'Registra la recepción; el ID de compra y la entrada al inventario se generan automáticamente.'
+    : table.name === 'PEDIDOS'
+      ? 'Registra la salida; el folio y el movimiento de inventario se generan automáticamente.'
     : table.name === 'Gestion Clientes'
       ? 'Selecciona el cliente y registra la actividad; el consecutivo CRM se genera automáticamente.'
       : 'Completa la información necesaria del registro.'
   const formSubmitLabel = table.name === 'COMPRAS'
     ? editing ? 'Guardar compra' : 'Registrar compra'
+    : table.name === 'PEDIDOS'
+      ? editing ? 'Guardar salida' : 'Registrar salida'
     : editing ? 'Guardar cambios' : 'Crear registro'
 
   return (
@@ -68,7 +74,11 @@ export function RecordFormPage() {
       <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
       <ModuleHeader
         description={formDescription}
-        eyebrow={table.name === 'COMPRAS' && !editing ? 'Nueva compra' : editing ? 'Edición' : 'Nuevo registro'}
+        eyebrow={!editing && table.name === 'COMPRAS'
+          ? 'Nueva compra'
+          : !editing && table.name === 'PEDIDOS'
+            ? 'Nueva salida'
+            : editing ? 'Edición' : 'Nuevo registro'}
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={formTitle}
       />

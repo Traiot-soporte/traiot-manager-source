@@ -30,8 +30,9 @@ describe('schema Zod derivado de metadata', () => {
     const schema = buildFormSchema(pedidosTable)
     const result = schema.safeParse({
       FECHA: '2026-08-21',
-      'ID PEDIDO': 'PED-TEST',
       'TIPO DE PEDIDO': 'VALOR INVENTADO',
+      'ID PRODUCTO': 'product-001',
+      'EQUIPOS A VENDER': 1,
     })
 
     expect(result.success).toBe(false)
@@ -41,11 +42,22 @@ describe('schema Zod derivado de metadata', () => {
     const schema = buildFormSchema(pedidosTable)
     const result = schema.safeParse({
       FECHA: '2026-08-21',
-      'ID PEDIDO': 'PED-TEST',
       'TIPO DE PEDIDO': 'INSTALACION',
+      'ID PRODUCTO': 'product-001',
+      'EQUIPOS A VENDER': 1,
     })
 
     expect(result.success).toBe(true)
+  })
+
+  it('no solicita el folio de Salidas porque se genera en el servidor', () => {
+    const fields = Object.keys(buildFormSchema(pedidosTable).shape)
+
+    expect(fields).not.toContain('ID PEDIDO')
+    expect(pedidosTable.columns.find((column) => column.name === 'ID PEDIDO')).toMatchObject({
+      readOnly: true,
+      required: true,
+    })
   })
 
   it('no solicita el consecutivo CRM porque se genera en el servidor', () => {

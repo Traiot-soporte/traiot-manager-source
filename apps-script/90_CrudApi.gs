@@ -7,6 +7,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   if (schemaTable.name === 'COMPRAS') {
     ensurePurchaseIdNomenclature_(openConfiguredSpreadsheet_(), false);
   }
+  if (schemaTable.name === 'PEDIDOS') {
+    ensureOrderIdNomenclature_(openConfiguredSpreadsheet_(), false);
+  }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -299,6 +302,11 @@ function prepareApiMutationRecord_(
     record['ID COMPRA'] = nextApiPurchaseId_(spreadsheet);
     record['ESTATUS COMPRA'] = 'RECIBIDA';
     record['COSTO DE ENVIO'] = 0;
+  }
+
+  if (schemaTable.name === 'PEDIDOS' && isCreate) {
+    record['ID PEDIDO'] = nextApiOrderId_(spreadsheet, record.FECHA || now);
+    record['ESTATUS PEDIDO'] = 'APROBADO';
   }
 
   if (schemaTable.name === 'Gestion Clientes' && isCreate) {
@@ -979,6 +987,114 @@ function ensurePurchaseIdNomenclature_(spreadsheet, force) {
 
     properties.setProperty(propertyKey, 'true');
     return { ready: true, normalized: normalized };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function nextApiOrderId_(spreadsheet, dateValue) {
+  var schemaTable = requireApiTable_('PEDIDOS');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var idIndex = requireHeaderIndex_(headers, 'ID PEDIDO', schemaTable);
+  var ids = sheet.getLastRow() > 1
+    ? sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues()
+      .map(function (row) { return row[0]; })
+    : [];
+  var year = apiOrderYear_(dateValue);
+  var properties = PropertiesService.getScriptProperties();
+  var propertyKey = 'TRAIOT_ORDER_SEQUENCE_' + year;
+  var reservedSequence = Number(properties.getProperty(propertyKey) || 0);
+  var nextId = buildNextApiOrderId_(ids, year, reservedSequence);
+  properties.setProperty(propertyKey, String(parseApiOrderSequence_(nextId, year) || 0));
+  return nextId;
+}
+
+function buildNextApiOrderId_(ids, year, reservedSequence) {
+  var maximum = (ids || []).reduce(function (currentMaximum, value) {
+    var sequence = parseApiOrderSequence_(value, year);
+    return sequence !== null && sequence > currentMaximum ? sequence : currentMaximum;
+  }, Number.isInteger(Number(reservedSequence)) ? Number(reservedSequence) : 0);
+  return formatApiOrderId_(year, maximum + 1);
+}
+
+function parseApiOrderSequence_(value, year) {
+  var normalized = normalizeCell_(value).toUpperCase();
+  if (!normalized) return null;
+  if (/^\d+$/.test(normalized)) return Number(normalized);
+  var prefix = 'PED-' + String(year) + '-';
+  if (normalized.indexOf(prefix) !== 0) return null;
+  var sequence = Number(normalized.slice(prefix.length));
+  return Number.isInteger(sequence) && sequence >= 1 ? sequence : null;
+}
+
+function formatApiOrderId_(year, sequence) {
+  return 'PED-' + String(year) + '-' + String(sequence).padStart(4, '0');
+}
+
+function apiOrderYear_(dateValue) {
+  if (dateValue instanceof Date && !Number.isNaN(dateValue.getTime())) {
+    return Utilities.formatDate(dateValue, getRuntimeConfig_().timeZone, 'yyyy');
+  }
+  var normalized = normalizeCell_(dateValue);
+  var yearMatch = normalized.match(/(?:19|20)\d{2}/);
+  return yearMatch
+    ? yearMatch[0]
+    : Utilities.formatDate(new Date(), getRuntimeConfig_().timeZone, 'yyyy');
+}
+
+function ensureOrderIdNomenclature_(spreadsheet, force) {
+  var propertyKey = 'TRAIOT_ORDER_ID_NOMENCLATURE_V1';
+  var properties = PropertiesService.getScriptProperties();
+  if (!force && properties.getProperty(propertyKey) === 'true') {
+    return { ready: true, normalized: 0 };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    if (!force && properties.getProperty(propertyKey) === 'true') {
+      return { ready: true, normalized: 0 };
+    }
+
+    var schemaTable = requireApiTable_('PEDIDOS');
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    var idIndex = requireHeaderIndex_(headers, 'ID PEDIDO', schemaTable);
+    var dateIndex = requireHeaderIndex_(headers, 'FECHA', schemaTable);
+    var lastRow = sheet.getLastRow();
+    var normalizedCount = 0;
+
+    if (lastRow > 1) {
+      var rowCount = lastRow - 1;
+      var idRange = sheet.getRange(2, idIndex + 1, rowCount, 1);
+      var ids = idRange.getDisplayValues();
+      var dates = sheet.getRange(2, dateIndex + 1, rowCount, 1).getValues();
+      var existing = {};
+      ids.forEach(function (row) {
+        existing[normalizeCell_(row[0]).toUpperCase()] = true;
+      });
+
+      ids.forEach(function (row, index) {
+        var current = normalizeCell_(row[0]);
+        if (!/^\d+$/.test(current)) return;
+        var target = formatApiOrderId_(apiOrderYear_(dates[index][0]), Number(current));
+        if (existing[target]) return;
+        delete existing[current.toUpperCase()];
+        existing[target] = true;
+        row[0] = target;
+        normalizedCount += 1;
+      });
+
+      if (normalizedCount > 0) {
+        idRange.setValues(ids);
+        SpreadsheetApp.flush();
+      }
+    }
+
+    properties.setProperty(propertyKey, 'true');
+    return { ready: true, normalized: normalizedCount };
   } finally {
     lock.releaseLock();
   }

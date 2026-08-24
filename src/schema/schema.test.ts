@@ -98,6 +98,26 @@ describe('registro de metadata', () => {
     }
   })
 
+  it('configura Salidas como movimiento automático de inventario', () => {
+    const exits = tableDefinitions.find((table) => table.name === 'PEDIDOS')
+    expect(exits?.defaultView).toBe('dashboard')
+    expect(exits?.columns.find((column) => column.name === 'ID PEDIDO')).toMatchObject({
+      readOnly: true,
+      required: true,
+    })
+    expect(exits?.columns.find((column) => column.name === 'EQUIPOS A VENDER')).toMatchObject({
+      compact: true,
+      label: 'CANTIDAD',
+      required: true,
+    })
+    for (const name of ['ESTATUS PEDIDO', 'VALIDADOR VENTA']) {
+      expect(exits?.columns.find((column) => column.name === name)).toMatchObject({
+        exportable: false,
+        hidden: true,
+      })
+    }
+  })
+
   it('agrega las columnas de sincronización a todas las tablas', () => {
     for (const table of tableDefinitions) {
       expect(table.key).toBe('_uuid')
