@@ -1,4 +1,3 @@
-import { purchaseStatuses } from '@/schema/catalogs'
 import { asNumber, refValue, roundCurrency } from '@/schema/formulas'
 import { defineTable, migrationRef } from '@/schema/helpers'
 
@@ -11,11 +10,18 @@ export const comprasTable = defineTable({
   module: 'Inventario',
   icon: 'Truck',
   description: 'Entradas y recepción de inventario.',
-  defaultView: 'table',
+  defaultView: 'dashboard',
   columns: [
     migrationRef('producto_uuid', 'Producto interno', 'ALMACEN'),
     { name: 'FECHA COMPRA', type: 'Date', required: true },
-    { name: 'ID COMPRA', type: 'Text', labelColumn: true, required: true },
+    {
+      name: 'ID COMPRA',
+      type: 'Text',
+      labelColumn: true,
+      required: true,
+      readOnly: true,
+      description: 'Consecutivo asignado automáticamente por el servidor.',
+    },
     {
       name: 'ID PRODUCTO',
       type: 'Ref',
@@ -48,7 +54,7 @@ export const comprasTable = defineTable({
       formula: (row, context) =>
         refValue(row, 'producto_uuid', 'ALMACEN', 'KIT INSTALACION', context),
     },
-    { name: 'CANTIDAD', type: 'Number' },
+    { name: 'CANTIDAD', type: 'Number', required: true, compact: true },
     {
       name: 'SUBTOTAL',
       type: 'Price',
@@ -59,17 +65,28 @@ export const comprasTable = defineTable({
             asNumber(row['KIT INSTALACION']),
         ),
     },
-    { name: 'COSTO DE ENVIO', type: 'Price' },
+    { name: 'COSTO DE ENVIO', type: 'Price', hidden: true, exportable: false },
     {
       name: 'PRECIO DE COMPRA',
       type: 'Price',
       readOnly: true,
-      formula: (row) =>
-        roundCurrency(asNumber(row['SUBTOTAL']) + asNumber(row['COSTO DE ENVIO'])),
+      formula: (row) => roundCurrency(asNumber(row['SUBTOTAL'])),
     },
-    { name: 'ESTATUS COMPRA', type: 'Enum', values: purchaseStatuses },
+    {
+      name: 'ESTATUS COMPRA',
+      type: 'Text',
+      hidden: true,
+      readOnly: true,
+      exportable: false,
+    },
     { name: 'COMENTARIOS', type: 'Text' },
-    { name: 'VALIDADOR COMPRA', type: 'Number' },
+    {
+      name: 'VALIDADOR COMPRA',
+      type: 'Number',
+      hidden: true,
+      readOnly: true,
+      exportable: false,
+    },
     {
       name: 'Related ALMACENs',
       type: 'List',

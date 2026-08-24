@@ -56,6 +56,25 @@ describe('registro de metadata', () => {
     })
   })
 
+  it('configura Compras como captura automática y simplificada', () => {
+    const purchases = tableDefinitions.find((table) => table.name === 'COMPRAS')
+    expect(purchases?.defaultView).toBe('dashboard')
+    expect(purchases?.columns.find((column) => column.name === 'ID COMPRA')).toMatchObject({
+      readOnly: true,
+      required: true,
+    })
+    expect(purchases?.columns.find((column) => column.name === 'CANTIDAD')).toMatchObject({
+      compact: true,
+      required: true,
+    })
+    for (const name of ['COSTO DE ENVIO', 'ESTATUS COMPRA', 'VALIDADOR COMPRA']) {
+      expect(purchases?.columns.find((column) => column.name === name)).toMatchObject({
+        exportable: false,
+        hidden: true,
+      })
+    }
+  })
+
   it('agrega las columnas de sincronización a todas las tablas', () => {
     for (const table of tableDefinitions) {
       expect(table.key).toBe('_uuid')

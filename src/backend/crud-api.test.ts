@@ -38,6 +38,10 @@ interface CrudSandbox {
   readonly calculateApiLaboratorySemaphore_: (status: unknown, days: number | null) => string
   readonly buildNextApiTicketFolio_: (folios: readonly string[], year: string) => string
   readonly buildNextApiCrmId_: (ids: readonly unknown[]) => string
+  readonly buildNextApiPurchaseId_: (
+    ids: readonly unknown[],
+    reservedSequence: number,
+  ) => string
   readonly buildApiMediaFileName_: (
     rowUuid: string,
     columnName: string,
@@ -169,7 +173,7 @@ describe('CRUD de Apps Script', () => {
     ])
     expect(buildInventoryDeltas_('COMPRAS', received, {
       ...received,
-      'ESTATUS COMPRA': 'CANCELADA',
+      _deleted: true,
     })).toMatchObject([{ delta: -5, type: 'REVERSO' }])
     expect(calculateInventoryPurchaseNotice_(2, 3, 10)).toBe('REABASTECER')
     expect(calculateInventoryPurchaseNotice_(11, 3, 10)).toBe('SOBRESTOCK')
@@ -217,6 +221,14 @@ describe('CRUD de Apps Script', () => {
     expect(buildNextApiCrmId_([275, '278.6666667', '291.2380952', '', 'invalido']))
       .toBe('292')
     expect(buildNextApiCrmId_([])).toBe('1')
+  })
+
+  it('genera compras consecutivas sin reutilizar números reservados o eliminados', () => {
+    const { buildNextApiPurchaseId_ } = loadCrudSandbox()
+
+    expect(buildNextApiPurchaseId_(['1', '2', '38'], 0)).toBe('39')
+    expect(buildNextApiPurchaseId_(['1', '2'], 40)).toBe('41')
+    expect(buildNextApiPurchaseId_(['COMPRA-004', 'COMPRA-010'], 0)).toBe('11')
   })
 
   it('deduce una sola etapa comercial a partir del historial del CRM', () => {

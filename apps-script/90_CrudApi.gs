@@ -286,6 +286,12 @@ function prepareApiMutationRecord_(
     record.FOLIO = nextApiTicketFolio_(spreadsheet, now);
   }
 
+  if (schemaTable.name === 'COMPRAS' && isCreate) {
+    record['ID COMPRA'] = nextApiPurchaseId_(spreadsheet);
+    record['ESTATUS COMPRA'] = 'RECIBIDA';
+    record['COSTO DE ENVIO'] = 0;
+  }
+
   if (schemaTable.name === 'Gestion Clientes' && isCreate) {
     record.Id_CRM = nextApiCrmId_(spreadsheet);
   }
@@ -426,9 +432,7 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
     record.SUBTOTAL = roundApiCurrency_(
       apiNumber_(record.COSTO) * apiNumber_(record.CANTIDAD) + apiNumber_(record['KIT INSTALACION'])
     );
-    record['PRECIO DE COMPRA'] = roundApiCurrency_(
-      apiNumber_(record.SUBTOTAL) + apiNumber_(record['COSTO DE ENVIO'])
-    );
+    record['PRECIO DE COMPRA'] = roundApiCurrency_(apiNumber_(record.SUBTOTAL));
   }
 
   if (schemaTable.name === 'PEDIDOS') {
@@ -787,6 +791,41 @@ function buildNextApiTicketFolio_(folios, year) {
   }, 0);
 
   return prefix + String(maximum + 1).padStart(4, '0');
+}
+
+function nextApiPurchaseId_(spreadsheet) {
+  var schemaTable = requireApiTable_('COMPRAS');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var idIndex = requireHeaderIndex_(headers, 'ID COMPRA', schemaTable);
+  var ids = sheet.getLastRow() > 1
+    ? sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues()
+      .map(function (row) { return row[0]; })
+    : [];
+  var properties = PropertiesService.getScriptProperties();
+  var reservedSequence = Number(properties.getProperty('TRAIOT_PURCHASE_SEQUENCE') || 0);
+  var nextId = buildNextApiPurchaseId_(ids, reservedSequence);
+  properties.setProperty('TRAIOT_PURCHASE_SEQUENCE', nextId);
+  return nextId;
+}
+
+function buildNextApiPurchaseId_(ids, reservedSequence) {
+  var maximum = (ids || []).reduce(function (currentMaximum, value) {
+    var sequence = parseApiPurchaseSequence_(value);
+    return sequence !== null && sequence > currentMaximum ? sequence : currentMaximum;
+  }, Number.isInteger(Number(reservedSequence)) ? Number(reservedSequence) : 0);
+  return String(maximum + 1);
+}
+
+function parseApiPurchaseSequence_(value) {
+  var normalized = normalizeCell_(value);
+  if (!normalized) return null;
+  var numericValue = Number(normalized);
+  if (Number.isFinite(numericValue) && numericValue >= 1) {
+    return Math.floor(numericValue);
+  }
+  var suffix = normalized.match(/(\d+)$/);
+  return suffix ? Number(suffix[1]) : null;
 }
 
 function nextApiCrmId_(spreadsheet) {

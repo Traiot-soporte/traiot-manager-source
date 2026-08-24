@@ -51,19 +51,28 @@ export function RecordFormPage() {
     : table.name === 'Gestion Clientes' && (requestedCalendar === 'Personal' || requestedCalendar === 'Empresarial')
       ? { Calendario: requestedCalendar }
       : undefined
+  const formTitle = table.name === 'COMPRAS'
+    ? editing ? 'EDITAR COMPRA' : 'NUEVA COMPRA'
+    : editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName
+  const formDescription = table.name === 'COMPRAS'
+    ? 'Registra la recepción; el ID de compra y la entrada al inventario se generan automáticamente.'
+    : table.name === 'Gestion Clientes'
+      ? 'Selecciona el cliente y registra la actividad; el consecutivo CRM se genera automáticamente.'
+      : 'Completa la información necesaria del registro.'
+  const formSubmitLabel = table.name === 'COMPRAS'
+    ? editing ? 'Guardar compra' : 'Registrar compra'
+    : editing ? 'Guardar cambios' : 'Crear registro'
 
   return (
     <div className="space-y-4">
       <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-ink-800/55 hover:text-brand-600" to={cancelTo}><ArrowLeft className="size-4" />Cancelar y volver</Link>
       <ModuleHeader
-        description={table.name === 'Gestion Clientes'
-          ? 'Selecciona el cliente y registra la actividad; el consecutivo CRM se genera automáticamente.'
-          : 'Completa la información necesaria del registro.'}
-        eyebrow={editing ? 'Edición' : 'Nuevo registro'}
+        description={formDescription}
+        eyebrow={table.name === 'COMPRAS' && !editing ? 'Nueva compra' : editing ? 'Edición' : 'Nuevo registro'}
         icon={<TableIcon className="size-5" name={table.icon} />}
-        title={editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName}
+        title={formTitle}
       />
-      <FormView cancelTo={cancelTo} initialRow={initialRow} onSubmit={save} submitLabel={editing ? 'Guardar cambios' : 'Crear registro'} table={table} user={user.data} />
+      <FormView cancelTo={cancelTo} initialRow={initialRow} onSubmit={save} submitLabel={formSubmitLabel} table={table} user={user.data} />
     </div>
   )
 }

@@ -1,13 +1,16 @@
-import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, TimerReset, UserCheck, UsersRound, X } from 'lucide-react'
+import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, ShoppingBag, Tags, TimerReset, TrendingDown, TrendingUp, UserCheck, UsersRound, X } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import type { CollectionViewProps } from '@/views/types'
+import { useRepository } from '@/data/use-repository'
 import { CardView } from '@/views/card-view'
 import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
+import { purchaseDashboardMetrics, type PurchaseSalesMetric } from '@/views/purchase-dashboard'
 import { TableView } from '@/views/table-view'
 
 export function DashboardView(props: CollectionViewProps) {
@@ -19,6 +22,9 @@ export function DashboardView(props: CollectionViewProps) {
   }
   if (props.table.name === 'Laboratorio') {
     return <LaboratoryDashboardView {...props} />
+  }
+  if (props.table.name === 'COMPRAS') {
+    return <PurchaseDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -49,6 +55,71 @@ export function DashboardView(props: CollectionViewProps) {
         <CardView {...props} rows={rows.slice(0, 6)} />
       </section>
     </div>
+  )
+}
+
+function PurchaseDashboardView(props: CollectionViewProps) {
+  const repository = useRepository()
+  const orders = useQuery({ queryKey: ['table', 'PEDIDOS'], queryFn: () => repository.list('PEDIDOS') })
+  const products = useQuery({ queryKey: ['table', 'ALMACEN'], queryFn: () => repository.list('ALMACEN') })
+  const metrics = purchaseDashboardMetrics(props.rows, orders.data ?? [], products.data ?? [])
+  const recentRows = [...props.rows]
+    .sort((left, right) => String(right['FECHA COMPRA'] ?? '').localeCompare(String(left['FECHA COMPRA'] ?? '')))
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <PurchaseCountCard value={metrics.purchases} />
+        <PurchaseSalesCard icon={TrendingUp} label="Equipo más vendido" metric={metrics.mostSoldEquipment} />
+        <PurchaseSalesCard icon={TrendingDown} label="Equipo menos vendido" metric={metrics.leastSoldEquipment} />
+        <PurchaseSalesCard icon={TrendingUp} label="Accesorio más vendido" metric={metrics.mostSoldAccessory} />
+        <PurchaseSalesCard icon={TrendingDown} label="Accesorio menos vendido" metric={metrics.leastSoldAccessory} />
+      </section>
+
+      {(orders.isPending || products.isPending) && (
+        <p className="rounded-xl bg-brand-50 px-4 py-3 text-xs font-bold text-brand-700">Calculando indicadores de ventas…</p>
+      )}
+      {(orders.isError || products.isError) && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">Las compras están disponibles, pero no fue posible calcular temporalmente los indicadores de ventas.</p>
+      )}
+
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Recepciones registradas</p>
+            <h2 className="mt-1 text-lg font-black text-ink-950">COMPRAS RECIENTES</h2>
+          </div>
+          <span className="text-xs font-bold text-ink-800/40">Últimas {recentRows.length}</span>
+        </div>
+        <TableView {...props} rows={recentRows} />
+      </section>
+    </div>
+  )
+}
+
+function PurchaseCountCard({ value }: { readonly value: number }) {
+  return (
+    <article className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+      <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><ShoppingBag className="size-5" /></span>
+      <p className="mt-4 text-3xl font-black leading-none text-ink-950">{value}</p>
+      <p className="mt-1.5 text-[11px] font-black uppercase tracking-wide text-ink-800/45">Compras</p>
+    </article>
+  )
+}
+
+function PurchaseSalesCard({ icon: Icon, label, metric }: {
+  readonly icon: typeof TrendingUp
+  readonly label: string
+  readonly metric: PurchaseSalesMetric | undefined
+}) {
+  return (
+    <article className="min-w-0 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+      <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><Icon className="size-5" /></span>
+      <p className="mt-4 truncate text-base font-black text-ink-950" title={metric?.name}>{metric?.name ?? 'Sin datos'}</p>
+      <p className="mt-1 text-xl font-black text-brand-600">{metric ? metric.units + ' unidades' : '—'}</p>
+      <p className="mt-1.5 text-[10px] font-black uppercase tracking-wide text-ink-800/45">{label}</p>
+    </article>
   )
 }
 

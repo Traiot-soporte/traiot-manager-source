@@ -125,7 +125,9 @@ export function FormView({
             <div className="mt-3 grid gap-5 md:grid-cols-2">
               {sectionColumns.map((column) => (
                 <div
-                  className={wideFieldTypes.has(column.type) ? 'md:col-span-2' : undefined}
+                  className={wideFieldTypes.has(column.type)
+                    ? 'md:col-span-2'
+                    : column.compact ? 'md:max-w-xs' : undefined}
                   key={column.name}
                 >
                   <Controller

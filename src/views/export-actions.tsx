@@ -4,7 +4,14 @@ import { useState } from 'react'
 import { useRepository } from '@/data/use-repository'
 import type { RowData, TableDef } from '@/schema'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
-import { buildExcelXml, buildExportDataset, buildPrintableHtml, canExportTable, getExportColumns } from '@/views/export-utils'
+import {
+  buildExportBaseName,
+  buildExportDataset,
+  buildPrintableHtml,
+  buildXlsxBlob,
+  canExportTable,
+  getExportColumns,
+} from '@/views/export-utils'
 import { getRowTitle } from '@/views/view-utils'
 
 export function ExportActions({ rows, table }: { readonly rows: readonly RowData[]; readonly table: TableDef }) {
@@ -35,11 +42,8 @@ export function ExportActions({ rows, table }: { readonly rows: readonly RowData
     setBusy('excel'); setError('')
     try {
       const dataset = await prepare()
-      downloadBlob(
-        buildExcelXml(getTableDisplayName(table), dataset),
-        exportFilename(table, 'xls'),
-        'application/vnd.ms-excel;charset=utf-8',
-      )
+      const baseName = buildExportBaseName(table.name)
+      downloadBlob(buildXlsxBlob(getTableDisplayName(table), dataset), baseName + '.xlsx')
     } catch {
       setError('No fue posible generar Excel.')
     } finally {
@@ -51,7 +55,8 @@ export function ExportActions({ rows, table }: { readonly rows: readonly RowData
     setBusy('pdf'); setError('')
     try {
       const dataset = await prepare()
-      printHtml(buildPrintableHtml(getTableDisplayName(table), dataset))
+      const baseName = buildExportBaseName(table.name)
+      printHtml(buildPrintableHtml(baseName, dataset))
     } catch {
       setError('No fue posible preparar el PDF.')
     } finally {
@@ -72,19 +77,15 @@ export function ExportActions({ rows, table }: { readonly rows: readonly RowData
   )
 }
 
-function exportFilename(table: TableDef, extension: string): string {
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
-  return getTableDisplayName(table).replace(/[^a-z0-9áéíóúñ]+/gi, '-') + '-' + stamp + '.' + extension
-}
-
-function downloadBlob(content: string, filename: string, type: string) {
+function downloadBlob(blob: Blob, filename: string) {
   const link = document.createElement('a')
-  link.href = URL.createObjectURL(new Blob([content], { type }))
+  const objectUrl = URL.createObjectURL(blob)
+  link.href = objectUrl
   link.download = filename
   document.body.appendChild(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(link.href)
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
 }
 
 function printHtml(html: string) {

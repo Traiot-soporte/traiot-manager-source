@@ -128,7 +128,9 @@ function inventoryContributionForRecord_(tableName, record) {
     return null;
   }
 
-  if (tableName === 'COMPRAS' && normalizeLookupValue_(record['ESTATUS COMPRA']) === 'RECIBIDA') {
+  // Toda compra registrada representa una entrada confirmada. El inventario ya no
+  // depende de un estatus editable u oculto.
+  if (tableName === 'COMPRAS') {
     return {
       productUuid: productUuid,
       quantity: Math.abs(apiNumber_(record.CANTIDAD)),

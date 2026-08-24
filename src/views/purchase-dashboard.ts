@@ -1,0 +1,83 @@
+import type { RowData } from '@/schema'
+
+export interface PurchaseSalesMetric {
+  readonly name: string
+  readonly units: number
+}
+
+export interface PurchaseDashboardMetrics {
+  readonly purchases: number
+  readonly mostSoldEquipment: PurchaseSalesMetric | undefined
+  readonly leastSoldEquipment: PurchaseSalesMetric | undefined
+  readonly mostSoldAccessory: PurchaseSalesMetric | undefined
+  readonly leastSoldAccessory: PurchaseSalesMetric | undefined
+}
+
+export function purchaseDashboardMetrics(
+  purchases: readonly RowData[],
+  orders: readonly RowData[],
+  products: readonly RowData[],
+): PurchaseDashboardMetrics {
+  const productIndex = new Map<string, RowData>()
+  for (const product of products) {
+    const uuid = normalizedKey(product._uuid)
+    const businessId = normalizedKey(product['ID PRODUCTO'])
+    if (uuid) productIndex.set(uuid, product)
+    if (businessId) productIndex.set(businessId, product)
+  }
+
+  const equipment = new Map<string, PurchaseSalesMetric>()
+  const accessories = new Map<string, PurchaseSalesMetric>()
+  for (const order of orders) {
+    if (!isCompletedSale(order['ESTATUS PEDIDO'])) continue
+    const productKey = normalizedKey(order.producto_uuid || order['ID PRODUCTO'])
+    const product = productIndex.get(productKey)
+    if (!product) continue
+    const units = numericValue(order['EQUIPOS A VENDER'])
+    if (units <= 0) continue
+    const name = String(product.NOMBRE ?? product['ID PRODUCTO'] ?? productKey).trim()
+    const target = normalizeText(product.CATEGORIA).includes('ACCESORIO') ? accessories : equipment
+    const canonicalKey = normalizedKey(product._uuid || product['ID PRODUCTO'])
+    const current = target.get(canonicalKey)
+    target.set(canonicalKey, { name, units: (current?.units ?? 0) + units })
+  }
+
+  return {
+    purchases: purchases.length,
+    mostSoldEquipment: extremeSalesMetric(equipment, 'most'),
+    leastSoldEquipment: extremeSalesMetric(equipment, 'least'),
+    mostSoldAccessory: extremeSalesMetric(accessories, 'most'),
+    leastSoldAccessory: extremeSalesMetric(accessories, 'least'),
+  }
+}
+
+function extremeSalesMetric(
+  values: ReadonlyMap<string, PurchaseSalesMetric>,
+  direction: 'most' | 'least',
+): PurchaseSalesMetric | undefined {
+  return [...values.values()].sort((left, right) =>
+    (direction === 'most' ? right.units - left.units : left.units - right.units) ||
+    left.name.localeCompare(right.name, 'es-MX'),
+  )[0]
+}
+
+function isCompletedSale(value: unknown): boolean {
+  const status = normalizeText(value)
+  return !status || (status.includes('APROBADO') && !status.includes('NO APROBADO'))
+}
+
+function normalizedKey(value: unknown): string {
+  const text = typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ? String(value)
+    : ''
+  return text.trim().toLocaleUpperCase('es-MX')
+}
+
+function normalizeText(value: unknown): string {
+  return normalizedKey(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function numericValue(value: unknown): number {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : 0
+}
