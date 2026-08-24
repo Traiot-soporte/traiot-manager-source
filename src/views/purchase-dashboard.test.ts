@@ -7,8 +7,8 @@ describe('panel de Compras', () => {
     const products = [
       { _uuid: 'p1', 'ID PRODUCTO': 'GPS-1', NOMBRE: 'GPS Uno', CATEGORIA: 'GPS' },
       { _uuid: 'p2', 'ID PRODUCTO': 'GPS-2', NOMBRE: 'GPS Dos', CATEGORIA: 'GPS' },
-      { _uuid: 'a1', 'ID PRODUCTO': 'ACC-1', NOMBRE: 'Botón', CATEGORIA: 'ACCESORIO' },
-      { _uuid: 'a2', 'ID PRODUCTO': 'ACC-2', NOMBRE: 'Cable', CATEGORIA: 'ACCESORIO' },
+      { _uuid: 'a1', 'ID PRODUCTO': 'SEN-1', NOMBRE: 'Sensor de combustible', CATEGORIA: 'SENSOR' },
+      { _uuid: 'a2', 'ID PRODUCTO': 'SEN-2', NOMBRE: 'Sensor de temperatura', CATEGORIA: 'SENSOR' },
     ]
     const orders = [
       { producto_uuid: 'p1', 'EQUIPOS A VENDER': 8, 'ESTATUS PEDIDO': 'APROBADO' },
@@ -22,8 +22,8 @@ describe('panel de Compras', () => {
       purchases: 3,
       mostSoldEquipment: { name: 'GPS Uno', units: 8 },
       leastSoldEquipment: { name: 'GPS Dos', units: 2 },
-      mostSoldAccessory: { name: 'Botón', units: 10 },
-      leastSoldAccessory: { name: 'Cable', units: 1 },
+      mostSoldAccessory: { name: 'Sensor de combustible', units: 10 },
+      leastSoldAccessory: { name: 'Sensor de temperatura', units: 1 },
     })
   })
 })

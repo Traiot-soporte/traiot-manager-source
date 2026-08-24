@@ -36,7 +36,10 @@ export function purchaseDashboardMetrics(
     const units = numericValue(order['EQUIPOS A VENDER'])
     if (units <= 0) continue
     const name = String(product.NOMBRE ?? product['ID PRODUCTO'] ?? productKey).trim()
-    const target = normalizeText(product.CATEGORIA).includes('ACCESORIO') ? accessories : equipment
+    const category = normalizeText(product.CATEGORIA)
+    const target = category.includes('ACCESORIO') || category.includes('SENSOR')
+      ? accessories
+      : equipment
     const canonicalKey = normalizedKey(product._uuid || product['ID PRODUCTO'])
     const current = target.get(canonicalKey)
     target.set(canonicalKey, { name, units: (current?.units ?? 0) + units })
