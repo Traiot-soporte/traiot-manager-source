@@ -57,6 +57,7 @@ const navigationSections: readonly NavigationSection[] = [
     label: 'Administración Comercial',
     items: [
       { kind: 'table', label: 'Almacén', table: 'ALMACEN' },
+      { kind: 'table', label: 'Kardex', table: 'KARDEX' },
       { kind: 'table', label: 'Compras', table: 'COMPRAS' },
       { kind: 'table', label: 'Salidas', table: 'PEDIDOS' },
       { kind: 'table', label: 'Proveedores', table: 'PROVEEDORES' },

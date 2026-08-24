@@ -14,6 +14,7 @@ import { CrmCalendarView } from '@/views/crm-calendar-view'
 import { DashboardView } from '@/views/dashboard-view'
 import { DeckView } from '@/views/deck-view'
 import { TableView } from '@/views/table-view'
+import { ExportActions } from '@/views/export-actions'
 import { getAvailableCollectionViews, resolveCollectionView, type CollectionViewKind } from '@/views/view-kinds'
 import { ViewSwitcher } from '@/views/view-switcher'
 
@@ -52,15 +53,18 @@ export function TablePage() {
   return (
     <div className="space-y-4">
       <ModuleHeader
-        action={repository.writable ? (
+        action={<div className="flex flex-wrap items-center justify-end gap-2">
+          <ExportActions rows={rows.data ?? []} table={table} />
+          {repository.writable && !table.readOnly ? (
               <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
                 <Plus className="size-5" /> Nuevo registro
               </Link>
             ) : (
               <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">
-                Solo lectura
+                {table.readOnly ? 'Actualización automática' : 'Solo lectura'}
               </span>
             )}
+        </div>}
         description={table.description}
         eyebrow={table.module}
         footer={<span>{rows.data?.length ?? 0} registros</span>}

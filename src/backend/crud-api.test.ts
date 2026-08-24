@@ -19,12 +19,13 @@ interface CrudColumn {
 interface CrudTable {
   readonly name: string
   readonly columns: readonly CrudColumn[]
+  readonly readOnly?: boolean
 }
 
 interface CrudSandbox {
   readonly assertApiTableWriteAccess_: (
     user: { role: string; permissions: readonly string[] },
-    table: { name: string; permissionView?: string },
+    table: { name: string; permissionView?: string; readOnly?: boolean },
   ) => void
   readonly coerceApiInput_: (value: unknown, column: CrudColumn) => unknown
   readonly validateApiRecord_: (table: CrudTable, record: Readonly<Record<string, unknown>>) => void
@@ -67,6 +68,20 @@ interface CrudSandbox {
     clientStage: string,
     isCreate: boolean,
   ) => boolean
+  readonly inventoryContributionForRecord_: (
+    tableName: string,
+    record: Readonly<Record<string, unknown>>,
+  ) => { readonly productUuid: string; readonly quantity: number } | null
+  readonly buildInventoryDeltas_: (
+    tableName: string,
+    beforeRecord: Readonly<Record<string, unknown>> | null,
+    afterRecord: Readonly<Record<string, unknown>> | null,
+  ) => readonly { readonly productUuid: string; readonly delta: number; readonly type: string }[]
+  readonly calculateInventoryPurchaseNotice_: (
+    stock: unknown,
+    minimum: unknown,
+    maximum: unknown,
+  ) => string
 }
 
 function loadCrudSandbox(): CrudSandbox {
@@ -80,6 +95,7 @@ function loadCrudSandbox(): CrudSandbox {
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/80_ReadApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/87_RolePermissions.gs', 'utf8'), sandbox)
+  runInContext(readFileSync('apps-script/88_InventoryLedger.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/89_CrmLifecycle.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/90_CrudApi.gs', 'utf8'), sandbox)
   runInContext(readFileSync('apps-script/95_MediaApi.gs', 'utf8'), sandbox)
@@ -120,6 +136,44 @@ describe('CRUD de Apps Script', () => {
       name: 'Usuarios',
       permissionView: 'Usuarios',
     })).not.toThrow()
+    expect(() => assertApiTableWriteAccess_(admin, {
+      name: 'KARDEX',
+      permissionView: 'Kardex',
+      readOnly: true,
+    })).toThrow('solo lectura')
+  })
+
+  it('calcula entradas, salidas, reversiones y alertas de inventario', () => {
+    const {
+      buildInventoryDeltas_,
+      calculateInventoryPurchaseNotice_,
+      inventoryContributionForRecord_,
+    } = loadCrudSandbox()
+    const received = {
+      producto_uuid: 'product-1',
+      CANTIDAD: 5,
+      'ESTATUS COMPRA': 'RECIBIDA',
+      'ID COMPRA': 'C-1',
+    }
+    const approved = {
+      producto_uuid: 'product-1',
+      'EQUIPOS A VENDER': 2,
+      'ESTATUS PEDIDO': 'APROBADO',
+      'ID PEDIDO': 'P-1',
+    }
+
+    expect(inventoryContributionForRecord_('COMPRAS', received)?.quantity).toBe(5)
+    expect(inventoryContributionForRecord_('PEDIDOS', approved)?.quantity).toBe(-2)
+    expect(buildInventoryDeltas_('COMPRAS', null, received)).toMatchObject([
+      { productUuid: 'product-1', delta: 5, type: 'ENTRADA' },
+    ])
+    expect(buildInventoryDeltas_('COMPRAS', received, {
+      ...received,
+      'ESTATUS COMPRA': 'CANCELADA',
+    })).toMatchObject([{ delta: -5, type: 'REVERSO' }])
+    expect(calculateInventoryPurchaseNotice_(2, 3, 10)).toBe('REABASTECER')
+    expect(calculateInventoryPurchaseNotice_(11, 3, 10)).toBe('SOBRESTOCK')
+    expect(calculateInventoryPurchaseNotice_(6, 3, 10)).toBe('NIVEL ADECUADO')
   })
 
   it('normaliza numeros, booleanos y listas antes de escribir', () => {

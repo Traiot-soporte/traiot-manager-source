@@ -20,9 +20,13 @@ const expectedAppSheetColumns: Readonly<Record<string, number>> = {
 }
 
 describe('registro de metadata', () => {
-  it('contiene las 13 tablas funcionales y las 3 tablas hijas', () => {
-    expect(tableDefinitions).toHaveLength(16)
+  it('contiene las tablas funcionales, tablas hijas y el Kardex', () => {
+    expect(tableDefinitions).toHaveLength(17)
     expect(tableDefinitions.some((table) => table.name === '_Per User Settings')).toBe(false)
+    expect(tableDefinitions.find((table) => table.name === 'KARDEX')).toMatchObject({
+      readOnly: true,
+      defaultView: 'table',
+    })
   })
 
   it('conserva todas las columnas de AppSheet salvo _RowNumber', () => {
@@ -94,6 +98,7 @@ describe('registro de metadata', () => {
 
   it('respeta el orden intercalado de evidencias de Laboratorio', () => {
     const laboratory = tableDefinitions.find((table) => table.name === 'Laboratorio')
+    expect(laboratory?.defaultView).toBe('dashboard')
     const evidenceColumns = laboratory?.columns
       .filter((column) => /^(IMAGEN|NOTAS IMAGEN) \d$/.test(column.name))
       .map((column) => column.name)

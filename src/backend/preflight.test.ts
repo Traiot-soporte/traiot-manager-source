@@ -107,7 +107,7 @@ describe('preflight de Apps Script', () => {
     )
   })
 
-  it('considera listas las 13 hojas originales y pendientes las 3 tablas nuevas', () => {
+  it('considera listas las 13 hojas originales y pendientes las tablas nuevas', () => {
     const sandbox = loadAppsScriptSandbox()
     const sourceTables = sandbox.TRAIOT_SCHEMA_TABLES.filter((table) => !table.newTable)
     const sheets = sourceTables.map((table, index) => ({
@@ -155,7 +155,7 @@ describe('preflight de Apps Script', () => {
       sheetsFound: 13,
       originalTablesExpected: 13,
       originalTablesReady: 13,
-      newTablesPending: 3,
+      newTablesPending: 4,
       blockingTables: 0,
       safeToPrepareMigration: true,
     })

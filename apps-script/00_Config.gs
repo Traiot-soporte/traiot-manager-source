@@ -14,6 +14,7 @@ var TRAIOT_DEFAULT_CONFIG = Object.freeze({
 
 var TRAIOT_EXPECTED_TABLES = Object.freeze([
   'ALMACEN',
+  'KARDEX',
   'COMPRAS',
   'PEDIDOS',
   'PROVEEDORES',

@@ -19,6 +19,7 @@ var TRAIOT_ROLE_SECTIONS = Object.freeze({
 
 var TRAIOT_TABLE_SECTIONS = Object.freeze({
   'ALMACEN': 'administracion-comercial',
+  'KARDEX': 'administracion-comercial',
   'COMPRAS': 'administracion-comercial',
   'PEDIDOS': 'administracion-comercial',
   'PROVEEDORES': 'administracion-comercial',
@@ -251,6 +252,7 @@ function serializeApiUser_(user) {
 
 function buildApiSummaries_(user) {
   var spreadsheet = openConfiguredSpreadsheet_();
+  ensureInventoryStorage_(spreadsheet, false);
 
   return TRAIOT_SCHEMA_TABLES.filter(function (schemaTable) {
     return canApiViewTable_(user, schemaTable);
@@ -285,6 +287,9 @@ function getApiRow_(schemaTable, rowUuid, user) {
 }
 
 function readVisibleApiRows_(spreadsheet, schemaTable, user) {
+  if (schemaTable.name === 'ALMACEN' || schemaTable.name === 'KARDEX') {
+    ensureInventoryStorage_(spreadsheet, false);
+  }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(spreadsheet, false);
   }

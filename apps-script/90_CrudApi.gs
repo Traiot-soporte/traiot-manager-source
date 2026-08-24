@@ -4,6 +4,9 @@
  */
 function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (isInventoryApiTable_(schemaTable.name)) {
+    ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
+  }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -40,6 +43,14 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
       submittedValues,
       mutationId
     );
+    var inventoryPlan = planInventoryMutation_(
+      spreadsheet,
+      schemaTable,
+      null,
+      record,
+      mutationId,
+      user
+    );
 
     var rowNumber = Math.max(sheet.getLastRow() + 1, 2);
     var rowValues = headers.map(function (header) {
@@ -48,7 +59,14 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
     });
 
     sheet.getRange(rowNumber, 1, 1, headers.length).setValues([rowValues]);
-    SpreadsheetApp.flush();
+    try {
+      commitInventoryPlan_(spreadsheet, inventoryPlan);
+      SpreadsheetApp.flush();
+    } catch (error) {
+      sheet.getRange(rowNumber, 1, 1, headers.length).clearContent();
+      SpreadsheetApp.flush();
+      throw error;
+    }
 
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, record._uuid);
   });
@@ -56,6 +74,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
 
 function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (isInventoryApiTable_(schemaTable.name)) {
+    ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
+  }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -102,6 +123,14 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       submittedChanges,
       mutationId
     );
+    var inventoryPlan = planInventoryMutation_(
+      spreadsheet,
+      schemaTable,
+      snapshot.record,
+      nextRecord,
+      mutationId,
+      user
+    );
     writeApiRecordCells_(
       sheet,
       snapshot.rowNumber,
@@ -110,7 +139,16 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       nextRecord,
       collectApiMutationColumns_(schemaTable, submittedChanges)
     );
-    SpreadsheetApp.flush();
+    try {
+      commitInventoryPlan_(spreadsheet, inventoryPlan);
+      SpreadsheetApp.flush();
+    } catch (error) {
+      sheet.getRange(snapshot.rowNumber, 1, 1, snapshot.headers.length).setValues([
+        snapshot.rawValues
+      ]);
+      SpreadsheetApp.flush();
+      throw error;
+    }
 
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid);
   });
@@ -118,6 +156,9 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
 
 function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (isInventoryApiTable_(schemaTable.name)) {
+    ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
+  }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -136,13 +177,36 @@ function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
     }
 
     assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
+    if (schemaTable.name === 'ALMACEN') {
+      assertInventoryProductDeletionAllowed_(snapshot.record);
+    }
+
+    var deletedRecord = copyApiObject_(snapshot.record);
+    deletedRecord._deleted = true;
+    var inventoryPlan = planInventoryMutation_(
+      spreadsheet,
+      schemaTable,
+      snapshot.record,
+      deletedRecord,
+      mutationId,
+      user
+    );
 
     var deletedColumn = requireHeaderIndex_(snapshot.headers, '_deleted', schemaTable) + 1;
     var updatedAtColumn = requireHeaderIndex_(snapshot.headers, '_updatedAt', schemaTable) + 1;
 
     sheet.getRange(snapshot.rowNumber, deletedColumn).setValue(true);
     sheet.getRange(snapshot.rowNumber, updatedAtColumn).setValue(new Date().toISOString());
-    SpreadsheetApp.flush();
+    try {
+      commitInventoryPlan_(spreadsheet, inventoryPlan);
+      SpreadsheetApp.flush();
+    } catch (error) {
+      sheet.getRange(snapshot.rowNumber, 1, 1, snapshot.headers.length).setValues([
+        snapshot.rawValues
+      ]);
+      SpreadsheetApp.flush();
+      throw error;
+    }
 
     snapshot.record._deleted = true;
     snapshot.record._updatedAt = new Date().toISOString();
@@ -346,6 +410,12 @@ function applyApiReference_(
 function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'ALMACEN') {
     record['PRECIO VENTA PARA ASESOR'] = roundApiCurrency_(apiNumber_(record.COSTO) * 1.16);
+    record.STOCK = apiNumber_(record.STOCK);
+    record['AVISO DE COMPRA'] = calculateInventoryPurchaseNotice_(
+      record.STOCK,
+      record['STOCK MINIMO'],
+      record['STOCK MAXIMO']
+    );
   }
 
   if (schemaTable.name === 'COMPRAS') {
@@ -490,6 +560,11 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
     columnNames.push('_calendarOwnerUuid');
   }
 
+  if (schemaTable.name === 'ALMACEN') {
+    columnNames.push('STOCK');
+    columnNames.push('AVISO DE COMPRA');
+  }
+
   return columnNames.filter(function (columnName, index, values) {
     return values.indexOf(columnName) === index;
   });
@@ -529,6 +604,7 @@ function findApiRowSnapshot_(sheet, schemaTable, rowUuid) {
       return {
         rowNumber: rowIndex + 1,
         headers: headers,
+        rawValues: values[rowIndex].slice(),
         record: mapApiRecordFromRow_(schemaTable, headers, values[rowIndex], false)
       };
     }
@@ -774,11 +850,18 @@ function diagnosticarConsecutivoCrm() {
 }
 
 function assertApiTableWriteAccess_(user, schemaTable) {
+  if (schemaTable.readOnly) {
+    throw new Error('Esta tabla es de solo lectura y se actualiza automaticamente.');
+  }
   if (schemaTable.name === 'Usuarios' || schemaTable.name === 'Perfiles') {
     assertAuthAdministrator_(user);
   }
 
   assertApiTableAccess_(user, schemaTable);
+}
+
+function isInventoryApiTable_(tableName) {
+  return ['ALMACEN', 'COMPRAS', 'PEDIDOS', 'KARDEX'].indexOf(tableName) >= 0;
 }
 
 function toApiSheetCell_(value, column) {

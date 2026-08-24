@@ -15,6 +15,7 @@ const schema = tableDefinitions.map((table) => {
     description: table.description,
     icon: table.icon,
     permissionView: table.permissionView,
+    readOnly: Boolean(table.readOnly),
     legacyBusinessKey: table.legacyBusinessKey ?? '',
     labelColumn: table.label,
     sourceHeaders,

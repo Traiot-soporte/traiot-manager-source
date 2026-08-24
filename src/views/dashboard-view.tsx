@@ -1,4 +1,4 @@
-import { Activity, ChevronRight, CircleAlert, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, UserCheck, UsersRound, X } from 'lucide-react'
+import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, Tags, TimerReset, UserCheck, UsersRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -7,6 +7,7 @@ import type { CollectionViewProps } from '@/views/types'
 import { CardView } from '@/views/card-view'
 import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
+import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
 import { TableView } from '@/views/table-view'
 
 export function DashboardView(props: CollectionViewProps) {
@@ -15,6 +16,9 @@ export function DashboardView(props: CollectionViewProps) {
   }
   if (props.table.name === 'MATRIZ DISPOSITIVOS') {
     return <MatrixDeviceDashboardView {...props} />
+  }
+  if (props.table.name === 'Laboratorio') {
+    return <LaboratoryDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -45,6 +49,75 @@ export function DashboardView(props: CollectionViewProps) {
         <CardView {...props} rows={rows.slice(0, 6)} />
       </section>
     </div>
+  )
+}
+
+function LaboratoryDashboardView(props: CollectionViewProps) {
+  const metrics = laboratoryDashboardMetrics(props.rows)
+  const semaphoreCards = [
+    { label: 'Urgentes', value: metrics.urgent, icon: CircleAlert, color: 'border-red-200 bg-red-50 text-red-700', dot: 'bg-red-500' },
+    { label: 'Por vencer', value: metrics.dueSoon, icon: TimerReset, color: 'border-amber-200 bg-amber-50 text-amber-700', dot: 'bg-amber-400' },
+    { label: 'En tiempo', value: metrics.onTime, icon: Clock3, color: 'border-emerald-200 bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500' },
+    { label: 'Cerrados', value: metrics.closed, icon: CircleCheckBig, color: 'border-blue-200 bg-blue-50 text-blue-700', dot: 'bg-blue-500' },
+  ] as const
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-3 sm:grid-cols-3">
+        <LaboratoryStatusCard icon={Database} label="Equipos registrados" value={metrics.total} tone="neutral" />
+        <LaboratoryStatusCard icon={CircleX} label="Dañados" value={metrics.damaged} tone="danger" />
+        <LaboratoryStatusCard icon={CircleCheckBig} label="Funcionales" value={metrics.functional} tone="success" />
+      </section>
+
+      <section className="rounded-3xl border border-black/5 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Tiempos de atención</p>
+          <h2 className="mt-1 text-lg font-black text-ink-950">SEMAFORIZACIÓN</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {semaphoreCards.map(({ color, dot, icon: Icon, label, value }) => (
+            <article className={'rounded-2xl border p-4 ' + color} key={label}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="grid size-10 place-items-center rounded-xl bg-white/70"><Icon className="size-5" /></span>
+                <span aria-hidden="true" className={'size-3 rounded-full shadow-sm ' + dot} />
+              </div>
+              <p className="mt-4 text-3xl font-black">{value}</p>
+              <p className="mt-1 text-xs font-black uppercase tracking-wide opacity-70">{label}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Operación técnica</p>
+            <h2 className="mt-1 text-lg font-black text-ink-950">EQUIPOS RECIENTES</h2>
+          </div>
+          <span className="text-xs font-bold text-ink-800/40">Últimos {Math.min(props.rows.length, 8)}</span>
+        </div>
+        <TableView {...props} rows={props.rows.slice(0, 8)} />
+      </section>
+    </div>
+  )
+}
+
+function LaboratoryStatusCard({ icon: Icon, label, tone, value }: {
+  readonly icon: typeof Database
+  readonly label: string
+  readonly tone: 'neutral' | 'danger' | 'success'
+  readonly value: number
+}) {
+  const tones = {
+    neutral: 'bg-brand-50 text-brand-600',
+    danger: 'bg-red-50 text-red-600',
+    success: 'bg-emerald-50 text-emerald-600',
+  }
+  return (
+    <article className="flex items-center gap-4 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
+      <span className={'grid size-12 shrink-0 place-items-center rounded-2xl ' + tones[tone]}><Icon className="size-5" /></span>
+      <div><p className="text-3xl font-black leading-none text-ink-950">{value}</p><p className="mt-1.5 text-[11px] font-black uppercase tracking-wide text-ink-800/45">{label}</p></div>
+    </article>
   )
 }
 

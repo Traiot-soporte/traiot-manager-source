@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, ZoomIn, X } from 'lucide-react'
+import { ExternalLink, Mail, MapPinned, MessageSquareText, PhoneCall, ZoomIn, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -7,6 +7,7 @@ import { useRepository } from '@/data/use-repository'
 import { formatCell } from '@/lib/format'
 import { getTableDefinition } from '@/schema'
 import type { CellValue, ColumnDef } from '@/schema'
+import { emailHref, mapHref, phoneHrefs } from '@/views/communication-utils'
 import { safeExternalUrl, urlActionLabel } from '@/views/url-utils'
 import { getRowTitle } from '@/views/view-utils'
 
@@ -117,6 +118,37 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
         <span>{urlActionLabel(column.name)}</span>
         <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
       </a>
+    )
+  }
+
+  if (column.type === 'Email') {
+    const href = emailHref(value)
+    if (!href) return <>{formatCell(value, column.type)}</>
+    return (
+      <a className="inline-flex min-h-10 items-center gap-2 rounded-lg px-2 font-bold text-brand-600 transition hover:bg-brand-50" href={href} title="Enviar correo">
+        <Mail className="size-4" /> {formatCell(value, column.type)}
+      </a>
+    )
+  }
+
+  const phones = phoneHrefs(column, value)
+  if (phones) {
+    return (
+      <span className="inline-flex flex-wrap items-center gap-1.5">
+        <span>{formatCell(value, column.type)}</span>
+        <a aria-label="Llamar" className="grid min-h-10 min-w-10 place-items-center rounded-lg text-brand-600 transition hover:bg-brand-50" href={phones.tel} title="Llamar"><PhoneCall className="size-4" /></a>
+        <a aria-label="Enviar mensaje" className="grid min-h-10 min-w-10 place-items-center rounded-lg text-brand-600 transition hover:bg-brand-50" href={phones.sms} title="Enviar SMS"><MessageSquareText className="size-4" /></a>
+      </span>
+    )
+  }
+
+  const maps = mapHref(column, value)
+  if (maps) {
+    return (
+      <span className="inline-flex items-start gap-1.5">
+        <span>{formatCell(value, column.type)}</span>
+        <a aria-label="Abrir ubicación" className="grid min-h-10 min-w-10 shrink-0 place-items-center rounded-lg text-brand-600 transition hover:bg-brand-50" href={maps} rel="noopener noreferrer" target="_blank" title="Abrir en mapa"><MapPinned className="size-4" /></a>
+      </span>
     )
   }
 

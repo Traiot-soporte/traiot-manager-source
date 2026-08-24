@@ -36,6 +36,7 @@ const roleSections: Readonly<Record<AppRole, readonly AppSectionId[]>> = {
 
 const tableSections: Readonly<Record<string, AppSectionId>> = {
   ALMACEN: 'administracion-comercial',
+  KARDEX: 'administracion-comercial',
   COMPRAS: 'administracion-comercial',
   PEDIDOS: 'administracion-comercial',
   PROVEEDORES: 'administracion-comercial',

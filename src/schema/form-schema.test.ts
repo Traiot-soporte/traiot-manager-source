@@ -8,10 +8,11 @@ import { pedidosTable } from '@/schema/tables/pedidos'
 import { usuariosTable } from '@/schema/tables/usuarios'
 
 describe('schema Zod derivado de metadata', () => {
-  it('genera campos editables para las 16 tablas', () => {
+  it('genera campos editables para las tablas de captura', () => {
     for (const table of tableDefinitions) {
       const keys = Object.keys(buildFormSchema(table).shape)
-      expect(keys.length, table.name).toBeGreaterThan(0)
+      if (table.readOnly) expect(keys, table.name).toHaveLength(0)
+      else expect(keys.length, table.name).toBeGreaterThan(0)
     }
   })
 

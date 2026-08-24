@@ -7,6 +7,7 @@ import { instalacionFotosTable } from '@/schema/tables/instalacion-fotos'
 import { instalacionTanquesTable } from '@/schema/tables/instalacion-tanques'
 import { instalacionesTable } from '@/schema/tables/instalaciones'
 import { laboratorioTable } from '@/schema/tables/laboratorio'
+import { kardexTable } from '@/schema/tables/kardex'
 import { matrizDispositivosTable } from '@/schema/tables/matriz-dispositivos'
 import { menuTable } from '@/schema/tables/menu'
 import { pedidosTable } from '@/schema/tables/pedidos'
@@ -18,6 +19,7 @@ import type { TableDef } from '@/schema/types'
 
 export const tableDefinitions = [
   almacenTable,
+  kardexTable,
   comprasTable,
   pedidosTable,
   proveedoresTable,

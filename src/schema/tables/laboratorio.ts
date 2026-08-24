@@ -22,7 +22,7 @@ export const laboratorioTable = defineTable({
   module: 'Laboratorio',
   icon: 'FlaskConical',
   description: 'Recepción, diagnóstico y salida de equipos RMA.',
-  defaultView: 'table',
+  defaultView: 'dashboard',
   columns: [
     migrationRef('cliente_uuid', 'Cliente interno', 'CLIENTES'),
     { name: 'FOLIO', type: 'Text', labelColumn: true, required: true },

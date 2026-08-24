@@ -1,0 +1,43 @@
+import { defineTable } from '@/schema/helpers'
+
+export const kardexTable = defineTable({
+  name: 'KARDEX',
+  displayName: 'Kardex',
+  sheet: 'KARDEX',
+  label: 'MOVIMIENTO ID',
+  permissionView: 'Kardex',
+  module: 'Inventario',
+  icon: 'History',
+  description: 'Historial auditable de entradas, salidas y saldos de inventario.',
+  defaultView: 'table',
+  readOnly: true,
+  disabledViews: ['calendar', 'chart', 'form'],
+  columns: [
+    { name: 'MOVIMIENTO ID', type: 'Text', labelColumn: true, required: true, origin: 'system' },
+    { name: 'FECHA', type: 'DateTime', required: true, origin: 'system' },
+    {
+      name: 'TIPO',
+      type: 'Enum',
+      values: ['SALDO INICIAL', 'ENTRADA', 'SALIDA', 'REVERSO', 'AJUSTE'],
+      required: true,
+      origin: 'system',
+    },
+    {
+      name: 'producto_uuid',
+      label: 'Producto interno',
+      type: 'Ref',
+      ref: { table: 'ALMACEN', keyColumn: '_uuid' },
+      hidden: true,
+      origin: 'system',
+    },
+    { name: 'PRODUCTO', type: 'Text', required: true, origin: 'system' },
+    { name: 'CANTIDAD', type: 'Number', required: true, origin: 'system' },
+    { name: 'SALDO ANTERIOR', type: 'Number', required: true, origin: 'system' },
+    { name: 'SALDO NUEVO', type: 'Number', required: true, origin: 'system' },
+    { name: 'ORIGEN', type: 'Text', required: true, origin: 'system' },
+    { name: 'ORIGEN UUID', type: 'Text', hidden: true, origin: 'system' },
+    { name: 'REFERENCIA', type: 'Text', origin: 'system' },
+    { name: 'USUARIO', type: 'Email', origin: 'system' },
+    { name: 'MOTIVO', type: 'Text', origin: 'system' },
+  ],
+})

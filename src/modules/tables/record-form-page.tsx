@@ -25,6 +25,7 @@ export function RecordFormPage() {
 
   if (!table) return <FormMessage text="Tabla no encontrada" to="/" />
   const basePath = '/tablas/' + encodeURIComponent(table.name)
+  if (table.readOnly) return <FormMessage text="Esta tabla se actualiza automáticamente y no admite captura manual." to={basePath} />
   const tableDisplayName = getTableDisplayName(table)
   const editing = Boolean(rowUuid)
   if (user.isPending || (editing && row.isPending)) return <FormMessage text="Preparando formulario…" to={basePath} />
