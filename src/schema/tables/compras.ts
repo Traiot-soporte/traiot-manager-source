@@ -53,13 +53,17 @@ export const comprasTable = defineTable({
     {
       name: 'COSTO',
       type: 'Price',
+      hidden: true,
       readOnly: true,
+      exportable: false,
       formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'COSTO', context),
     },
     {
       name: 'KIT INSTALACION',
       type: 'Price',
+      hidden: true,
       readOnly: true,
+      exportable: false,
       formula: (row, context) =>
         refValue(row, 'producto_uuid', 'ALMACEN', 'KIT INSTALACION', context),
     },
@@ -67,7 +71,9 @@ export const comprasTable = defineTable({
     {
       name: 'SUBTOTAL',
       type: 'Price',
+      hidden: true,
       readOnly: true,
+      exportable: false,
       formula: (row) =>
         roundCurrency(
           asNumber(row['COSTO']) * asNumber(row['CANTIDAD']) +
@@ -78,7 +84,9 @@ export const comprasTable = defineTable({
     {
       name: 'PRECIO DE COMPRA',
       type: 'Price',
+      hidden: true,
       readOnly: true,
+      exportable: false,
       formula: (row) => roundCurrency(asNumber(row['SUBTOTAL'])),
     },
     {

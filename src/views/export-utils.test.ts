@@ -31,6 +31,10 @@ describe('exportaciones operativas', () => {
     const names = getExportColumns(comprasTable).map((column) => column.name)
 
     expect(names).not.toContain('COSTO DE ENVIO')
+    expect(names).not.toContain('COSTO')
+    expect(names).not.toContain('KIT INSTALACION')
+    expect(names).not.toContain('SUBTOTAL')
+    expect(names).not.toContain('PRECIO DE COMPRA')
     expect(names).not.toContain('ESTATUS COMPRA')
     expect(names).not.toContain('VALIDADOR COMPRA')
     expect(buildExportBaseName('COMPRAS', new Date(2026, 7, 24))).toBe('COMPRAS_2026-08-24')

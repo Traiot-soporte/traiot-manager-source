@@ -71,7 +71,15 @@ describe('registro de metadata', () => {
       readOnly: true,
       values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
     })
-    for (const name of ['COSTO DE ENVIO', 'ESTATUS COMPRA', 'VALIDADOR COMPRA']) {
+    for (const name of [
+      'COSTO',
+      'KIT INSTALACION',
+      'SUBTOTAL',
+      'COSTO DE ENVIO',
+      'PRECIO DE COMPRA',
+      'ESTATUS COMPRA',
+      'VALIDADOR COMPRA',
+    ]) {
       expect(purchases?.columns.find((column) => column.name === name)).toMatchObject({
         exportable: false,
         hidden: true,
