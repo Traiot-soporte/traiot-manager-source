@@ -1,25 +1,24 @@
 import type { RowData } from '@/schema'
 
-export type SalesCategory = 'GPS' | 'SENSOR' | 'ACCESORIO'
+export type PurchaseCategory = 'GPS' | 'SENSOR' | 'ACCESORIO'
 
-export interface PurchaseSalesMetric {
+export interface PurchaseVolumeMetric {
   readonly name: string
   readonly units: number
 }
 
-export interface CategorySalesMetrics {
-  readonly mostSold: PurchaseSalesMetric | undefined
-  readonly leastSold: PurchaseSalesMetric | undefined
+export interface CategoryPurchaseMetrics {
+  readonly mostPurchased: PurchaseVolumeMetric | undefined
+  readonly leastPurchased: PurchaseVolumeMetric | undefined
 }
 
 export interface PurchaseDashboardMetrics {
   readonly purchases: number
-  readonly categories: Readonly<Record<SalesCategory, CategorySalesMetrics>>
+  readonly categories: Readonly<Record<PurchaseCategory, CategoryPurchaseMetrics>>
 }
 
 export function purchaseDashboardMetrics(
   purchases: readonly RowData[],
-  orders: readonly RowData[],
   products: readonly RowData[],
 ): PurchaseDashboardMetrics {
   const productIndex = new Map<string, RowData>()
@@ -30,24 +29,22 @@ export function purchaseDashboardMetrics(
     if (businessId) productIndex.set(businessId, product)
   }
 
-  const sales = new Map<SalesCategory, Map<string, PurchaseSalesMetric>>([
+  const volumes = new Map<PurchaseCategory, Map<string, PurchaseVolumeMetric>>([
     ['GPS', new Map()],
     ['SENSOR', new Map()],
     ['ACCESORIO', new Map()],
   ])
 
-  for (const order of orders) {
-    if (!isCompletedSale(order['ESTATUS PEDIDO'])) continue
-    const productKey = normalizedKey(order.producto_uuid || order['ID PRODUCTO'])
-    const product = productIndex.get(productKey)
-    if (!product) continue
-    const category = salesCategory(product.CATEGORIA)
+  for (const purchase of purchases) {
+    const productKey = normalizedKey(purchase.producto_uuid || purchase['ID PRODUCTO'])
+    const product = productIndex.get(productKey) ?? purchase
+    const category = purchaseCategory(purchase.CATEGORIA || product.CATEGORIA)
     if (!category) continue
-    const units = numericValue(order['EQUIPOS A VENDER'])
+    const units = numericValue(purchase.CANTIDAD)
     if (units <= 0) continue
-    const name = String(product.NOMBRE ?? product['ID PRODUCTO'] ?? productKey).trim()
-    const canonicalKey = normalizedKey(product._uuid || product['ID PRODUCTO'])
-    const target = sales.get(category)!
+    const name = String(product.NOMBRE ?? purchase.NOMBRE ?? product['ID PRODUCTO'] ?? productKey).trim()
+    const canonicalKey = normalizedKey(product._uuid || product['ID PRODUCTO'] || productKey)
+    const target = volumes.get(category)!
     const current = target.get(canonicalKey)
     target.set(canonicalKey, { name, units: (current?.units ?? 0) + units })
   }
@@ -55,39 +52,34 @@ export function purchaseDashboardMetrics(
   return {
     purchases: purchases.length,
     categories: {
-      GPS: categoryMetrics(sales.get('GPS')!),
-      SENSOR: categoryMetrics(sales.get('SENSOR')!),
-      ACCESORIO: categoryMetrics(sales.get('ACCESORIO')!),
+      GPS: categoryMetrics(volumes.get('GPS')!),
+      SENSOR: categoryMetrics(volumes.get('SENSOR')!),
+      ACCESORIO: categoryMetrics(volumes.get('ACCESORIO')!),
     },
   }
 }
 
-function categoryMetrics(values: ReadonlyMap<string, PurchaseSalesMetric>): CategorySalesMetrics {
+function categoryMetrics(values: ReadonlyMap<string, PurchaseVolumeMetric>): CategoryPurchaseMetrics {
   return {
-    mostSold: extremeSalesMetric(values, 'most'),
-    leastSold: extremeSalesMetric(values, 'least'),
+    mostPurchased: extremePurchaseMetric(values, 'most'),
+    leastPurchased: extremePurchaseMetric(values, 'least'),
   }
 }
 
-function extremeSalesMetric(
-  values: ReadonlyMap<string, PurchaseSalesMetric>,
+function extremePurchaseMetric(
+  values: ReadonlyMap<string, PurchaseVolumeMetric>,
   direction: 'most' | 'least',
-): PurchaseSalesMetric | undefined {
+): PurchaseVolumeMetric | undefined {
   return [...values.values()].sort((left, right) =>
     (direction === 'most' ? right.units - left.units : left.units - right.units) ||
     left.name.localeCompare(right.name, 'es-MX'),
   )[0]
 }
 
-function salesCategory(value: unknown): SalesCategory | undefined {
+function purchaseCategory(value: unknown): PurchaseCategory | undefined {
   const category = normalizeText(value)
   if (category === 'GPS' || category === 'SENSOR' || category === 'ACCESORIO') return category
   return undefined
-}
-
-function isCompletedSale(value: unknown): boolean {
-  const status = normalizeText(value)
-  return !status || (status.includes('APROBADO') && !status.includes('NO APROBADO'))
 }
 
 function normalizedKey(value: unknown): string {

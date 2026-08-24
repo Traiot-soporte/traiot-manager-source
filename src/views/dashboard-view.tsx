@@ -10,7 +10,7 @@ import { CardView } from '@/views/card-view'
 import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
-import { purchaseDashboardMetrics, type PurchaseSalesMetric } from '@/views/purchase-dashboard'
+import { purchaseDashboardMetrics, type PurchaseVolumeMetric } from '@/views/purchase-dashboard'
 import { TableView } from '@/views/table-view'
 
 export function DashboardView(props: CollectionViewProps) {
@@ -60,9 +60,8 @@ export function DashboardView(props: CollectionViewProps) {
 
 function PurchaseDashboardView(props: CollectionViewProps) {
   const repository = useRepository()
-  const orders = useQuery({ queryKey: ['table', 'PEDIDOS'], queryFn: () => repository.list('PEDIDOS') })
   const products = useQuery({ queryKey: ['table', 'ALMACEN'], queryFn: () => repository.list('ALMACEN') })
-  const metrics = purchaseDashboardMetrics(props.rows, orders.data ?? [], products.data ?? [])
+  const metrics = purchaseDashboardMetrics(props.rows, products.data ?? [])
   const recentRows = [...props.rows]
     .sort((left, right) => String(right['FECHA COMPRA'] ?? '').localeCompare(String(left['FECHA COMPRA'] ?? '')))
     .slice(0, 8)
@@ -71,19 +70,19 @@ function PurchaseDashboardView(props: CollectionViewProps) {
     <div className="space-y-5">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <PurchaseCountCard value={metrics.purchases} />
-        <PurchaseSalesCard icon={TrendingUp} label="GPS más vendido" metric={metrics.categories.GPS.mostSold} />
-        <PurchaseSalesCard icon={TrendingDown} label="GPS menos vendido" metric={metrics.categories.GPS.leastSold} />
-        <PurchaseSalesCard icon={TrendingUp} label="Sensor más vendido" metric={metrics.categories.SENSOR.mostSold} />
-        <PurchaseSalesCard icon={TrendingDown} label="Sensor menos vendido" metric={metrics.categories.SENSOR.leastSold} />
-        <PurchaseSalesCard icon={TrendingUp} label="Accesorio más vendido" metric={metrics.categories.ACCESORIO.mostSold} />
-        <PurchaseSalesCard icon={TrendingDown} label="Accesorio menos vendido" metric={metrics.categories.ACCESORIO.leastSold} />
+        <PurchaseVolumeCard icon={TrendingUp} label="GPS más comprado" metric={metrics.categories.GPS.mostPurchased} />
+        <PurchaseVolumeCard icon={TrendingDown} label="GPS menos comprado" metric={metrics.categories.GPS.leastPurchased} />
+        <PurchaseVolumeCard icon={TrendingUp} label="Sensor más comprado" metric={metrics.categories.SENSOR.mostPurchased} />
+        <PurchaseVolumeCard icon={TrendingDown} label="Sensor menos comprado" metric={metrics.categories.SENSOR.leastPurchased} />
+        <PurchaseVolumeCard icon={TrendingUp} label="Accesorio más comprado" metric={metrics.categories.ACCESORIO.mostPurchased} />
+        <PurchaseVolumeCard icon={TrendingDown} label="Accesorio menos comprado" metric={metrics.categories.ACCESORIO.leastPurchased} />
       </section>
 
-      {(orders.isPending || products.isPending) && (
-        <p className="rounded-xl bg-brand-50 px-4 py-3 text-xs font-bold text-brand-700">Calculando indicadores de ventas…</p>
+      {products.isPending && (
+        <p className="rounded-xl bg-brand-50 px-4 py-3 text-xs font-bold text-brand-700">Calculando indicadores de compras…</p>
       )}
-      {(orders.isError || products.isError) && (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">Las compras están disponibles, pero no fue posible calcular temporalmente los indicadores de ventas.</p>
+      {products.isError && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-800">Las compras están disponibles, pero no fue posible calcular temporalmente los indicadores por categoría.</p>
       )}
 
       <section>
@@ -110,10 +109,10 @@ function PurchaseCountCard({ value }: { readonly value: number }) {
   )
 }
 
-function PurchaseSalesCard({ icon: Icon, label, metric }: {
+function PurchaseVolumeCard({ icon: Icon, label, metric }: {
   readonly icon: typeof TrendingUp
   readonly label: string
-  readonly metric: PurchaseSalesMetric | undefined
+  readonly metric: PurchaseVolumeMetric | undefined
 }) {
   return (
     <article className="min-w-0 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
