@@ -4,6 +4,9 @@
  */
 function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'COMPRAS') {
+    ensurePurchaseIdNomenclature_(openConfiguredSpreadsheet_(), false);
+  }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
   }
@@ -900,7 +903,7 @@ function nextApiPurchaseId_(spreadsheet) {
   var properties = PropertiesService.getScriptProperties();
   var reservedSequence = Number(properties.getProperty('TRAIOT_PURCHASE_SEQUENCE') || 0);
   var nextId = buildNextApiPurchaseId_(ids, reservedSequence);
-  properties.setProperty('TRAIOT_PURCHASE_SEQUENCE', nextId);
+  properties.setProperty('TRAIOT_PURCHASE_SEQUENCE', String(parseApiPurchaseSequence_(nextId) || 0));
   return nextId;
 }
 
@@ -909,7 +912,7 @@ function buildNextApiPurchaseId_(ids, reservedSequence) {
     var sequence = parseApiPurchaseSequence_(value);
     return sequence !== null && sequence > currentMaximum ? sequence : currentMaximum;
   }, Number.isInteger(Number(reservedSequence)) ? Number(reservedSequence) : 0);
-  return String(maximum + 1);
+  return formatApiPurchaseId_(maximum + 1);
 }
 
 function parseApiPurchaseSequence_(value) {
@@ -921,6 +924,64 @@ function parseApiPurchaseSequence_(value) {
   }
   var suffix = normalized.match(/(\d+)$/);
   return suffix ? Number(suffix[1]) : null;
+}
+
+function formatApiPurchaseId_(sequence) {
+  return 'TRT-' + String(sequence).padStart(3, '0');
+}
+
+function ensurePurchaseIdNomenclature_(spreadsheet, force) {
+  var propertyKey = 'TRAIOT_PURCHASE_ID_NOMENCLATURE_V1';
+  var properties = PropertiesService.getScriptProperties();
+  if (!force && properties.getProperty(propertyKey) === 'true') {
+    return { ready: true, normalized: 0 };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    if (!force && properties.getProperty(propertyKey) === 'true') {
+      return { ready: true, normalized: 0 };
+    }
+
+    var schemaTable = requireApiTable_('COMPRAS');
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    var idIndex = requireHeaderIndex_(headers, 'ID COMPRA', schemaTable);
+    var lastRow = sheet.getLastRow();
+    var normalized = 0;
+
+    if (lastRow > 1) {
+      var range = sheet.getRange(2, idIndex + 1, lastRow - 1, 1);
+      var ids = range.getDisplayValues();
+      var existing = {};
+      ids.forEach(function (row) {
+        existing[normalizeCell_(row[0]).toUpperCase()] = true;
+      });
+
+      ids.forEach(function (row) {
+        var current = normalizeCell_(row[0]);
+        if (!/^\d+$/.test(current)) return;
+        var target = formatApiPurchaseId_(Number(current));
+        if (existing[target]) return;
+        delete existing[current.toUpperCase()];
+        existing[target] = true;
+        row[0] = target;
+        normalized += 1;
+      });
+
+      if (normalized > 0) {
+        range.setValues(ids);
+        SpreadsheetApp.flush();
+      }
+    }
+
+    properties.setProperty(propertyKey, 'true');
+    return { ready: true, normalized: normalized };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function nextApiCrmId_(spreadsheet) {

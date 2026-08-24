@@ -68,7 +68,7 @@ function PurchaseDashboardView(props: CollectionViewProps) {
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <PurchaseCountCard value={metrics.purchases} />
         <PurchaseVolumeCard icon={TrendingUp} label="GPS más comprado" metric={metrics.categories.GPS.mostPurchased} />
         <PurchaseVolumeCard icon={TrendingDown} label="GPS menos comprado" metric={metrics.categories.GPS.leastPurchased} />
@@ -101,10 +101,10 @@ function PurchaseDashboardView(props: CollectionViewProps) {
 
 function PurchaseCountCard({ value }: { readonly value: number }) {
   return (
-    <article className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-      <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><ShoppingBag className="size-5" /></span>
-      <p className="mt-4 text-3xl font-black leading-none text-ink-950">{value}</p>
-      <p className="mt-1.5 text-[11px] font-black uppercase tracking-wide text-ink-800/45">Compras</p>
+    <article className="rounded-xl border border-black/5 bg-white p-3 shadow-sm">
+      <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><ShoppingBag className="size-4" /></span>
+      <p className="mt-3 text-2xl font-black leading-none text-ink-950">{value}</p>
+      <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-ink-800/45">Compras</p>
     </article>
   )
 }
@@ -115,11 +115,11 @@ function PurchaseVolumeCard({ icon: Icon, label, metric }: {
   readonly metric: PurchaseVolumeMetric | undefined
 }) {
   return (
-    <article className="min-w-0 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
-      <span className="grid size-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><Icon className="size-5" /></span>
-      <p className="mt-4 truncate text-base font-black text-ink-950" title={metric?.name}>{metric?.name ?? 'Sin datos'}</p>
-      <p className="mt-1 text-xl font-black text-brand-600">{metric ? metric.units + ' unidades' : '—'}</p>
-      <p className="mt-1.5 text-[10px] font-black uppercase tracking-wide text-ink-800/45">{label}</p>
+    <article className="min-w-0 rounded-xl border border-black/5 bg-white p-3 shadow-sm">
+      <span className="grid size-8 place-items-center rounded-lg bg-brand-50 text-brand-600"><Icon className="size-4" /></span>
+      <p className="mt-2.5 break-words text-[13px] font-black leading-4 text-ink-950">{metric?.name ?? 'Sin datos'}</p>
+      <p className="mt-1 text-lg font-black leading-tight text-brand-600">{metric ? metric.units.toLocaleString('es-MX') + ' unidades' : '—'}</p>
+      <p className="mt-1 text-[9px] font-black uppercase leading-3 tracking-wide text-ink-800/45">{label}</p>
     </article>
   )
 }

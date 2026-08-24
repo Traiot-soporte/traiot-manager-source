@@ -42,6 +42,7 @@ interface CrudSandbox {
     ids: readonly unknown[],
     reservedSequence: number,
   ) => string
+  readonly formatApiPurchaseId_: (sequence: number) => string
   readonly canonicalApiProductCategory_: (value: unknown) => string
   readonly buildApiMediaFileName_: (
     rowUuid: string,
@@ -236,9 +237,17 @@ describe('CRUD de Apps Script', () => {
   it('genera compras consecutivas sin reutilizar números reservados o eliminados', () => {
     const { buildNextApiPurchaseId_ } = loadCrudSandbox()
 
-    expect(buildNextApiPurchaseId_(['1', '2', '38'], 0)).toBe('39')
-    expect(buildNextApiPurchaseId_(['1', '2'], 40)).toBe('41')
-    expect(buildNextApiPurchaseId_(['COMPRA-004', 'COMPRA-010'], 0)).toBe('11')
+    expect(buildNextApiPurchaseId_(['TRT-001', 'TRT-002', 'TRT-038'], 0)).toBe('TRT-039')
+    expect(buildNextApiPurchaseId_(['40', 'TRT-041'], 0)).toBe('TRT-042')
+    expect(buildNextApiPurchaseId_(['COMPRA-004', 'COMPRA-010'], 42)).toBe('TRT-043')
+  })
+
+  it('mantiene la nomenclatura TRT con tres dígitos', () => {
+    const { formatApiPurchaseId_ } = loadCrudSandbox()
+
+    expect(formatApiPurchaseId_(1)).toBe('TRT-001')
+    expect(formatApiPurchaseId_(40)).toBe('TRT-040')
+    expect(formatApiPurchaseId_(1000)).toBe('TRT-1000')
   })
 
   it('deduce una sola etapa comercial a partir del historial del CRM', () => {
