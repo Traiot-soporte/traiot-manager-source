@@ -35,7 +35,10 @@ export function formatCell(value: CellValue | undefined, type: ColumnType): stri
   }
 
   if ((type === 'Date' || type === 'DateTime') && typeof value === 'string') {
-    const date = type === 'Date' ? new Date(value + 'T12:00:00-06:00') : new Date(value)
+    const datePart = type === 'Date' ? value.match(/^\d{4}-\d{2}-\d{2}/)?.[0] : undefined
+    const date = type === 'Date' && datePart
+      ? new Date(datePart + 'T12:00:00-06:00')
+      : new Date(value)
     return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date)
   }
 
