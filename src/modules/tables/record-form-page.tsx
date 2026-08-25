@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
+import { upsertMutationResult } from '@/modules/tables/mutation-cache'
 import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
@@ -37,6 +38,10 @@ export function RecordFormPage() {
     const saved = editing && rowUuid
       ? await repository.update({ table: table.name, rowUuid, changes: values })
       : await repository.create({ table: table.name, values })
+    queryClient.setQueryData<readonly RowData[]>(
+      ['table', table.name],
+      (rows) => upsertMutationResult(rows, saved),
+    )
     const affectedTables = getMutationAffectedTables(table.name)
     await Promise.all([
       ...affectedTables.map((affectedTable) =>

@@ -40,9 +40,8 @@ export const comprasTable = defineTable({
       name: 'CATEGORIA',
       type: 'Enum',
       values: productCategories,
-      readOnly: true,
-      formula: (row, context) => refValue(row, 'producto_uuid', 'ALMACEN', 'CATEGORIA', context),
-      description: 'Se hereda automáticamente de Almacén.',
+      required: true,
+      description: 'Clasificacion de la recepcion: GPS, Sensor, Accesorio o CCTV.',
     },
     {
       name: 'PROVEEDOR',

@@ -44,6 +44,7 @@ describe('schema Zod derivado de metadata', () => {
       FECHA: '2026-08-21',
       'TIPO DE PEDIDO': 'INSTALACION',
       'ID PRODUCTO': 'product-001',
+      CATEGORIA: 'GPS',
       'EQUIPOS A VENDER': 1,
     })
 

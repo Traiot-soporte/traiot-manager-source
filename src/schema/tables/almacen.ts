@@ -47,7 +47,7 @@ export const almacenTable = defineTable({
     { name: 'STOCK MAXIMO', type: 'Number' },
     { name: 'AVISO DE COMPRA', type: 'Text', readOnly: true },
     { name: 'MTS. CABLE INCLUIDOS', type: 'Text', hidden: true },
-    { name: 'CATEGORIA', type: 'Enum', values: productCategories },
+    { name: 'CATEGORIA', type: 'Enum', values: productCategories, required: true },
     { name: 'CRITICO', type: 'Text', hidden: true },
     { name: 'CENTRO DE COSTOS', type: 'Text', hidden: true },
     { name: 'TIEMPO DE ENTREGA', type: 'Text', hidden: true },

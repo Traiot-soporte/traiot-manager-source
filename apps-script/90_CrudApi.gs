@@ -554,7 +554,8 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'COMPRAS') {
     var purchasedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(purchasedProduct, record, ['NOMBRE', 'PROVEEDOR', 'COSTO', 'KIT INSTALACION']);
-    record.CATEGORIA = canonicalApiProductCategory_(purchasedProduct && purchasedProduct.CATEGORIA);
+    record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA) ||
+      canonicalApiProductCategory_(purchasedProduct && purchasedProduct.CATEGORIA);
     record.SUBTOTAL = roundApiCurrency_(
       apiNumber_(record.COSTO) * apiNumber_(record.CANTIDAD) + apiNumber_(record['KIT INSTALACION'])
     );
@@ -564,7 +565,8 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'PEDIDOS') {
     var orderedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(orderedProduct, record, ['NOMBRE', 'PRECIO VENTA PARA ASESOR']);
-    record.CATEGORIA = canonicalApiProductCategory_(orderedProduct && orderedProduct.CATEGORIA);
+    record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA) ||
+      canonicalApiProductCategory_(orderedProduct && orderedProduct.CATEGORIA);
     var orderedClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
     copyApiFields_(orderedClient, record, [
       'ID CLIENTE',

@@ -79,7 +79,7 @@ describe('registro de metadata', () => {
       required: true,
     })
     expect(purchases?.columns.find((column) => column.name === 'CATEGORIA')).toMatchObject({
-      readOnly: true,
+      required: true,
       values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
     })
     for (const name of [
@@ -98,14 +98,24 @@ describe('registro de metadata', () => {
     }
   })
 
-  it('hereda la categoría de Almacén en Compras y Salidas', () => {
+  it('permite seleccionar la categoria en Almacen, Compras y Salidas', () => {
+    const warehouse = tableDefinitions.find((candidate) => candidate.name === 'ALMACEN')
+    const warehouseCategory = warehouse?.columns.find((column) => column.name === 'CATEGORIA')
+    expect(warehouseCategory).toMatchObject({
+      required: true,
+      values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
+    })
+    expect(warehouseCategory?.readOnly).not.toBe(true)
+
     for (const tableName of ['COMPRAS', 'PEDIDOS']) {
       const table = tableDefinitions.find((candidate) => candidate.name === tableName)
-      expect(table?.columns.find((column) => column.name === 'CATEGORIA')).toMatchObject({
-        readOnly: true,
+      const category = table?.columns.find((column) => column.name === 'CATEGORIA')
+      expect(category).toMatchObject({
+        required: true,
         values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
       })
-      expect(table?.columns.find((column) => column.name === 'CATEGORIA')?.formula).toBeTypeOf('function')
+      expect(category?.readOnly).not.toBe(true)
+      expect(category?.formula).toBeUndefined()
     }
   })
 

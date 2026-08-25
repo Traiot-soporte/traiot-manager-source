@@ -46,7 +46,9 @@ export function RecordDetailPage() {
   })
 
   if (!table) return <RecordMessage title="Tabla no encontrada" backTo="/" />
-  if (records.isPending) return <RecordMessage title="Cargando registro…" backTo={basePath} />
+  if (records.isPending || (!row && records.isFetching)) {
+    return <RecordMessage title="Cargando registro…" backTo={basePath} />
+  }
   if (records.isError || !row) return <RecordMessage title="Registro no encontrado" backTo={basePath} />
 
   const askToRemove = () => {
