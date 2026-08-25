@@ -17,6 +17,14 @@ describe('acciones de comunicación', () => {
     expect(emailHref('ventas@traiot.com.mx', { subject: 'Seguimiento', body: 'Hola' })).toBe(
       'mailto:ventas@traiot.com.mx?subject=Seguimiento&body=Hola',
     )
+    const preparedEmail = emailHref('s.longoria@ukko.mx', {
+      subject: 'Seguimiento TRAIOT - UKKO',
+      body: 'Hola Sergio Longoria,\n\nQuedamos atentos.',
+    })
+    expect(preparedEmail).toBe(
+      'mailto:s.longoria@ukko.mx?subject=Seguimiento%20TRAIOT%20-%20UKKO&body=Hola%20Sergio%20Longoria%2C%0A%0AQuedamos%20atentos.',
+    )
+    expect(preparedEmail).not.toContain('+')
     expect(mapHref({ name: 'DIRECCION', type: 'Text' }, 'Monterrey, NL')).toContain('google.com/maps')
   })
 })

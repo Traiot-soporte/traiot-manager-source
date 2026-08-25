@@ -8,10 +8,10 @@ interface EmailHrefOptions {
 export function emailHref(value: CellValue | undefined, options: EmailHrefOptions = {}): string | undefined {
   const email = String(value ?? '').trim()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return undefined
-  const parameters = new URLSearchParams()
-  if (options.subject) parameters.set('subject', options.subject)
-  if (options.body) parameters.set('body', options.body)
-  const query = parameters.toString()
+  const parameters: string[] = []
+  if (options.subject) parameters.push('subject=' + encodeURIComponent(options.subject))
+  if (options.body) parameters.push('body=' + encodeURIComponent(options.body))
+  const query = parameters.join('&')
   return 'mailto:' + email + (query ? '?' + query : '')
 }
 
