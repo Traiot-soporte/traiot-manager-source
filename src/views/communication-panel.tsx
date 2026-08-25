@@ -87,7 +87,7 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
   )
 }
 
-function CommunicationForm({
+export function CommunicationForm({
   email,
   entityTable,
   entityTitle,

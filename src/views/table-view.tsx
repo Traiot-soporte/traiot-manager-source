@@ -3,19 +3,23 @@ import { Link } from 'react-router'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CellDisplay } from '@/views/cell-display'
+import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import { useClientDeletion } from '@/views/use-client-deletion'
 import { getListColumns, getRowTitle } from '@/views/view-utils'
 
 export function TableView({ basePath, rows, table }: CollectionViewProps) {
-  const columns = getListColumns(table, 7)
+  const columns = table.name === 'Gestion Clientes'
+    ? getListColumns(table, 8).filter((column) => column.name !== 'Pagina_empresa').slice(0, 6)
+    : getListColumns(table, 7)
   const deletion = useClientDeletion(table.name)
+  const communicationsAvailable = table.name === 'CLIENTES' || table.name === 'Gestion Clientes'
 
   if (rows.length === 0) return <EmptyCollection />
 
   return (
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse text-left">
+        <table className={communicationsAvailable ? 'w-full min-w-[920px] table-fixed border-collapse text-left' : 'w-full min-w-[760px] border-collapse text-left'}>
           <thead className="bg-ink-950 text-white">
             <tr>
               {columns.map((column) => (
@@ -23,7 +27,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
                   {column.label ?? column.name}
                 </th>
               ))}
-              <th className={deletion.available ? 'w-24' : 'w-14'}>
+              <th className={(deletion.available ? 'w-36' : communicationsAvailable ? 'w-24' : 'w-14') + ' sticky right-0 z-10 bg-ink-950'}>
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>
@@ -32,12 +36,13 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
             {rows.map((row) => (
               <tr className="transition hover:bg-brand-50" key={String(row._uuid)}>
                 {columns.map((column, index) => (
-                  <td className={index === 0 ? 'px-4 py-4 text-sm font-black text-ink-950' : 'px-4 py-4 text-sm font-medium text-ink-800/75'} key={column.name}>
+                  <td className={index === 0 ? 'min-w-0 break-words px-3 py-4 text-sm font-black text-ink-950' : 'min-w-0 break-words px-3 py-4 text-sm font-medium text-ink-800/75'} key={column.name}>
                     <CellDisplay column={column} table={table.name} value={row[column.name]} />
                   </td>
                 ))}
-                <td className="px-2 py-2">
+                <td className="sticky right-0 bg-white px-2 py-2 shadow-[-8px_0_16px_-16px_rgba(0,0,0,0.45)]">
                   <div className="flex items-center justify-end gap-1">
+                    {communicationsAvailable && <RowCommunicationScheduler row={row} table={table} />}
                     {deletion.available && (
                       <button
                         aria-label={'Eliminar ' + getRowTitle(table, row)}
