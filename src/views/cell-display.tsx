@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 
 import { useRepository } from '@/data/use-repository'
 import { formatCell } from '@/lib/format'
+import { useNearViewport } from '@/lib/use-near-viewport'
 import { getTableDefinition } from '@/schema'
 import type { CellValue, ColumnDef } from '@/schema'
 import { emailHref, mapHref, phoneHrefs } from '@/views/communication-utils'
@@ -23,15 +24,20 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
   const isMedia = column.type === 'Image' || column.type === 'Signature'
   const referenceTable = column.ref?.table ?? ''
   const rowUuid = typeof value === 'string' ? value : ''
-  const reference = useQuery({
-    queryKey: ['reference', referenceTable, rowUuid],
-    queryFn: () => repository.get(referenceTable, rowUuid),
+  const {
+    isNearViewport: isMediaNearViewport,
+    observe: observeMedia,
+  } = useNearViewport<HTMLSpanElement>()
+  const referenceRows = useQuery({
+    queryKey: ['table', referenceTable],
+    queryFn: () => repository.list(referenceTable),
     enabled: column.type === 'Ref' && Boolean(referenceTable) && Boolean(rowUuid),
   })
+  const referencedRow = referenceRows.data?.find((row) => String(row._uuid ?? '') === rowUuid)
   const media = useQuery({
-    queryKey: ['media', table, column.name, rowUuid],
+    queryKey: ['media', table, rowUuid],
     queryFn: () => repository.getMedia(table, rowUuid),
-    enabled: isMedia && Boolean(rowUuid),
+    enabled: isMedia && Boolean(rowUuid) && isMediaNearViewport,
   })
 
   useEffect(() => {
@@ -49,13 +55,10 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
   }, [previewOpen])
 
   if (isMedia && typeof value === 'string') {
-    if (media.isPending) return <>Cargando archivo…</>
-    if (!media.data) return <>{value}</>
-
     const imageLabel = column.label ?? column.name
     return (
-      <>
-        <button
+      <span className="inline-block min-h-8 min-w-8" ref={observeMedia}>
+        {!isMediaNearViewport ? 'Imagen pendiente…' : media.isPending ? 'Cargando archivo…' : !media.data ? value : <button
           aria-label={'Ampliar ' + imageLabel}
           className="group relative inline-flex max-w-full cursor-zoom-in overflow-hidden rounded-2xl border border-black/5 bg-black/[0.02] text-left"
           onClick={() => setPreviewOpen(true)}
@@ -71,8 +74,8 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
           <span className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-ink-950/85 px-2.5 py-1.5 text-[10px] font-black text-white opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-visible:opacity-100">
             <ZoomIn className="size-3.5" /> AMPLIAR
           </span>
-        </button>
-        {previewOpen && createPortal(
+        </button>}
+        {media.data && previewOpen && createPortal(
           <div
             aria-label={'Vista ampliada de ' + imageLabel}
             aria-modal="true"
@@ -99,7 +102,7 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
           </div>,
           document.body,
         )}
-      </>
+      </span>
     )
   }
 
@@ -161,9 +164,9 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
     )
   }
 
-  if (column.type === 'Ref' && reference.data) {
+  if (column.type === 'Ref' && referencedRow) {
     const table = getTableDefinition(referenceTable)
-    if (table) return <>{getRowTitle(table, reference.data)}</>
+    if (table) return <>{getRowTitle(table, referencedRow)}</>
   }
 
   return <>{formatCell(value, column.type)}</>

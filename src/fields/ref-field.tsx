@@ -10,7 +10,7 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
   const repository = useRepository()
   const refTable = column.ref ? getTableDefinition(column.ref.table) : undefined
   const rows = useQuery({
-    queryKey: ['ref-options', column.ref?.table],
+    queryKey: ['table', column.ref?.table],
     queryFn: () => repository.list(column.ref?.table ?? ''),
     enabled: Boolean(refTable),
   })

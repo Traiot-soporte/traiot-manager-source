@@ -3,6 +3,7 @@ import { ArrowUpRight, ExternalLink, ImageOff, Trash2 } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useRepository } from '@/data/use-repository'
+import { useNearViewport } from '@/lib/use-near-viewport'
 import type { CellValue } from '@/schema'
 import { CellDisplay } from '@/views/cell-display'
 import type { CollectionViewProps } from '@/views/types'
@@ -109,28 +110,34 @@ function CardCover({ alt, table, value }: {
 }) {
   const repository = useRepository()
   const storedValue = typeof value === 'string' ? value : ''
+  const {
+    isNearViewport,
+    observe,
+  } = useNearViewport<HTMLDivElement>()
   const media = useQuery({
-    queryKey: ['media', table, 'card-cover', storedValue],
+    queryKey: ['media', table, storedValue],
     queryFn: () => repository.getMedia(table, storedValue),
-    enabled: Boolean(storedValue),
+    enabled: Boolean(storedValue) && isNearViewport,
   })
 
   if (storedValue && media.data) {
     return (
-      <img
-        alt={alt}
-        className="h-52 w-full object-contain p-5 transition duration-300 group-hover:scale-[1.03] sm:h-60"
-        loading="lazy"
-        src={media.data}
-      />
+      <div ref={observe}>
+        <img
+          alt={alt}
+          className="h-52 w-full object-contain p-5 transition duration-300 group-hover:scale-[1.03] sm:h-60"
+          loading="lazy"
+          src={media.data}
+        />
+      </div>
     )
   }
 
   return (
-    <div className="grid h-52 place-items-center text-ink-800/30 sm:h-60">
+    <div className="grid h-52 place-items-center text-ink-800/30 sm:h-60" ref={observe}>
       <div className="text-center">
         <ImageOff aria-hidden="true" className="mx-auto size-9" />
-        <p className="mt-2 text-xs font-bold">{media.isPending ? 'Cargando imagen…' : 'Sin imagen'}</p>
+        <p className="mt-2 text-xs font-bold">{!isNearViewport ? 'Imagen pendiente…' : media.isPending ? 'Cargando imagen…' : 'Sin imagen'}</p>
       </div>
     </div>
   )

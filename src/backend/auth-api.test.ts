@@ -15,6 +15,13 @@ interface AuthSandbox {
     userRecord: { MustChangePassword: boolean },
   ) => boolean
   assertAuthAdministrator_: (user: { role: string; permissions: readonly string[] }) => void
+  cacheResolvedAuthUser_: (
+    sessionHash: string,
+    expiresAt: string,
+    user: Readonly<Record<string, unknown>>,
+  ) => void
+  readCachedAuthUser_: (sessionHash: string) => Readonly<Record<string, unknown>> | null
+  invalidateAuthUserCache_: () => void
 }
 
 function bytes(buffer: Buffer): number[] {
@@ -30,6 +37,7 @@ function loadAuthSandbox(): AuthSandbox {
     ['TRAIOT_AUTH_PEPPER', 'pepper-secreto-de-prueba'],
     ['TRAIOT_AUTH_DUMMY_HASH', 'hash-ficticio'],
   ])
+  const cache = new Map<string, string>()
   let uuidSequence = 0
   const sandbox = createContext({
     normalizeLookupValue_: (value: unknown) =>
@@ -38,6 +46,13 @@ function loadAuthSandbox(): AuthSandbox {
       getScriptProperties: () => ({
         getProperty: (key: string) => properties.get(key) ?? null,
         setProperty: (key: string, value: string) => { properties.set(key, value) },
+      }),
+    },
+    CacheService: {
+      getScriptCache: () => ({
+        get: (key: string) => cache.get(key) ?? null,
+        put: (key: string, value: string) => { cache.set(key, value) },
+        remove: (key: string) => { cache.delete(key) },
       }),
     },
     Utilities: {
@@ -107,5 +122,21 @@ describe('autenticacion privada de Apps Script', () => {
     expect(() => assertAuthAdministrator_({ role: 'ADMINISTRADOR', permissions: [] })).not.toThrow()
     expect(() => assertAuthAdministrator_({ role: 'SOPORTE', permissions: ['*'] }))
       .toThrow('administrador')
+  })
+
+  it('reutiliza sesiones válidas e invalida la caché al cambiar seguridad', () => {
+    const {
+      cacheResolvedAuthUser_,
+      invalidateAuthUserCache_,
+      readCachedAuthUser_,
+    } = loadAuthSandbox()
+    const user = { userUuid: 'user-1', role: 'ADMINISTRADOR', permissions: ['*'] }
+    const expiresAt = new Date(Date.now() + 60_000).toISOString()
+
+    cacheResolvedAuthUser_('session-hash', expiresAt, user)
+    expect(readCachedAuthUser_('session-hash')).toEqual(user)
+
+    invalidateAuthUserCache_()
+    expect(readCachedAuthUser_('session-hash')).toBeNull()
   })
 })

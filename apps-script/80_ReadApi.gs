@@ -395,11 +395,17 @@ function migrarCalendariosCrm() {
   return ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), true);
 }
 
+var TRAIOT_EXECUTION_SPREADSHEET_CACHE = null;
+
 function openConfiguredSpreadsheet_() {
+  if (TRAIOT_EXECUTION_SPREADSHEET_CACHE) {
+    return TRAIOT_EXECUTION_SPREADSHEET_CACHE;
+  }
   var config = getRuntimeConfig_();
   var rootFolder = DriveApp.getFolderById(config.folderId);
   var spreadsheetId = resolveSourceSpreadsheetId_(rootFolder, config.spreadsheetId);
-  return SpreadsheetApp.openById(spreadsheetId);
+  TRAIOT_EXECUTION_SPREADSHEET_CACHE = SpreadsheetApp.openById(spreadsheetId);
+  return TRAIOT_EXECUTION_SPREADSHEET_CACHE;
 }
 
 function readApiRows_(spreadsheet, schemaTable) {

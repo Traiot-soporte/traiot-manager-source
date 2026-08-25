@@ -5,6 +5,8 @@ var TRAIOT_AUTH_AUDIT_SHEET = '_AuthAudit';
 var TRAIOT_AUTH_MAX_ATTEMPTS = 5;
 var TRAIOT_AUTH_LOCK_MINUTES = 15;
 var TRAIOT_AUTH_BCRYPT_ROUNDS = 11;
+var TRAIOT_AUTH_USER_CACHE_SECONDS = 120;
+var TRAIOT_AUTH_CACHE_VERSION_PROPERTY = 'TRAIOT_AUTH_CACHE_VERSION';
 var TRAIOT_AUTH_USER_HEADERS = Object.freeze([
   'PasswordHash',
   'PasswordUpdatedAt',
@@ -209,6 +211,7 @@ function mutateAuthSecurityUser_(adminUser, userUuid, callback) {
 
     var result = callback(spreadsheet, user);
     SpreadsheetApp.flush();
+    invalidateAuthUserCache_();
     return result;
   } finally {
     lock.releaseLock();
@@ -246,6 +249,7 @@ function setTemporaryPassword_(adminUser, userUuid, password) {
     revokeAuthSessionsForUser_(spreadsheet, userRecord._uuid, now);
     writeAuthAudit_(spreadsheet, userRecord.UserEmail, userRecord._uuid, 'PASSWORD_TEMPORARY_SET', true, '', adminUser.userUuid);
     SpreadsheetApp.flush();
+    invalidateAuthUserCache_();
 
     return {
       userUuid: userRecord._uuid,
@@ -362,6 +366,7 @@ function loginWithSheetPassword_(email, password, remember) {
     });
     var session = createAuthSession_(spreadsheet, userRecord, Boolean(remember));
     var apiUser = buildApiUserFromAuthRecord_(spreadsheet, userRecord);
+    cacheResolvedAuthUser_(hashAuthToken_(session.token), session.expiresAt, apiUser);
     writeAuthAudit_(spreadsheet, normalizedEmail, userRecord._uuid, 'LOGIN_SUCCEEDED', true, '');
     SpreadsheetApp.flush();
     return serializeAuthLoginResult_(session, apiUser);
@@ -377,8 +382,14 @@ function resolveSheetSessionUser_(sessionToken) {
     throw new Error('La sesion no es valida o ya vencio.');
   }
 
+  var sessionHash = hashAuthToken_(normalizedToken);
+  var cachedUser = readCachedAuthUser_(sessionHash);
+  if (cachedUser) {
+    return cachedUser;
+  }
+
   var spreadsheet = openConfiguredSpreadsheet_();
-  var session = findAuthSession_(spreadsheet, hashAuthToken_(normalizedToken));
+  var session = findAuthSession_(spreadsheet, sessionHash);
   var now = new Date();
 
   if (!session || session.RevokedAt || authDateMillis_(session.ExpiresAt) <= now.getTime()) {
@@ -392,7 +403,9 @@ function resolveSheetSessionUser_(sessionToken) {
     throw new Error('La sesion no es valida o ya vencio.');
   }
 
-  return buildApiUserFromAuthRecord_(spreadsheet, userRecord);
+  var apiUser = buildApiUserFromAuthRecord_(spreadsheet, userRecord);
+  cacheResolvedAuthUser_(sessionHash, session.ExpiresAt, apiUser);
+  return apiUser;
 }
 
 function logoutSheetSession_(sessionToken) {
@@ -409,6 +422,7 @@ function logoutSheetSession_(sessionToken) {
   }
 
   try {
+    removeCachedAuthUser_(hashAuthToken_(token));
     var spreadsheet = openConfiguredSpreadsheet_();
     var session = findAuthSession_(spreadsheet, hashAuthToken_(token));
 
@@ -469,6 +483,8 @@ function changeSheetPassword_(apiUser, sessionToken, currentPassword, nextPasswo
     userRecord.MustChangePassword = false;
     var session = createAuthSession_(spreadsheet, userRecord, false);
     var nextApiUser = buildApiUserFromAuthRecord_(spreadsheet, userRecord);
+    invalidateAuthUserCache_();
+    cacheResolvedAuthUser_(hashAuthToken_(session.token), session.expiresAt, nextApiUser);
     writeAuthAudit_(spreadsheet, userRecord.UserEmail, userRecord._uuid, 'PASSWORD_CHANGED', true, '');
     SpreadsheetApp.flush();
     return serializeAuthLoginResult_(session, nextApiUser);
@@ -629,6 +645,56 @@ function generateAuthToken_() {
 function hashAuthToken_(token) {
   return hashAuthValue_(String(token || '') + ':' +
     (PropertiesService.getScriptProperties().getProperty('TRAIOT_AUTH_PEPPER') || ''));
+}
+
+function authUserCacheKey_(sessionHash) {
+  return 'auth-user:' + String(sessionHash || '');
+}
+
+function currentAuthCacheVersion_() {
+  return PropertiesService.getScriptProperties()
+    .getProperty(TRAIOT_AUTH_CACHE_VERSION_PROPERTY) || '1';
+}
+
+function readCachedAuthUser_(sessionHash) {
+  var serialized = CacheService.getScriptCache().get(authUserCacheKey_(sessionHash));
+  if (!serialized) return null;
+
+  try {
+    var cached = JSON.parse(serialized);
+    if (cached.version !== currentAuthCacheVersion_() ||
+        authDateMillis_(cached.expiresAt) <= Date.now()) {
+      return null;
+    }
+    return cached.user || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function cacheResolvedAuthUser_(sessionHash, expiresAt, apiUser) {
+  var remainingSeconds = Math.floor((authDateMillis_(expiresAt) - Date.now()) / 1000);
+  if (remainingSeconds <= 0) return;
+  CacheService.getScriptCache().put(
+    authUserCacheKey_(sessionHash),
+    JSON.stringify({
+      version: currentAuthCacheVersion_(),
+      expiresAt: String(expiresAt || ''),
+      user: apiUser
+    }),
+    Math.max(1, Math.min(TRAIOT_AUTH_USER_CACHE_SECONDS, remainingSeconds))
+  );
+}
+
+function removeCachedAuthUser_(sessionHash) {
+  CacheService.getScriptCache().remove(authUserCacheKey_(sessionHash));
+}
+
+function invalidateAuthUserCache_() {
+  PropertiesService.getScriptProperties().setProperty(
+    TRAIOT_AUTH_CACHE_VERSION_PROPERTY,
+    Utilities.getUuid()
+  );
 }
 
 function hashAuthValue_(value) {

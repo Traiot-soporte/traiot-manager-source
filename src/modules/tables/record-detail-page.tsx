@@ -18,11 +18,6 @@ export function RecordDetailPage() {
   const repository = useRepository()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const row = useQuery({
-    queryKey: ['row', tableName, rowUuid],
-    queryFn: () => repository.get(tableName, rowUuid),
-    enabled: Boolean(table && rowUuid),
-  })
   const records = useQuery({
     queryKey: ['table', tableName],
     queryFn: () => repository.list(tableName),
@@ -33,6 +28,7 @@ export function RecordDetailPage() {
     queryFn: () => repository.getCurrentUser(),
   })
   const basePath = table ? '/tablas/' + encodeURIComponent(table.name) : '/'
+  const row = records.data?.find((candidate) => String(candidate._uuid ?? '') === rowUuid)
   const remove = useMutation({
     mutationFn: () => repository.delete({ table: tableName, rowUuid }),
     onSuccess: async () => {
@@ -45,8 +41,8 @@ export function RecordDetailPage() {
   })
 
   if (!table) return <RecordMessage title="Tabla no encontrada" backTo="/" />
-  if (row.isPending) return <RecordMessage title="Cargando registro…" backTo={basePath} />
-  if (row.isError || !row.data) return <RecordMessage title="Registro no encontrado" backTo={basePath} />
+  if (records.isPending) return <RecordMessage title="Cargando registro…" backTo={basePath} />
+  if (records.isError || !row) return <RecordMessage title="Registro no encontrado" backTo={basePath} />
 
   const askToRemove = () => {
     if (window.confirm('¿Deseas eliminar este registro? Se ocultará mediante borrado lógico.')) remove.mutate()
@@ -82,14 +78,14 @@ export function RecordDetailPage() {
         </div>}
         eyebrow="Detalle"
         icon={<TableIcon className="size-5" name={table.icon} />}
-        title={getRowTitle(table, row.data)}
+        title={getRowTitle(table, row)}
       />
       {remove.isError && <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">No fue posible eliminar el registro.</p>}
-      <DetailView row={row.data} table={table} />
+      <DetailView row={row} table={table} />
       {table.name === 'Usuarios' && isAdministratorRole(currentUser.data?.role) && (
         <AuthAdminPanel
-          email={String(row.data.UserEmail ?? '')}
-          userUuid={String(row.data._uuid ?? '')}
+          email={String(row.UserEmail ?? '')}
+          userUuid={String(row._uuid ?? '')}
         />
       )}
     </div>

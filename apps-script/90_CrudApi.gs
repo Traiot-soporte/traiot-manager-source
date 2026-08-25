@@ -77,6 +77,10 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
       throw error;
     }
 
+    if (schemaTable.name === 'Usuarios') {
+      invalidateAuthUserCache_();
+    }
+
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, record._uuid);
   });
 }
@@ -162,6 +166,10 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       throw error;
     }
 
+    if (schemaTable.name === 'Usuarios') {
+      invalidateAuthUserCache_();
+    }
+
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid);
   });
 }
@@ -218,6 +226,10 @@ function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
       ]);
       SpreadsheetApp.flush();
       throw error;
+    }
+
+    if (schemaTable.name === 'Usuarios') {
+      invalidateAuthUserCache_();
     }
 
     snapshot.record._deleted = true;
