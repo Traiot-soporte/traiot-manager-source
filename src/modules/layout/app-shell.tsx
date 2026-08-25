@@ -10,6 +10,7 @@ import {
   Home,
   IdCard,
   LockKeyhole,
+  MessagesSquare,
   type LucideIcon,
   Menu,
   Package,
@@ -24,6 +25,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { SyncStatus } from '@/components/sync-status'
+import { CommunicationReminderButton } from '@/components/communication-reminder-button'
 import { TableIcon } from '@/components/table-icon'
 import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
@@ -40,7 +42,7 @@ import logoUrl from '../../../logo.jpeg'
 
 type NavigationItem =
   | { readonly kind: 'table'; readonly label: string; readonly table: string }
-  | { readonly administratorOnly: true; readonly kind: 'route'; readonly label: string; readonly to: string }
+  | { readonly administratorOnly?: boolean; readonly icon?: LucideIcon; readonly kind: 'route'; readonly label: string; readonly to: string }
   | { readonly kind: 'pending'; readonly label: string }
 
 interface NavigationSection {
@@ -70,6 +72,7 @@ const navigationSections: readonly NavigationSection[] = [
     items: [
       { kind: 'table', label: 'Clientes', table: 'CLIENTES' },
       { kind: 'table', label: 'Seguimiento Clientes', table: 'Gestion Clientes' },
+      { kind: 'route', label: 'Comunicaciones', to: '/comunicaciones', icon: MessagesSquare },
     ],
   },
   {
@@ -103,6 +106,7 @@ const navigationSections: readonly NavigationSection[] = [
         label: 'Seguridad de usuarios',
         to: '/seguridad-usuarios',
         administratorOnly: true,
+        icon: LockKeyhole,
       },
     ],
   },
@@ -476,7 +480,10 @@ export function AppShell() {
             <p className="text-sm font-bold text-ink-950">Centro de operación</p>
             <p className="text-xs capitalize text-ink-800/60">{formatOperationDate(new Date())}</p>
           </div>
-          <SyncStatus />
+          <div className="flex items-center gap-2">
+            {canRoleAccessSection(currentRole, 'crm') && <CommunicationReminderButton />}
+            <SyncStatus />
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-[1500px] px-4 pb-28 pt-4 sm:px-6 lg:px-8 lg:pb-10">
@@ -548,6 +555,7 @@ function SidebarNavigationItem({
     ? tableDefinitions.find((candidate) => candidate.name === item.table)
     : undefined
   const to = item.kind === 'table' ? tablePath(item.table) : item.to
+  const RouteIcon = item.kind === 'route' ? item.icon ?? LockKeyhole : undefined
 
   return (
     <NavLink
@@ -561,7 +569,7 @@ function SidebarNavigationItem({
       to={to}
     >
       {item.kind === 'route'
-        ? <LockKeyhole className="size-5 shrink-0" strokeWidth={2} />
+        ? RouteIcon && <RouteIcon className="size-5 shrink-0" strokeWidth={2} />
         : item.table === 'Perfiles'
           ? <IdCard className="size-5 shrink-0" strokeWidth={2} />
           : <TableIcon className="shrink-0" name={table?.icon ?? 'LayoutGrid'} />}

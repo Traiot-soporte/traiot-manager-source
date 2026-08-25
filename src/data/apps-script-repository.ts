@@ -10,11 +10,14 @@ import type {
   AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
+  CreateCommunicationInput,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
   Repository,
   RolePermissionSyncResult,
+  ScheduledCommunication,
+  CommunicationStatus,
   UpdateRowInput,
 } from '@/data/repository'
 import type { RowData, TableSummary, UserContext } from '@/schema'
@@ -151,6 +154,32 @@ export class AppsScriptRepository implements Repository {
   async activateAuthentication(): Promise<void> {
     await this.#authenticatedCall({ action: 'auth-activate' })
     this.#session.clear()
+  }
+
+  async listCommunications(): Promise<readonly ScheduledCommunication[]> {
+    return await this.#authenticatedCall({
+      action: 'communication-list',
+    }) as readonly ScheduledCommunication[]
+  }
+
+  async createCommunication(input: CreateCommunicationInput): Promise<ScheduledCommunication> {
+    return await this.#authenticatedCall({
+      action: 'communication-create',
+      communication: input,
+      mutationId: this.#createMutationId(),
+    }) as ScheduledCommunication
+  }
+
+  async updateCommunicationStatus(
+    communicationUuid: string,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+  ): Promise<ScheduledCommunication> {
+    return await this.#authenticatedCall({
+      action: 'communication-status',
+      communicationUuid,
+      status,
+      mutationId: this.#createMutationId(),
+    }) as ScheduledCommunication
   }
 
   async getCurrentUser(): Promise<UserContext> {

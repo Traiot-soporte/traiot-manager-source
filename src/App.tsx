@@ -8,6 +8,7 @@ import { TableAccessBoundary } from '@/modules/auth/table-access-boundary'
 const LoginPage = lazy(() => import('@/modules/auth/login-page').then((module) => ({ default: module.LoginPage })))
 const ChangePasswordPage = lazy(() => import('@/modules/auth/change-password-page').then((module) => ({ default: module.ChangePasswordPage })))
 const SecurityUsersPage = lazy(() => import('@/modules/auth/security-users-page').then((module) => ({ default: module.SecurityUsersPage })))
+const CommunicationCenterPage = lazy(() => import('@/modules/communications/communication-center-page').then((module) => ({ default: module.CommunicationCenterPage })))
 const DashboardPage = lazy(() => import('@/modules/dashboard/dashboard-page').then((module) => ({ default: module.DashboardPage })))
 const TablePage = lazy(() => import('@/modules/tables/table-page').then((module) => ({ default: module.TablePage })))
 const RecordDetailPage = lazy(() => import('@/modules/tables/record-detail-page').then((module) => ({ default: module.RecordDetailPage })))
@@ -28,6 +29,7 @@ export function App() {
             <Route element={<RecordFormPage />} path=":rowUuid/editar" />
           </Route>
           <Route element={<SecurityUsersPage />} path="seguridad-usuarios" />
+          <Route element={<CommunicationCenterPage />} path="comunicaciones" />
           <Route element={<NotFoundPage />} path="*" />
         </Route>
       </Routes>

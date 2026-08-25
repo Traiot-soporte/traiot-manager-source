@@ -120,6 +120,27 @@ function apiRequest(request) {
     return syncRolePermissionMatrix_(user);
   }
 
+  if (action === 'communication-list') {
+    return listScheduledCommunications_(user);
+  }
+
+  if (action === 'communication-create') {
+    return createScheduledCommunication_(
+      user,
+      safeRequest.communication,
+      safeRequest.mutationId
+    );
+  }
+
+  if (action === 'communication-status') {
+    return updateScheduledCommunicationStatus_(
+      user,
+      safeRequest.communicationUuid,
+      safeRequest.status,
+      safeRequest.mutationId
+    );
+  }
+
   if (action === 'summaries') {
     return buildApiSummaries_(user);
   }

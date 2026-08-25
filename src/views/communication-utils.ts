@@ -1,15 +1,42 @@
 import type { CellValue, ColumnDef } from '@/schema'
 
-export function emailHref(value: CellValue | undefined): string | undefined {
-  const email = String(value ?? '').trim()
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'mailto:' + email : undefined
+interface EmailHrefOptions {
+  readonly subject?: string
+  readonly body?: string
 }
 
-export function phoneHrefs(column: ColumnDef, value: CellValue | undefined): { readonly tel: string; readonly sms: string } | undefined {
+export function emailHref(value: CellValue | undefined, options: EmailHrefOptions = {}): string | undefined {
+  const email = String(value ?? '').trim()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return undefined
+  const parameters = new URLSearchParams()
+  if (options.subject) parameters.set('subject', options.subject)
+  if (options.body) parameters.set('body', options.body)
+  const query = parameters.toString()
+  return 'mailto:' + email + (query ? '?' + query : '')
+}
+
+export function normalizeWhatsAppPhone(value: CellValue | undefined): string | undefined {
+  const raw = String(value ?? '').trim()
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 10) return undefined
+  if (raw.startsWith('+')) return digits
+  if (digits.length === 10) return '52' + digits
+  return digits
+}
+
+export function whatsappHref(value: CellValue | undefined, message = ''): string | undefined {
+  const phone = normalizeWhatsAppPhone(value)
+  if (!phone) return undefined
+  const query = message.trim() ? '?text=' + encodeURIComponent(message.trim()) : ''
+  return 'https://wa.me/' + phone + query
+}
+
+export function phoneHrefs(column: ColumnDef, value: CellValue | undefined): { readonly tel: string; readonly whatsapp: string } | undefined {
   if (column.type !== 'Phone' && !/TELEFONO|TELÉFONO|CELULAR|MOVIL|MÓVIL/i.test(column.name)) return undefined
   const phone = String(value ?? '').trim().replace(/[^\d+]/g, '')
   if (phone.replace(/\D/g, '').length < 7) return undefined
-  return { tel: 'tel:' + phone, sms: 'sms:' + phone }
+  const whatsapp = whatsappHref(value)
+  return whatsapp ? { tel: 'tel:' + phone, whatsapp } : undefined
 }
 
 export function mapHref(column: ColumnDef, value: CellValue | undefined): string | undefined {

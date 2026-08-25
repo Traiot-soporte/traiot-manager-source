@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Mail, MapPinned, MessageSquareText, PhoneCall, ZoomIn, X } from 'lucide-react'
+import { ExternalLink, Mail, MapPinned, PhoneCall, ZoomIn, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { WhatsAppIcon } from '@/components/whatsapp-icon'
 import { useRepository } from '@/data/use-repository'
 import { formatCell } from '@/lib/format'
 import { useNearViewport } from '@/lib/use-near-viewport'
@@ -140,7 +141,7 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
       <span className="inline-flex flex-wrap items-center gap-1.5">
         <span>{formatCell(value, column.type)}</span>
         <a aria-label="Llamar" className="grid min-h-10 min-w-10 place-items-center rounded-lg text-brand-600 transition hover:bg-brand-50" href={phones.tel} title="Llamar"><PhoneCall className="size-4" /></a>
-        <a aria-label="Enviar mensaje" className="grid min-h-10 min-w-10 place-items-center rounded-lg text-brand-600 transition hover:bg-brand-50" href={phones.sms} title="Enviar SMS"><MessageSquareText className="size-4" /></a>
+        <a aria-label="Abrir WhatsApp" className="grid min-h-10 min-w-10 place-items-center rounded-lg text-[#128c4a] transition hover:bg-emerald-50" href={phones.whatsapp} rel="noopener noreferrer" target="_blank" title="Enviar por WhatsApp"><WhatsAppIcon className="size-5" /></a>
       </span>
     )
   }

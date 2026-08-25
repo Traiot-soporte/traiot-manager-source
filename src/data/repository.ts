@@ -72,6 +72,37 @@ export interface RolePermissionSyncResult {
   readonly invalidUsers: readonly string[]
 }
 
+export type CommunicationChannel = 'EMAIL' | 'WHATSAPP'
+export type CommunicationStatus = 'PROGRAMADO' | 'ABIERTO' | 'ENVIADO' | 'CANCELADO'
+
+export interface ScheduledCommunication {
+  readonly communicationUuid: string
+  readonly entityTable: 'CLIENTES' | 'Gestion Clientes'
+  readonly entityUuid: string
+  readonly entityTitle: string
+  readonly channel: CommunicationChannel
+  readonly recipient: string
+  readonly subject: string
+  readonly message: string
+  readonly scheduledAt: string
+  readonly status: CommunicationStatus
+  readonly createdAt: string
+  readonly openedAt: string
+  readonly sentAt: string
+  readonly cancelledAt: string
+}
+
+export interface CreateCommunicationInput {
+  readonly entityTable: 'CLIENTES' | 'Gestion Clientes'
+  readonly entityUuid: string
+  readonly entityTitle: string
+  readonly channel: CommunicationChannel
+  readonly recipient: string
+  readonly subject: string
+  readonly message: string
+  readonly scheduledAt: string
+}
+
 export interface Repository {
   readonly source: 'mock' | 'apps-script'
   readonly sourceLabel: string
@@ -90,6 +121,12 @@ export interface Repository {
   setAuthUserActive(userUuid: string, active: boolean): Promise<void>
   syncRolePermissions(): Promise<RolePermissionSyncResult>
   activateAuthentication(): Promise<void>
+  listCommunications(): Promise<readonly ScheduledCommunication[]>
+  createCommunication(input: CreateCommunicationInput): Promise<ScheduledCommunication>
+  updateCommunicationStatus(
+    communicationUuid: string,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+  ): Promise<ScheduledCommunication>
   getCurrentUser(): Promise<UserContext>
   getSummaries(): Promise<readonly TableSummary[]>
   list(table: string): Promise<readonly RowData[]>

@@ -6,16 +6,20 @@ import type {
   AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
+  CommunicationStatus,
+  CreateCommunicationInput,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
   Repository,
+  ScheduledCommunication,
   UpdateRowInput,
 } from '@/data/repository'
 
 /* eslint-disable @typescript-eslint/require-await -- La implementación mock conserva el contrato asíncrono del Repository real. */
 
 const mockUser: UserContext = {
+  userUuid: 'mock-user-001',
   email: 'manuel@traiot.mx',
   role: 'ADMIN',
   permissions: new Set(['*']),
@@ -30,6 +34,7 @@ export class MockRepository implements Repository {
   readonly sourceLabel = 'Demostración'
   readonly writable = true
   readonly #tables = new Map<string, Map<string, RowData>>()
+  readonly #communications = new Map<string, ScheduledCommunication>()
   readonly #now: () => Date
   readonly #createUuid: () => string
 
@@ -131,6 +136,44 @@ export class MockRepository implements Repository {
   }
 
   async activateAuthentication(): Promise<void> {}
+
+  async listCommunications(): Promise<readonly ScheduledCommunication[]> {
+    return [...this.#communications.values()]
+      .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt))
+  }
+
+  async createCommunication(input: CreateCommunicationInput): Promise<ScheduledCommunication> {
+    const communicationUuid = this.#createUuid()
+    const record: ScheduledCommunication = {
+      ...input,
+      communicationUuid,
+      status: 'PROGRAMADO',
+      createdAt: this.#now().toISOString(),
+      openedAt: '',
+      sentAt: '',
+      cancelledAt: '',
+    }
+    this.#communications.set(communicationUuid, record)
+    return { ...record }
+  }
+
+  async updateCommunicationStatus(
+    communicationUuid: string,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+  ): Promise<ScheduledCommunication> {
+    const current = this.#communications.get(communicationUuid)
+    if (!current) throw new Error('No se encontrÃ³ la comunicaciÃ³n programada.')
+    const timestamp = this.#now().toISOString()
+    const next: ScheduledCommunication = {
+      ...current,
+      status,
+      openedAt: status === 'ABIERTO' ? timestamp : current.openedAt,
+      sentAt: status === 'ENVIADO' ? timestamp : current.sentAt,
+      cancelledAt: status === 'CANCELADO' ? timestamp : current.cancelledAt,
+    }
+    this.#communications.set(communicationUuid, next)
+    return { ...next }
+  }
 
   async getSummaries(): Promise<readonly TableSummary[]> {
     return tableDefinitions.map((table) => ({
