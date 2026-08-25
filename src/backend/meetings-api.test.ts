@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest'
 
 interface MeetingSandbox {
   readonly normalizeMeetingUrl_: (value: unknown) => string
+  readonly meetingEmailRecipient_: (participants: readonly Readonly<Record<string, unknown>>[]) => string
+  readonly normalizeMeetingWhatsAppPhone_: (value: unknown) => string
   readonly uniqueMeetingValues_: (values: readonly unknown[]) => readonly string[]
   readonly serializeMeetingRecord_: (record: Readonly<Record<string, unknown>>) => Readonly<Record<string, unknown>>
 }
@@ -48,5 +50,16 @@ describe('reuniones empresariales', () => {
     expect(meeting.participants).toHaveLength(1)
     expect(meeting.organizerEmail).toBe('soporte@traiot.com.mx')
     expect(meeting).not.toHaveProperty('OrganizerUuid')
+  })
+
+  it('agrupa todos los correos en un destinatario y normaliza WhatsApp', () => {
+    const api = loadSandbox()
+    expect(api.meetingEmailRecipient_([
+      { email: 'manuel@traiot.com.mx' },
+      { email: 'OSCAR@TRAIOT.COM.MX' },
+      { email: 'manuel@traiot.com.mx' },
+    ])).toBe('manuel@traiot.com.mx, oscar@traiot.com.mx')
+    expect(api.normalizeMeetingWhatsAppPhone_('81 1234 5678')).toBe('528112345678')
+    expect(api.normalizeMeetingWhatsAppPhone_('Sin número')).toBe('')
   })
 })

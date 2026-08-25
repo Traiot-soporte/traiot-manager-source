@@ -53,4 +53,28 @@ describe('MockRepository', () => {
 
     expect(product['No. Item']).toBe(39)
   })
+
+  it('prepara un solo correo grupal y WhatsApp solo para colaboradores seleccionados', async () => {
+    let sequence = 0
+    const repository = new MockRepository(undefined, fixedNow, () => `generated-${++sequence}`)
+    const participants = await repository.listMeetingParticipants()
+    const result = await repository.createCompanyMeeting({
+      title: 'Revision operativa',
+      description: 'Pendientes',
+      startAt: '2026-08-25T16:00:00.000Z',
+      endAt: '2026-08-25T17:00:00.000Z',
+      meetUrl: 'https://meet.google.com/abc-defg-hij',
+      participantUuids: participants.map((participant) => participant.userUuid),
+      whatsappParticipantUuids: [participants[0]!.userUuid],
+    })
+    const communications = await repository.listCommunications()
+    const email = communications.filter((communication) => communication.channel === 'EMAIL')
+    const whatsapp = communications.filter((communication) => communication.channel === 'WHATSAPP')
+
+    expect(result).toMatchObject({ emailInvitations: 1, emailRecipients: 2, whatsappInvitations: 1 })
+    expect(email).toHaveLength(1)
+    expect(email[0]!.recipient).toContain('manuel@traiot.mx')
+    expect(email[0]!.recipient).toContain('ian@traiot.mx')
+    expect(whatsapp).toHaveLength(1)
+  })
 })

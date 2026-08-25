@@ -6,13 +6,16 @@ interface EmailHrefOptions {
 }
 
 export function emailHref(value: CellValue | undefined, options: EmailHrefOptions = {}): string | undefined {
-  const email = String(value ?? '').trim()
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return undefined
+  const emails = [...new Set(String(value ?? '')
+    .split(/[,;\n]+/)
+    .map((email) => email.trim())
+    .filter(Boolean))]
+  if (emails.length === 0 || emails.some((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return undefined
   const parameters: string[] = []
   if (options.subject) parameters.push('subject=' + encodeURIComponent(options.subject))
   if (options.body) parameters.push('body=' + encodeURIComponent(options.body))
   const query = parameters.join('&')
-  return 'mailto:' + email + (query ? '?' + query : '')
+  return 'mailto:' + emails.join(',') + (query ? '?' + query : '')
 }
 
 export function normalizeWhatsAppPhone(value: CellValue | undefined): string | undefined {

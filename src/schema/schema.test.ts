@@ -14,7 +14,7 @@ const expectedAppSheetColumns: Readonly<Record<string, number>> = {
   INSTALACIONES: 93,
   Laboratorio: 25,
   'MATRIZ DISPOSITIVOS': 11,
-  Usuarios: 5,
+  Usuarios: 6,
   Perfiles: 3,
   Menu: 4,
 }
@@ -37,7 +37,7 @@ describe('registro de metadata', () => {
       expect(appsheetColumnCount(table!), tableName).toBe(expectedCount)
       total += expectedCount
     }
-    expect(total).toBe(279)
+    expect(total).toBe(280)
   })
 
   it('modela los acumulados de Almacén sin selectores de relaciones', () => {

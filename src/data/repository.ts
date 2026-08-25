@@ -109,6 +109,7 @@ export interface MeetingParticipant {
   readonly name: string
   readonly email: string
   readonly role: string
+  readonly phone: string
 }
 
 export interface CompanyMeeting {
@@ -131,12 +132,13 @@ export interface CreateCompanyMeetingInput {
   readonly endAt: string
   readonly meetUrl: string
   readonly participantUuids: readonly string[]
-  readonly whatsappRecipients: readonly string[]
+  readonly whatsappParticipantUuids: readonly string[]
 }
 
 export interface CreateCompanyMeetingResult {
   readonly meeting: CompanyMeeting
   readonly emailInvitations: number
+  readonly emailRecipients: number
   readonly whatsappInvitations: number
 }
 

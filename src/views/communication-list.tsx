@@ -86,12 +86,13 @@ function CommunicationItem({ communication, compact, referenceTime }: {
               </a>
             )}
             <button
+              aria-label="Confirmar que la comunicación ya fue enviada"
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200 px-3 text-xs font-black text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
               disabled={updateStatus.isPending}
               onClick={() => updateStatus.mutate('ENVIADO')}
               type="button"
             >
-              <Check className="size-4" /> ENVIADO
+              <Check className="size-4" /> CONFIRMAR ENVÍO
             </button>
             <button
               aria-label="Cancelar comunicación"

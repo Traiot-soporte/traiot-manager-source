@@ -26,7 +26,9 @@ function listMeetingParticipants_(user) {
   if (!user || !normalizeCell_(user.userUuid)) {
     throw new Error('La sesion no es valida.');
   }
-  return readAuthUsers_(openConfiguredSpreadsheet_()).filter(function (candidate) {
+  var spreadsheet = openConfiguredSpreadsheet_();
+  ensureMeetingUserPhoneColumn_(spreadsheet);
+  return readAuthUsers_(spreadsheet).filter(function (candidate) {
     return candidate.UserActive === true &&
       normalizeApiBoolean_(candidate._deleted) !== true &&
       Boolean(normalizeApiEmail_(candidate.UserEmail));
@@ -35,7 +37,8 @@ function listMeetingParticipants_(user) {
       userUuid: normalizeCell_(candidate._uuid).toLowerCase(),
       name: normalizeCell_(candidate.UserName) || normalizeCell_(candidate.UserID) || 'Usuario',
       email: normalizeApiEmail_(candidate.UserEmail),
-      role: canonicalApiRole_(candidate.UserRole) || normalizeCell_(candidate.UserRole)
+      role: canonicalApiRole_(candidate.UserRole) || normalizeCell_(candidate.UserRole),
+      phone: normalizeCell_(candidate.UserPhone)
     };
   }).sort(function (left, right) {
     return left.name.localeCompare(right.name);
@@ -69,8 +72,8 @@ function createCompanyMeeting_(user, submitted, mutationId) {
   var requestedUuids = uniqueMeetingValues_(input.participantUuids).map(function (value) {
     return value.toLowerCase();
   });
-  var whatsappRecipients = uniqueMeetingValues_(input.whatsappRecipients).filter(function (value) {
-    return isValidCommunicationRecipient_('WHATSAPP', value);
+  var requestedWhatsappUuids = uniqueMeetingValues_(input.whatsappParticipantUuids).map(function (value) {
+    return value.toLowerCase();
   });
 
   if (!title) throw new Error('Captura el titulo de la reunion.');
@@ -86,6 +89,11 @@ function createCompanyMeeting_(user, submitted, mutationId) {
   if (participants.length === 0) {
     throw new Error('Selecciona al menos un colaborador activo.');
   }
+  var whatsappRecipients = uniqueMeetingValues_(participants.filter(function (participant) {
+    return requestedWhatsappUuids.indexOf(participant.userUuid) >= 0;
+  }).map(function (participant) {
+    return normalizeMeetingWhatsAppPhone_(participant.phone);
+  })).filter(Boolean);
 
   return runIdempotentApiMutation_(mutationId, function () {
     var spreadsheet = openConfiguredSpreadsheet_();
@@ -117,16 +125,17 @@ function createCompanyMeeting_(user, submitted, mutationId) {
     var serialized = serializeMeetingRecord_(record);
     var invitationText = buildMeetingInvitationText_(serialized);
     var communicationRecords = [];
-    participants.forEach(function (participant) {
+    var emailRecipient = meetingEmailRecipient_(participants);
+    if (emailRecipient) {
       communicationRecords.push(buildMeetingCommunicationRecord_(
         user,
         serialized,
         'EMAIL',
-        participant.email,
+        emailRecipient,
         invitationText,
         now
       ));
-    });
+    }
     whatsappRecipients.forEach(function (recipient) {
       communicationRecords.push(buildMeetingCommunicationRecord_(
         user,
@@ -152,10 +161,36 @@ function createCompanyMeeting_(user, submitted, mutationId) {
     SpreadsheetApp.flush();
     return {
       meeting: serialized,
-      emailInvitations: participants.length,
+      emailInvitations: emailRecipient ? 1 : 0,
+      emailRecipients: participants.length,
       whatsappInvitations: whatsappRecipients.length
     };
   });
+}
+
+function ensureMeetingUserPhoneColumn_(spreadsheet) {
+  var sheet = requireAuthSheet_(spreadsheet, TRAIOT_AUTH_USERS_SHEET);
+  var headers = readApiHeaders_(sheet);
+  if (headers.indexOf('UserPhone') < 0) {
+    sheet.getRange(1, headers.length + 1).setValue('UserPhone');
+    SpreadsheetApp.flush();
+  }
+}
+
+function meetingEmailRecipient_(participants) {
+  return uniqueMeetingValues_((participants || []).map(function (participant) {
+    return normalizeApiEmail_(participant.email);
+  })).filter(function (email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }).join(', ');
+}
+
+function normalizeMeetingWhatsAppPhone_(value) {
+  var raw = normalizeCell_(value);
+  var digits = raw.replace(/\D/g, '');
+  if (digits.length < 10) return '';
+  if (raw.charAt(0) === '+') return digits;
+  return digits.length === 10 ? '52' + digits : digits;
 }
 
 function ensureMeetingsSheet_(spreadsheet) {

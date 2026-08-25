@@ -4,6 +4,9 @@
  */
 function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'Usuarios') {
+    ensureMeetingUserPhoneColumn_(openConfiguredSpreadsheet_());
+  }
   if (schemaTable.name === 'COMPRAS') {
     ensurePurchaseIdNomenclature_(openConfiguredSpreadsheet_(), false);
   }
@@ -87,6 +90,9 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
 
 function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
   assertApiTableWriteAccess_(user, schemaTable);
+  if (schemaTable.name === 'Usuarios') {
+    ensureMeetingUserPhoneColumn_(openConfiguredSpreadsheet_());
+  }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
   }

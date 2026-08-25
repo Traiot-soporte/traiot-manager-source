@@ -16,6 +16,12 @@ export const usuariosTable = defineTable({
     { name: 'UserName', type: 'Name', labelColumn: true },
     { name: 'UserEmail', type: 'Email', required: true },
     {
+      name: 'UserPhone',
+      type: 'Phone',
+      label: 'WhatsApp',
+      description: 'Número del colaborador con lada. Se utiliza para invitaciones y recordatorios.',
+    },
+    {
       name: 'UserRole',
       type: 'Ref',
       required: true,

@@ -252,7 +252,12 @@ function normalizeCommunicationChannel_(value) {
 
 function isValidCommunicationRecipient_(channel, recipient) {
   if (channel === 'EMAIL') {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient);
+    var emails = String(recipient || '').split(/[,;\n]+/).map(function (email) {
+      return normalizeCell_(email);
+    }).filter(Boolean);
+    return emails.length > 0 && emails.every(function (email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    });
   }
   return String(recipient || '').replace(/\D/g, '').length >= 10;
 }

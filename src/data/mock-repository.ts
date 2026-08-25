@@ -148,6 +148,7 @@ export class MockRepository implements Repository {
       name: String(row.UserName ?? row.UserID ?? 'Usuario'),
       email: String(row.UserEmail ?? ''),
       role: String(row.UserRole ?? ''),
+      phone: String(row.UserPhone ?? ''),
     })).filter((participant) => participant.email.includes('@'))
   }
 
@@ -161,8 +162,12 @@ export class MockRepository implements Repository {
     const meetingUuid = this.#createUuid()
     const now = this.#now().toISOString()
     const meeting: CompanyMeeting = {
-      ...input,
       meetingUuid,
+      title: input.title,
+      description: input.description,
+      startAt: input.startAt,
+      endAt: input.endAt,
+      meetUrl: input.meetUrl,
       participants: selected,
       organizerName: mockUser.name ?? 'Usuario',
       organizerEmail: mockUser.email,
@@ -170,16 +175,27 @@ export class MockRepository implements Repository {
     }
     this.#meetings.set(meetingUuid, meeting)
     const invitation = meetingInvitationText(meeting)
-    for (const participant of selected) {
-      await this.createMeetingCommunication(meeting, 'EMAIL', participant.email, invitation, now)
+    if (selected.length > 0) {
+      await this.createMeetingCommunication(
+        meeting,
+        'EMAIL',
+        selected.map((participant) => participant.email).join(', '),
+        invitation,
+        now,
+      )
     }
-    for (const recipient of input.whatsappRecipients) {
+    const whatsappRecipients = [...new Set(selected
+      .filter((participant) => input.whatsappParticipantUuids.includes(participant.userUuid))
+      .map((participant) => participant.phone)
+      .filter(Boolean))]
+    for (const recipient of whatsappRecipients) {
       await this.createMeetingCommunication(meeting, 'WHATSAPP', recipient, invitation, now)
     }
     return {
       meeting: { ...meeting },
-      emailInvitations: selected.length,
-      whatsappInvitations: input.whatsappRecipients.length,
+      emailInvitations: selected.length > 0 ? 1 : 0,
+      emailRecipients: selected.length,
+      whatsappInvitations: whatsappRecipients.length,
     }
   }
 

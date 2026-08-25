@@ -72,7 +72,7 @@ describe('AppsScriptRepository', () => {
   })
 
   it('crea reuniones empresariales e invitaciones con mutacion idempotente', async () => {
-    const result = { meeting: { meetingUuid: 'meeting-1' }, emailInvitations: 5, whatsappInvitations: 2 }
+    const result = { meeting: { meetingUuid: 'meeting-1' }, emailInvitations: 1, emailRecipients: 5, whatsappInvitations: 2 }
     const call = vi.fn(() => Promise.resolve(result))
     const mutationId = '22222222-2222-4222-8222-222222222222'
     const repository = new AppsScriptRepository(call, () => mutationId)
@@ -83,7 +83,7 @@ describe('AppsScriptRepository', () => {
       endAt: '2026-08-25T17:00:00.000Z',
       meetUrl: 'https://meet.google.com/abc-defg-hij',
       participantUuids: ['user-1'],
-      whatsappRecipients: ['528112345678'],
+      whatsappParticipantUuids: ['user-1'],
     }
 
     await expect(repository.createCompanyMeeting(meeting)).resolves.toEqual(result)

@@ -19,7 +19,7 @@ export function MeetingSchedulerButton() {
   const [startAt, setStartAt] = useState(() => defaultMeetingTimes().startAt)
   const [endAt, setEndAt] = useState(() => defaultMeetingTimes().endAt)
   const [selected, setSelected] = useState<ReadonlySet<string>>()
-  const [whatsappText, setWhatsappText] = useState('')
+  const [selectedWhatsapp, setSelectedWhatsapp] = useState<ReadonlySet<string>>(new Set())
   const [created, setCreated] = useState<CreateCompanyMeetingResult>()
   const participants = useQuery({
     queryKey: ['meeting-participants'],
@@ -31,7 +31,20 @@ export function MeetingSchedulerButton() {
     () => selected ?? new Set((participants.data ?? []).map((participant) => participant.userUuid)),
     [participants.data, selected],
   )
-  const whatsapp = useMemo(() => parseWhatsAppRecipients(whatsappText), [whatsappText])
+  const invitedParticipants = useMemo(
+    () => (participants.data ?? []).filter((participant) => selectedParticipants.has(participant.userUuid)),
+    [participants.data, selectedParticipants],
+  )
+  const whatsappReadyParticipants = useMemo(
+    () => invitedParticipants.filter((participant) => normalizeWhatsAppPhone(participant.phone)),
+    [invitedParticipants],
+  )
+  const whatsappParticipantUuids = useMemo(
+    () => whatsappReadyParticipants
+      .filter((participant) => selectedWhatsapp.has(participant.userUuid))
+      .map((participant) => participant.userUuid),
+    [selectedWhatsapp, whatsappReadyParticipants],
+  )
   const validMeetUrl = /^https:\/\/meet\.google\.com\/[a-z0-9-]+(?:\?.*)?$/i.test(meetUrl.trim())
   const validDates = Boolean(startAt && endAt && new Date(endAt).getTime() > new Date(startAt).getTime())
   const create = useMutation({
@@ -42,7 +55,7 @@ export function MeetingSchedulerButton() {
       endAt: new Date(endAt).toISOString(),
       meetUrl: meetUrl.trim(),
       participantUuids: [...selectedParticipants],
-      whatsappRecipients: whatsapp.valid,
+      whatsappParticipantUuids,
     }),
     onSuccess: async (result) => {
       setCreated(result)
@@ -74,7 +87,7 @@ export function MeetingSchedulerButton() {
     setMeetUrl('')
     setStartAt(defaults.startAt)
     setEndAt(defaults.endAt)
-    setWhatsappText('')
+    setSelectedWhatsapp(new Set())
     setSelected(undefined)
     setCreated(undefined)
     create.reset()
@@ -82,7 +95,7 @@ export function MeetingSchedulerButton() {
   }
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (title.trim() && validMeetUrl && validDates && selectedParticipants.size > 0 && whatsapp.invalid.length === 0) {
+    if (title.trim() && validMeetUrl && validDates && selectedParticipants.size > 0) {
       create.mutate()
     }
   }
@@ -169,16 +182,65 @@ export function MeetingSchedulerButton() {
               </section>
 
               <section className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 sm:p-5">
-                <p className="flex items-center gap-2 text-sm font-black text-ink-950"><WhatsAppIcon className="size-5 text-[#128c4a]" /> WHATSAPP OPCIONAL</p>
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/55">La hoja Usuarios todavía no contiene teléfonos. Pega aquí los números que recibirán el mismo enlace, separados por coma o por renglón.</p>
-                <textarea className="mt-3 min-h-20 w-full resize-y rounded-xl border border-emerald-200 bg-white p-4 text-sm font-bold outline-none focus:border-[#128c4a]" onChange={(event) => setWhatsappText(event.target.value)} placeholder="Ej. 81 1234 5678, 55 9876 5432" value={whatsappText} />
-                {whatsapp.valid.length > 0 && <p className="mt-2 text-[11px] font-black text-emerald-700">{whatsapp.valid.length} recordatorio{whatsapp.valid.length === 1 ? '' : 's'} de WhatsApp</p>}
-                {whatsapp.invalid.length > 0 && <p className="mt-2 text-[11px] font-bold text-red-600">Revisa: {whatsapp.invalid.join(', ')}</p>}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="flex items-center gap-2 text-sm font-black text-ink-950"><WhatsAppIcon className="size-5 text-[#128c4a]" /> WHATSAPP OPCIONAL</p>
+                    <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/55">Selecciona los colaboradores invitados que también recibirán un recordatorio preparado por WhatsApp.</p>
+                  </div>
+                  {whatsappReadyParticipants.length > 0 && (
+                    <button
+                      className="min-h-10 rounded-xl border border-emerald-200 bg-white px-3 text-[10px] font-black text-emerald-800 hover:bg-emerald-100"
+                      onClick={() => setSelectedWhatsapp(
+                        whatsappParticipantUuids.length === whatsappReadyParticipants.length
+                          ? new Set()
+                          : new Set(whatsappReadyParticipants.map((participant) => participant.userUuid)),
+                      )}
+                      type="button"
+                    >
+                      {whatsappParticipantUuids.length === whatsappReadyParticipants.length ? 'QUITAR TODOS' : 'SELECCIONAR CON NÚMERO'}
+                    </button>
+                  )}
+                </div>
+                {invitedParticipants.length > 0 && (
+                  <div className="mt-4 grid gap-2 md:grid-cols-2">
+                    {invitedParticipants.map((participant) => {
+                      const validPhone = normalizeWhatsAppPhone(participant.phone)
+                      return (
+                        <label
+                          className={validPhone
+                            ? 'flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-emerald-100 bg-white p-3 hover:border-emerald-300'
+                            : 'flex min-w-0 cursor-not-allowed items-center gap-3 rounded-xl border border-dashed border-black/10 bg-white/60 p-3 opacity-60'}
+                          key={participant.userUuid}
+                        >
+                          <input
+                            checked={Boolean(validPhone) && selectedWhatsapp.has(participant.userUuid)}
+                            className="size-4 accent-[#128c4a]"
+                            disabled={!validPhone}
+                            onChange={() => setSelectedWhatsapp((current) => toggleSetValue(current, participant.userUuid))}
+                            type="checkbox"
+                          />
+                          <span className="min-w-0">
+                            <span className="block truncate text-xs font-black text-ink-950">{participant.name}</span>
+                            <span className={validPhone ? 'block truncate text-[11px] font-bold text-emerald-700' : 'block truncate text-[11px] font-bold text-red-600'}>
+                              {validPhone ? participant.phone : 'Sin número registrado'}
+                            </span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+                {invitedParticipants.some((participant) => !normalizeWhatsAppPhone(participant.phone)) && (
+                  <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[11px] font-bold leading-relaxed text-amber-800">
+                    Los colaboradores sin número no pueden seleccionarse. Un administrador puede completar su campo WhatsApp desde Seguridad → Usuarios.
+                  </p>
+                )}
+                {whatsappParticipantUuids.length > 0 && <p className="mt-3 text-[11px] font-black text-emerald-700">{whatsappParticipantUuids.length} recordatorio{whatsappParticipantUuids.length === 1 ? '' : 's'} de WhatsApp</p>}
               </section>
 
               <div className="flex flex-col gap-3 rounded-2xl border border-black/5 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="max-w-2xl text-xs font-semibold leading-relaxed text-ink-800/50">Se guardará en el calendario empresarial. La campana mostrará una tarea pendiente por cada correo y WhatsApp hasta que confirmes su envío.</p>
-                <button className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-ink-950 px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45" disabled={create.isPending || !title.trim() || !validMeetUrl || !validDates || selectedParticipants.size === 0 || whatsapp.invalid.length > 0} type="submit"><CalendarClock className="size-4" />{create.isPending ? 'PROGRAMANDO…' : 'CREAR REUNIÓN'}</button>
+                <p className="max-w-2xl text-xs font-semibold leading-relaxed text-ink-800/50">Se guardará en el calendario empresarial. Se creará un solo correo con todos los invitados y una tarea por cada WhatsApp seleccionado.</p>
+                <button className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-ink-950 px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-45" disabled={create.isPending || !title.trim() || !validMeetUrl || !validDates || selectedParticipants.size === 0} type="submit"><CalendarClock className="size-4" />{create.isPending ? 'PROGRAMANDO…' : 'CREAR REUNIÓN'}</button>
               </div>
               {create.isError && <p className="rounded-xl bg-red-50 p-4 text-xs font-bold text-red-700">{create.error instanceof Error ? create.error.message : 'No fue posible crear la reunión.'}</p>}
             </form>
@@ -194,7 +256,7 @@ function MeetingCreated({ onClose, result }: { readonly onClose: () => void; rea
   return <div className="p-6 sm:p-8">
     <span className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 className="size-8" /></span>
     <h3 className="mt-4 text-center text-2xl font-black text-ink-950">Reunión programada</h3>
-    <p className="mx-auto mt-2 max-w-xl text-center text-sm font-semibold text-ink-800/55">Se agregó al calendario empresarial y se prepararon {result.emailInvitations} correos y {result.whatsappInvitations} WhatsApp.</p>
+    <p className="mx-auto mt-2 max-w-xl text-center text-sm font-semibold text-ink-800/55">Se agregó al calendario empresarial. Se preparó un correo para {result.emailRecipients} colaborador{result.emailRecipients === 1 ? '' : 'es'} y {result.whatsappInvitations} recordatorio{result.whatsappInvitations === 1 ? '' : 's'} de WhatsApp.</p>
     <div className="mx-auto mt-5 max-w-xl rounded-2xl border border-black/5 bg-white p-5">
       <p className="font-black text-ink-950">{result.meeting.title}</p>
       <p className="mt-2 text-xs font-semibold text-ink-800/55">{formatMeetingDate(result.meeting.startAt)} · {result.meeting.participants.length} colaboradores</p>
@@ -212,18 +274,6 @@ function toggleSetValue(current: ReadonlySet<string>, value: string): ReadonlySe
   if (next.has(value)) next.delete(value)
   else next.add(value)
   return next
-}
-
-function parseWhatsAppRecipients(value: string): { readonly valid: readonly string[]; readonly invalid: readonly string[] } {
-  const entries = [...new Set(value.split(/[\n,;]+/).map((entry) => entry.trim()).filter(Boolean))]
-  const valid: string[] = []
-  const invalid: string[] = []
-  for (const entry of entries) {
-    const normalized = normalizeWhatsAppPhone(entry)
-    if (normalized) valid.push(normalized)
-    else invalid.push(entry)
-  }
-  return { valid, invalid }
 }
 
 function localDateTime(date: Date): string {

@@ -5,7 +5,11 @@ import { emailHref, mapHref, normalizeWhatsAppPhone, phoneHrefs, whatsappHref } 
 describe('acciones de comunicación', () => {
   it('genera correo, llamada, WhatsApp y mapa solo con valores válidos', () => {
     expect(emailHref('ventas@traiot.com.mx')).toBe('mailto:ventas@traiot.com.mx')
+    expect(emailHref('ventas@traiot.com.mx; soporte@traiot.com.mx')).toBe(
+      'mailto:ventas@traiot.com.mx,soporte@traiot.com.mx',
+    )
     expect(emailHref('correo-invalido')).toBeUndefined()
+    expect(emailHref('ventas@traiot.com.mx, correo-invalido')).toBeUndefined()
     expect(phoneHrefs({ name: 'TELEFONO', type: 'Text' }, '(81) 1234-5678')).toEqual({
       tel: 'tel:8112345678',
       whatsapp: 'https://wa.me/528112345678',

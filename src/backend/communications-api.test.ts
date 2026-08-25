@@ -37,6 +37,7 @@ describe('agenda privada de comunicaciones', () => {
     expect(api.normalizeCommunicationChannel_('correo')).toBe('EMAIL')
     expect(api.normalizeCommunicationChannel_('WhatsApp')).toBe('WHATSAPP')
     expect(api.isValidCommunicationRecipient_('EMAIL', 'ventas@traiot.com.mx')).toBe(true)
+    expect(api.isValidCommunicationRecipient_('EMAIL', 'ventas@traiot.com.mx, soporte@traiot.com.mx')).toBe(true)
     expect(api.isValidCommunicationRecipient_('WHATSAPP', '+52 81 1234 5678')).toBe(true)
     expect(api.isValidCommunicationRecipient_('WHATSAPP', '123')).toBe(false)
   })
