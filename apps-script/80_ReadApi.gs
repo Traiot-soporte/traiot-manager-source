@@ -307,7 +307,11 @@ function buildApiSummaries_(user) {
 }
 
 function listApiRows_(schemaTable, user) {
-  return readVisibleApiRows_(openConfiguredSpreadsheet_(), schemaTable, user);
+  var spreadsheet = openConfiguredSpreadsheet_();
+  if (schemaTable.name === 'ALMACEN' || schemaTable.name === 'KARDEX') {
+    ensureInventoryStorage_(spreadsheet, false);
+  }
+  return readVisibleApiRows_(spreadsheet, schemaTable, user);
 }
 
 function getApiRow_(schemaTable, rowUuid, user) {

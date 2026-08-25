@@ -89,7 +89,12 @@ interface CrudSandbox {
     tableName: string,
     beforeRecord: Readonly<Record<string, unknown>> | null,
     afterRecord: Readonly<Record<string, unknown>> | null,
-  ) => readonly { readonly productUuid: string; readonly delta: number; readonly type: string }[]
+  ) => readonly {
+    readonly productUuid: string
+    readonly delta: number
+    readonly operationDelta: number
+    readonly type: string
+  }[]
   readonly calculateInventoryPurchaseNotice_: (
     stock: unknown,
     minimum: unknown,
@@ -178,12 +183,16 @@ describe('CRUD de Apps Script', () => {
     expect(inventoryContributionForRecord_('COMPRAS', received)?.quantity).toBe(5)
     expect(inventoryContributionForRecord_('PEDIDOS', approved)?.quantity).toBe(-2)
     expect(buildInventoryDeltas_('COMPRAS', null, received)).toMatchObject([
-      { productUuid: 'product-1', delta: 5, type: 'ENTRADA' },
+      { productUuid: 'product-1', delta: 5, operationDelta: 1, type: 'ENTRADA' },
     ])
     expect(buildInventoryDeltas_('COMPRAS', received, {
       ...received,
       _deleted: true,
-    })).toMatchObject([{ delta: -5, type: 'REVERSO' }])
+    })).toMatchObject([{ delta: -5, operationDelta: -1, type: 'REVERSO' }])
+    expect(buildInventoryDeltas_('COMPRAS', received, {
+      ...received,
+      CANTIDAD: 20,
+    })).toMatchObject([{ delta: 15, operationDelta: 0, type: 'AJUSTE' }])
     expect(calculateInventoryPurchaseNotice_(2, 3, 10)).toBe('REABASTECER')
     expect(calculateInventoryPurchaseNotice_(11, 3, 10)).toBe('SOBRESTOCK')
     expect(calculateInventoryPurchaseNotice_(6, 3, 10)).toBe('NIVEL ADECUADO')

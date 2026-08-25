@@ -4,7 +4,7 @@
  * El saldo existente de ALMACEN se conserva como SALDO INICIAL. A partir de
  * ese punto solo COMPRAS recibidas y PEDIDOS aprobados modifican existencias.
  */
-var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V2';
+var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V3';
 
 function ensureInventoryStorage_(spreadsheet, force) {
   var properties = PropertiesService.getScriptProperties();
@@ -63,16 +63,18 @@ function ensureInventoryStorage_(spreadsheet, force) {
     productRows.forEach(function (product) {
       var productUuid = normalizeCell_(product._uuid).toLowerCase();
       var movementId = 'KDX-INICIAL-' + productUuid;
-      var counters = derivedCounters[productUuid] || { purchases: 0, exits: 0 };
-      var purchases = hasInventoryNumericValue_(product.COMPRAS)
-        ? apiNumber_(product.COMPRAS)
-        : counters.purchases;
+      var counters = derivedCounters[productUuid] || {
+        purchaseTransactions: 0,
+        purchaseUnits: 0,
+        exits: 0
+      };
+      var purchases = counters.purchaseTransactions;
       var exits = hasInventoryNumericValue_(product.PEDIDOS)
         ? apiNumber_(product.PEDIDOS)
         : counters.exits;
       var stock = hasInventoryNumericValue_(product.STOCK)
         ? apiNumber_(product.STOCK)
-        : purchases - exits;
+        : counters.purchaseUnits - counters.exits;
       var snapshot = findApiRowSnapshot_(almacenSheet, almacenSchema, productUuid);
 
       if (snapshot) {
@@ -163,6 +165,7 @@ function buildInventoryDeltas_(tableName, beforeRecord, afterRecord) {
     return [{
       productUuid: after.productUuid,
       delta: delta,
+      operationDelta: 0,
       type: !before.quantity ? inventoryNaturalMovementType_(after.quantity)
         : !after.quantity ? 'REVERSO' : 'AJUSTE',
       reference: after.reference || before.reference
@@ -174,6 +177,7 @@ function buildInventoryDeltas_(tableName, beforeRecord, afterRecord) {
     deltas.push({
       productUuid: before.productUuid,
       delta: -before.quantity,
+      operationDelta: -1,
       type: 'REVERSO',
       reference: before.reference
     });
@@ -182,6 +186,7 @@ function buildInventoryDeltas_(tableName, beforeRecord, afterRecord) {
     deltas.push({
       productUuid: after.productUuid,
       delta: after.quantity,
+      operationDelta: 1,
       type: inventoryNaturalMovementType_(after.quantity),
       reference: after.reference
     });
@@ -219,7 +224,9 @@ function planInventoryMutation_(spreadsheet, schemaTable, beforeRecord, afterRec
     }
 
     var counterField = schemaTable.name === 'COMPRAS' ? 'COMPRAS' : 'PEDIDOS';
-    var counterDelta = schemaTable.name === 'COMPRAS' ? movement.delta : -movement.delta;
+    var counterDelta = schemaTable.name === 'COMPRAS'
+      ? movement.operationDelta
+      : -movement.delta;
     var previousCounter = apiNumber_(productSnapshot.record[counterField]);
     var nextCounter = previousCounter + counterDelta;
     if (nextCounter < 0) {
@@ -359,10 +366,15 @@ function buildInventoryAggregateCounters_(spreadsheet) {
       var contribution = inventoryContributionForRecord_(tableName, row);
       if (!contribution) return;
       if (!counters[contribution.productUuid]) {
-        counters[contribution.productUuid] = { purchases: 0, exits: 0 };
+        counters[contribution.productUuid] = {
+          purchaseTransactions: 0,
+          purchaseUnits: 0,
+          exits: 0
+        };
       }
       if (tableName === 'COMPRAS') {
-        counters[contribution.productUuid].purchases += Math.abs(contribution.quantity);
+        counters[contribution.productUuid].purchaseTransactions += 1;
+        counters[contribution.productUuid].purchaseUnits += Math.abs(contribution.quantity);
       } else {
         counters[contribution.productUuid].exits += Math.abs(contribution.quantity);
       }

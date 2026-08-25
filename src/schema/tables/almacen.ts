@@ -57,7 +57,7 @@ export const almacenTable = defineTable({
       name: 'COMPRAS',
       type: 'Number',
       readOnly: true,
-      description: 'Total acumulado de unidades recibidas.',
+      description: 'Numero acumulado de operaciones de compra registradas.',
     },
     {
       name: 'PEDIDOS',
