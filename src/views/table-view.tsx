@@ -21,16 +21,16 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
-      <div className="overflow-x-auto">
+      <div className="overflow-auto lg:max-h-[calc(100vh-16.5rem)]">
         <table className={tableClassName}>
           <thead className="bg-ink-950 text-white">
             <tr>
               {columns.map((column) => (
-                <th className="px-4 py-3 text-xs font-black uppercase tracking-wide" key={column.name}>
+                <th className="sticky top-0 z-20 bg-ink-950 px-4 py-3 text-xs font-black uppercase tracking-wide" key={column.name}>
                   {column.label ?? column.name}
                 </th>
               ))}
-              <th className={(deletion.available ? 'w-36' : communicationsAvailable ? 'w-24' : 'w-14') + ' sticky right-0 z-10 bg-ink-950'}>
+              <th className={(deletion.available ? 'w-36' : communicationsAvailable ? 'w-24' : 'w-14') + ' sticky right-0 top-0 z-30 bg-ink-950'}>
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>

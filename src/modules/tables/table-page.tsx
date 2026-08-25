@@ -57,34 +57,37 @@ export function TablePage() {
 
   return (
     <div className="space-y-4">
-      <ModuleHeader
-        action={<div className="flex flex-wrap items-center justify-end gap-2">
-          <ExportActions rows={rows.data ?? []} table={table} />
-          {repository.writable && !table.readOnly ? (
-              <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
-                <Plus className="size-5" /> {createLabel}
-              </Link>
-            ) : (
-              <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">
-                {table.readOnly ? 'Actualización automática' : 'Solo lectura'}
-              </span>
-            )}
-        </div>}
-        description={table.description}
-        eyebrow={table.module}
-        footer={<span>{rows.data?.length ?? 0} registros</span>}
-        icon={<TableIcon className="size-5" name={table.icon} />}
-        title={getTableDisplayName(table)}
-        tone="light"
-      />
+      <div className="space-y-2 lg:sticky lg:top-16 lg:z-30 lg:-mx-2 lg:bg-[#f7f3f1]/95 lg:px-2 lg:pb-2 lg:pt-2 lg:backdrop-blur-xl">
+        <ModuleHeader
+          action={<div className="flex flex-wrap items-center justify-end gap-2">
+            <ExportActions rows={rows.data ?? []} table={table} />
+            {repository.writable && !table.readOnly ? (
+                <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
+                  <Plus className="size-5" /> {createLabel}
+                </Link>
+              ) : (
+                <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">
+                  {table.readOnly ? 'Actualización automática' : 'Solo lectura'}
+                </span>
+              )}
+          </div>}
+          compact
+          description={table.description}
+          eyebrow={table.module}
+          footer={<span>{rows.data?.length ?? 0} registros</span>}
+          icon={<TableIcon className="size-5" name={table.icon} />}
+          title={getTableDisplayName(table)}
+          tone="light"
+        />
 
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <label className="relative block w-full xl:max-w-md">
-          <span className="sr-only">Buscar registros</span>
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-800/35" />
-          <input className="min-h-12 w-full rounded-2xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" onChange={(event) => setSearch(event.target.value)} placeholder="Buscar en todos los campos…" type="search" value={search} />
-        </label>
-        <ViewSwitcher onChange={changeView} value={view} views={availableViews} />
+        <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+          <label className="relative block w-full xl:max-w-md">
+            <span className="sr-only">Buscar registros</span>
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-800/35" />
+            <input className="min-h-11 w-full rounded-2xl border border-black/5 bg-white pl-11 pr-4 text-sm font-semibold outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100" onChange={(event) => setSearch(event.target.value)} placeholder="Buscar en todos los campos…" type="search" value={search} />
+          </label>
+          <ViewSwitcher onChange={changeView} value={view} views={availableViews} />
+        </div>
       </div>
 
       {rows.isPending && <StatusMessage text="Cargando registros…" />}
