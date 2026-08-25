@@ -2,6 +2,7 @@ import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, C
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Link } from 'react-router'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import type { CollectionViewProps } from '@/views/types'
@@ -15,7 +16,7 @@ import { outboundDashboardMetrics } from '@/views/outbound-dashboard'
 import { purchaseDashboardMetrics, type PurchaseVolumeMetric } from '@/views/purchase-dashboard'
 import { supplierDashboardMetrics } from '@/views/supplier-dashboard'
 import { TableView } from '@/views/table-view'
-import { warehouseDashboardMetrics } from '@/views/warehouse-dashboard'
+import { warehouseDashboardMetrics, type WarehouseStockAlert, type WarehouseStockAlertKind } from '@/views/warehouse-dashboard'
 
 export function DashboardView(props: CollectionViewProps) {
   if (props.table.name === 'Gestion Clientes') {
@@ -128,22 +129,158 @@ function SupplierDashboardView(props: CollectionViewProps) {
 
 function WarehouseDashboardView(props: CollectionViewProps) {
   const metrics = warehouseDashboardMetrics(props.rows)
+  const [selectedAlert, setSelectedAlert] = useState<WarehouseStockAlertKind>()
 
   return (
     <div className="space-y-5">
-      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
         <OperationCountCard icon={Database} label="Registros" value={metrics.products} />
         <OperationVolumeCard icon={Gauge} label="GPS con más existencia" metric={metrics.categories.GPS} />
         <OperationVolumeCard icon={Activity} label="Sensor con más existencia" metric={metrics.categories.SENSOR} />
         <OperationVolumeCard icon={Layers3} label="Accesorio con más existencia" metric={metrics.categories.ACCESORIO} />
         <OperationVolumeCard icon={FileCheck2} label="CCTV con más existencia" metric={metrics.categories.CCTV} />
+        <WarehouseAlertCard
+          label="Reabastecer"
+          onClick={() => setSelectedAlert('REABASTECER')}
+          tone="danger"
+          value={metrics.alerts.REABASTECER.length}
+        />
+        <WarehouseAlertCard
+          label="Sobrestock"
+          onClick={() => setSelectedAlert('SOBRESTOCK')}
+          tone="info"
+          value={metrics.alerts.SOBRESTOCK.length}
+        />
       </section>
 
       <section>
         <h2 className="mb-4 text-lg font-black text-ink-950">PRODUCTOS RECIENTES</h2>
         <CardView {...props} rows={props.rows.slice(0, 6)} />
       </section>
+
+      {selectedAlert && (
+        <WarehouseAlertDialog
+          basePath={props.basePath}
+          items={metrics.alerts[selectedAlert]}
+          kind={selectedAlert}
+          onClose={() => setSelectedAlert(undefined)}
+        />
+      )}
     </div>
+  )
+}
+
+function WarehouseAlertCard({ label, onClick, tone, value }: {
+  readonly label: string
+  readonly onClick: () => void
+  readonly tone: 'danger' | 'info'
+  readonly value: number
+}) {
+  const styles = tone === 'danger'
+    ? 'border-red-200 bg-red-50 text-red-700 hover:border-red-400 focus-visible:outline-red-600'
+    : 'border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-400 focus-visible:outline-blue-600'
+
+  return (
+    <button
+      aria-label={'Ver productos en estado ' + label}
+      className={'group relative rounded-xl border p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-4 ' + styles}
+      onClick={onClick}
+      type="button"
+    >
+      <span className="grid size-8 place-items-center rounded-lg bg-white/75"><CircleAlert className="size-4" /></span>
+      <p className="mt-3 text-2xl font-black leading-none">{value}</p>
+      <p className="mt-1 text-[10px] font-black uppercase tracking-wide opacity-75">{label}</p>
+      <ChevronRight className="absolute right-3 top-3 size-4 transition group-hover:translate-x-0.5" />
+    </button>
+  )
+}
+
+function WarehouseAlertDialog({ basePath, items, kind, onClose }: {
+  readonly basePath: string
+  readonly items: readonly WarehouseStockAlert[]
+  readonly kind: WarehouseStockAlertKind
+  readonly onClose: () => void
+}) {
+  const replenish = kind === 'REABASTECER'
+  const title = replenish ? 'Productos por reabastecer' : 'Productos con sobrestock'
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [onClose])
+
+  return createPortal(
+    <div
+      aria-label={title}
+      aria-modal="true"
+      className="fixed inset-0 z-[100] grid place-items-center bg-ink-950/65 p-4 backdrop-blur-sm"
+      onMouseDown={(event) => {
+        if (event.currentTarget === event.target) onClose()
+      }}
+      role="dialog"
+    >
+      <section className="flex max-h-[min(760px,90vh)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 bg-ink-950 px-6 py-5 text-white">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-300">Estado del inventario</p>
+            <h2 className="mt-1 text-2xl font-black">{title}</h2>
+            <p className="mt-1 text-sm text-white/60">{items.length} {items.length === 1 ? 'producto' : 'productos'}</p>
+          </div>
+          <button
+            aria-label="Cerrar detalle"
+            className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/15 text-white transition hover:bg-white/10"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-5" />
+          </button>
+        </header>
+
+        <div className="overflow-y-auto p-4 sm:p-6">
+          {items.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-ink-950/15 p-8 text-center">
+              <CircleCheckBig className="mx-auto size-9 text-emerald-600" />
+              <p className="mt-3 font-black text-ink-950">No hay productos en este estado.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {items.map((item) => (
+                <Link
+                  className="group grid gap-3 rounded-2xl border border-ink-950/10 p-4 transition hover:border-brand-300 hover:bg-brand-50 sm:grid-cols-[1fr_auto] sm:items-center"
+                  key={item.rowUuid || item.productId}
+                  onClick={onClose}
+                  to={basePath + '/' + encodeURIComponent(item.rowUuid)}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-black text-ink-950">{item.productId || item.name}</p>
+                    <p className="mt-0.5 truncate text-sm text-ink-800/65">{item.name}</p>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-ink-800/40">{item.category}</p>
+                  </div>
+                  <div className="flex items-center gap-3 sm:text-right">
+                    <div>
+                      <p className={'text-xl font-black ' + (replenish ? 'text-red-700' : 'text-blue-700')}>{item.stock}</p>
+                      <p className="text-[10px] font-black uppercase text-ink-800/40">
+                        {replenish ? 'Mínimo ' + item.minimum : 'Máximo ' + item.maximum}
+                      </p>
+                    </div>
+                    <ChevronRight className="size-5 text-brand-600 transition group-hover:translate-x-0.5" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>,
+    document.body,
   )
 }
 

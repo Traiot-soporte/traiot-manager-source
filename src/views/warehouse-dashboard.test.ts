@@ -20,6 +20,10 @@ describe('panel de Almacen', () => {
         ACCESORIO: { name: 'Arnes', units: 40 },
         CCTV: { name: 'Camara exterior', units: 12 },
       },
+      alerts: {
+        REABASTECER: [],
+        SOBRESTOCK: [],
+      },
     })
   })
 
@@ -30,5 +34,20 @@ describe('panel de Almacen', () => {
 
     expect(metrics.categories.ACCESORIO).toEqual({ name: 'Accesorio especial', units: 7 })
     expect(metrics.categories.CCTV).toBeUndefined()
+  })
+
+  it('clasifica los productos por estado de existencias', () => {
+    const metrics = warehouseDashboardMetrics([
+      { _uuid: 'low', 'ID PRODUCTO': 'GPS-LOW', NOMBRE: 'GPS bajo', CATEGORIA: 'GPS', STOCK: 2, 'STOCK MINIMO': 5, 'STOCK MAXIMO': 20 },
+      { _uuid: 'over', 'ID PRODUCTO': 'SEN-OVER', NOMBRE: 'Sensor excedido', CATEGORIA: 'Sensor', STOCK: 25, 'STOCK MINIMO': 5, 'STOCK MAXIMO': 20 },
+      { _uuid: 'ok', 'ID PRODUCTO': 'GPS-OK', NOMBRE: 'GPS adecuado', CATEGORIA: 'GPS', STOCK: 10, 'STOCK MINIMO': 5, 'STOCK MAXIMO': 20 },
+    ])
+
+    expect(metrics.alerts.REABASTECER).toEqual([
+      { rowUuid: 'low', productId: 'GPS-LOW', name: 'GPS bajo', category: 'GPS', stock: 2, minimum: 5, maximum: 20 },
+    ])
+    expect(metrics.alerts.SOBRESTOCK).toEqual([
+      { rowUuid: 'over', productId: 'SEN-OVER', name: 'Sensor excedido', category: 'Sensor', stock: 25, minimum: 5, maximum: 20 },
+    ])
   })
 })
