@@ -110,7 +110,16 @@ describe('registro de metadata', () => {
       label: 'CANTIDAD',
       required: true,
     })
-    for (const name of ['ESTATUS PEDIDO', 'VALIDADOR VENTA']) {
+    for (const name of [
+      'PRECIO VENTA PARA ASESOR',
+      'COSTO INSTALACION',
+      'ENVIO',
+      'SUBTOTAL',
+      'IVA',
+      'TOTAL',
+      'ESTATUS PEDIDO',
+      'VALIDADOR VENTA',
+    ]) {
       expect(exits?.columns.find((column) => column.name === name)).toMatchObject({
         exportable: false,
         hidden: true,

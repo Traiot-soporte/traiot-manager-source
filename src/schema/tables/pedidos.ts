@@ -56,16 +56,20 @@ export const pedidosTable = defineTable({
       name: 'PRECIO VENTA PARA ASESOR',
       type: 'Price',
       readOnly: true,
+      hidden: true,
+      exportable: false,
       formula: (row, context) =>
         refValue(row, 'producto_uuid', 'ALMACEN', 'PRECIO VENTA PARA ASESOR', context),
     },
     { name: 'EQUIPOS A VENDER', label: 'CANTIDAD', type: 'Number', required: true, compact: true },
-    { name: 'COSTO INSTALACION', type: 'Price' },
-    { name: 'ENVIO', type: 'Price' },
+    { name: 'COSTO INSTALACION', type: 'Price', hidden: true, exportable: false },
+    { name: 'ENVIO', type: 'Price', hidden: true, exportable: false },
     {
       name: 'SUBTOTAL',
       type: 'Price',
       readOnly: true,
+      hidden: true,
+      exportable: false,
       formula: (row) =>
         roundCurrency(
           asNumber(row['PRECIO VENTA PARA ASESOR']) * asNumber(row['EQUIPOS A VENDER']) +
@@ -77,12 +81,16 @@ export const pedidosTable = defineTable({
       name: 'IVA',
       type: 'Price',
       readOnly: true,
+      hidden: true,
+      exportable: false,
       formula: (row) => roundCurrency(asNumber(row['SUBTOTAL']) * 0.16),
     },
     {
       name: 'TOTAL',
       type: 'Price',
       readOnly: true,
+      hidden: true,
+      exportable: false,
       description: 'Corregido: ENVIO ya forma parte del subtotal.',
       formula: (row) => roundCurrency(asNumber(row['SUBTOTAL']) + asNumber(row['IVA'])),
     },
