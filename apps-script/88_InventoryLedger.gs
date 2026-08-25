@@ -4,7 +4,7 @@
  * El saldo existente de ALMACEN se conserva como SALDO INICIAL. A partir de
  * ese punto solo COMPRAS recibidas y PEDIDOS aprobados modifican existencias.
  */
-var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V3';
+var TRAIOT_INVENTORY_STORAGE_PROPERTY = 'TRAIOT_INVENTORY_LEDGER_V4';
 
 function ensureInventoryStorage_(spreadsheet, force) {
   var properties = PropertiesService.getScriptProperties();
@@ -55,6 +55,7 @@ function ensureInventoryStorage_(spreadsheet, force) {
     var noticeIndex = requireHeaderIndex_(almacenHeaders, 'AVISO DE COMPRA', almacenSchema);
     var purchasesIndex = requireHeaderIndex_(almacenHeaders, 'COMPRAS', almacenSchema);
     var exitsIndex = requireHeaderIndex_(almacenHeaders, 'PEDIDOS', almacenSchema);
+    var statusIndex = requireHeaderIndex_(almacenHeaders, 'ESTATUS', almacenSchema);
     var productRows = readApiRows_(spreadsheet, almacenSchema);
     var derivedCounters = buildInventoryAggregateCounters_(spreadsheet);
     var baselineRecords = [];
@@ -81,6 +82,9 @@ function ensureInventoryStorage_(spreadsheet, force) {
         almacenSheet.getRange(snapshot.rowNumber, stockIndex + 1).setValue(stock);
         almacenSheet.getRange(snapshot.rowNumber, purchasesIndex + 1).setValue(purchases);
         almacenSheet.getRange(snapshot.rowNumber, exitsIndex + 1).setValue(exits);
+        almacenSheet.getRange(snapshot.rowNumber, statusIndex + 1).setValue(
+          calculateInventoryStatus_(stock, product['STOCK MINIMO'], product['STOCK MAXIMO'])
+        );
         almacenSheet.getRange(snapshot.rowNumber, noticeIndex + 1).setValue(
           calculateInventoryPurchaseNotice_(stock, product['STOCK MINIMO'], product['STOCK MAXIMO'])
         );
@@ -246,6 +250,11 @@ function planInventoryMutation_(spreadsheet, schemaTable, beforeRecord, afterRec
         nextStock,
         productSnapshot.record['STOCK MINIMO'],
         productSnapshot.record['STOCK MAXIMO']
+      ),
+      status: calculateInventoryStatus_(
+        nextStock,
+        productSnapshot.record['STOCK MINIMO'],
+        productSnapshot.record['STOCK MAXIMO']
       )
     });
     entries.push(buildInventoryLedgerRecord_({
@@ -282,8 +291,10 @@ function commitInventoryPlan_(spreadsheet, plan) {
       var headers = product.snapshot.headers;
       var stockColumn = requireHeaderIndex_(headers, 'STOCK', product.schema) + 1;
       var noticeColumn = requireHeaderIndex_(headers, 'AVISO DE COMPRA', product.schema) + 1;
+      var statusColumn = requireHeaderIndex_(headers, 'ESTATUS', product.schema) + 1;
       product.sheet.getRange(product.snapshot.rowNumber, stockColumn).setValue(product.nextStock);
       product.sheet.getRange(product.snapshot.rowNumber, noticeColumn).setValue(product.notice);
+      product.sheet.getRange(product.snapshot.rowNumber, statusColumn).setValue(product.status);
       product.sheet.getRange(
         product.snapshot.rowNumber,
         requireHeaderIndex_(headers, product.counterField, product.schema) + 1
@@ -304,6 +315,10 @@ function commitInventoryPlan_(spreadsheet, plan) {
         product.snapshot.rowNumber,
         requireHeaderIndex_(headers, 'AVISO DE COMPRA', product.schema) + 1
       ).setValue(product.snapshot.record['AVISO DE COMPRA'] || '');
+      product.sheet.getRange(
+        product.snapshot.rowNumber,
+        requireHeaderIndex_(headers, 'ESTATUS', product.schema) + 1
+      ).setValue(product.snapshot.record.ESTATUS || '');
       product.sheet.getRange(
         product.snapshot.rowNumber,
         requireHeaderIndex_(headers, product.counterField, product.schema) + 1
@@ -356,6 +371,16 @@ function calculateInventoryPurchaseNotice_(stock, minimum, maximum) {
   if (normalizedMinimum > 0 && normalizedStock <= normalizedMinimum) return 'REABASTECER';
   if (normalizedMaximum > 0 && normalizedStock > normalizedMaximum) return 'SOBRESTOCK';
   return 'NIVEL ADECUADO';
+}
+
+function calculateInventoryStatus_(stock, minimum, maximum) {
+  var normalizedStock = apiNumber_(stock);
+  var normalizedMinimum = apiNumber_(minimum);
+  var normalizedMaximum = apiNumber_(maximum);
+  if (normalizedStock <= 0) return 'STOCK AGOTADO';
+  if (normalizedStock <= normalizedMinimum) return 'STOCK BAJO';
+  if (normalizedMaximum > 0 && normalizedStock > normalizedMaximum) return 'SOBRESTOCK';
+  return 'STOCK SUFICIENTE';
 }
 
 function buildInventoryAggregateCounters_(spreadsheet) {

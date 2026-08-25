@@ -59,6 +59,12 @@ describe('registro de metadata', () => {
       type: 'Number',
       readOnly: true,
     })
+    const warehouseStatus = warehouse?.columns.find((column) => column.name === 'ESTATUS')
+    expect(warehouseStatus).toMatchObject({
+      type: 'Text',
+      readOnly: true,
+    })
+    expect(warehouseStatus?.formula).toBeTypeOf('function')
   })
 
   it('configura Compras como captura automática y simplificada', () => {

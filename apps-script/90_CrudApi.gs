@@ -539,6 +539,11 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
     record.STOCK = apiNumber_(record.STOCK);
     record.COMPRAS = apiNumber_(record.COMPRAS);
     record.PEDIDOS = apiNumber_(record.PEDIDOS);
+    record.ESTATUS = calculateInventoryStatus_(
+      record.STOCK,
+      record['STOCK MINIMO'],
+      record['STOCK MAXIMO']
+    );
     record['AVISO DE COMPRA'] = calculateInventoryPurchaseNotice_(
       record.STOCK,
       record['STOCK MINIMO'],
@@ -693,6 +698,7 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
     columnNames.push('AVISO DE COMPRA');
     columnNames.push('COMPRAS');
     columnNames.push('PEDIDOS');
+    columnNames.push('ESTATUS');
   }
 
   return columnNames.filter(function (columnName, index, values) {

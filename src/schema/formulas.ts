@@ -21,6 +21,21 @@ export function roundCurrency(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100
 }
 
+export function warehouseStockStatus(
+  stockValue: CellValue | undefined,
+  minimumValue: CellValue | undefined,
+  maximumValue: CellValue | undefined,
+): string {
+  const stock = asNumber(stockValue)
+  const minimum = asNumber(minimumValue)
+  const maximum = asNumber(maximumValue)
+
+  if (stock <= 0) return 'STOCK AGOTADO'
+  if (stock <= minimum) return 'STOCK BAJO'
+  if (maximum > 0 && stock > maximum) return 'SOBRESTOCK'
+  return 'STOCK SUFICIENTE'
+}
+
 export function refValue(
   row: RowData,
   refColumn: string,

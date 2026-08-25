@@ -451,8 +451,8 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "required": false,
         "hidden": false,
         "sensitive": false,
-        "readOnly": false,
-        "hasFormula": false,
+        "readOnly": true,
+        "hasFormula": true,
         "values": [],
         "syncTo": "",
         "refTable": ""

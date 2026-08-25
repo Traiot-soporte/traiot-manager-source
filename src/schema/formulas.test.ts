@@ -5,6 +5,7 @@ import {
   laboratoryDays,
   laboratorySemaphore,
   roundCurrency,
+  warehouseStockStatus,
 } from '@/schema/formulas'
 import { pedidosTable } from '@/schema/tables/pedidos'
 import type { FormulaContext, RowData } from '@/schema/types'
@@ -47,6 +48,15 @@ describe('fórmulas corregidas', () => {
 
   it('redondea moneda a dos decimales', () => {
     expect(roundCurrency(10.005)).toBe(10.01)
+  })
+
+  it('deduce el estatus de inventario con los limites configurados', () => {
+    expect(warehouseStockStatus(0, 5, 10)).toBe('STOCK AGOTADO')
+    expect(warehouseStockStatus(1, 5, 10)).toBe('STOCK BAJO')
+    expect(warehouseStockStatus(5, 5, 10)).toBe('STOCK BAJO')
+    expect(warehouseStockStatus(6, 5, 10)).toBe('STOCK SUFICIENTE')
+    expect(warehouseStockStatus(10, 5, 10)).toBe('STOCK SUFICIENTE')
+    expect(warehouseStockStatus(11, 5, 10)).toBe('SOBRESTOCK')
   })
 
   it('cierra estados válidos de laboratorio', () => {

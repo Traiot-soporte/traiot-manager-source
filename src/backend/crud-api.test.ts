@@ -100,6 +100,11 @@ interface CrudSandbox {
     minimum: unknown,
     maximum: unknown,
   ) => string
+  readonly calculateInventoryStatus_: (
+    stock: unknown,
+    minimum: unknown,
+    maximum: unknown,
+  ) => string
 }
 
 function loadCrudSandbox(): CrudSandbox {
@@ -165,6 +170,7 @@ describe('CRUD de Apps Script', () => {
     const {
       buildInventoryDeltas_,
       calculateInventoryPurchaseNotice_,
+      calculateInventoryStatus_,
       inventoryContributionForRecord_,
     } = loadCrudSandbox()
     const received = {
@@ -196,6 +202,10 @@ describe('CRUD de Apps Script', () => {
     expect(calculateInventoryPurchaseNotice_(2, 3, 10)).toBe('REABASTECER')
     expect(calculateInventoryPurchaseNotice_(11, 3, 10)).toBe('SOBRESTOCK')
     expect(calculateInventoryPurchaseNotice_(6, 3, 10)).toBe('NIVEL ADECUADO')
+    expect(calculateInventoryStatus_(0, 3, 10)).toBe('STOCK AGOTADO')
+    expect(calculateInventoryStatus_(3, 3, 10)).toBe('STOCK BAJO')
+    expect(calculateInventoryStatus_(10, 3, 10)).toBe('STOCK SUFICIENTE')
+    expect(calculateInventoryStatus_(11, 3, 10)).toBe('SOBRESTOCK')
   })
 
   it('normaliza numeros, booleanos y listas antes de escribir', () => {

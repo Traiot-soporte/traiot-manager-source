@@ -1,5 +1,5 @@
 import { productCategories } from '@/schema/catalogs'
-import { asNumber, roundCurrency } from '@/schema/formulas'
+import { asNumber, roundCurrency, warehouseStockStatus } from '@/schema/formulas'
 import { defineTable, migrationRef } from '@/schema/helpers'
 
 export const almacenTable = defineTable({
@@ -52,7 +52,17 @@ export const almacenTable = defineTable({
     { name: 'CENTRO DE COSTOS', type: 'Text', hidden: true },
     { name: 'TIEMPO DE ENTREGA', type: 'Text', hidden: true },
     { name: 'CLAVE SAT', type: 'Text', hidden: true },
-    { name: 'ESTATUS', type: 'Text' },
+    {
+      name: 'ESTATUS',
+      type: 'Text',
+      readOnly: true,
+      description: 'Calculado automaticamente con el stock minimo, maximo y actual.',
+      formula: (row) => warehouseStockStatus(
+        row.STOCK,
+        row['STOCK MINIMO'],
+        row['STOCK MAXIMO'],
+      ),
+    },
     {
       name: 'COMPRAS',
       type: 'Number',
