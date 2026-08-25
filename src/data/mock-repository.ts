@@ -6,11 +6,15 @@ import type {
   AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
+  CompanyMeeting,
+  CreateCompanyMeetingInput,
+  CreateCompanyMeetingResult,
   CommunicationStatus,
   CreateCommunicationInput,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
+  MeetingParticipant,
   Repository,
   ScheduledCommunication,
   UpdateRowInput,
@@ -35,6 +39,7 @@ export class MockRepository implements Repository {
   readonly writable = true
   readonly #tables = new Map<string, Map<string, RowData>>()
   readonly #communications = new Map<string, ScheduledCommunication>()
+  readonly #meetings = new Map<string, CompanyMeeting>()
   readonly #now: () => Date
   readonly #createUuid: () => string
 
@@ -137,6 +142,47 @@ export class MockRepository implements Repository {
 
   async activateAuthentication(): Promise<void> {}
 
+  async listMeetingParticipants(): Promise<readonly MeetingParticipant[]> {
+    return this.#activeRows('Usuarios').map((row) => ({
+      userUuid: String(row._uuid ?? ''),
+      name: String(row.UserName ?? row.UserID ?? 'Usuario'),
+      email: String(row.UserEmail ?? ''),
+      role: String(row.UserRole ?? ''),
+    })).filter((participant) => participant.email.includes('@'))
+  }
+
+  async listCompanyMeetings(): Promise<readonly CompanyMeeting[]> {
+    return [...this.#meetings.values()].sort((left, right) => left.startAt.localeCompare(right.startAt))
+  }
+
+  async createCompanyMeeting(input: CreateCompanyMeetingInput): Promise<CreateCompanyMeetingResult> {
+    const available = await this.listMeetingParticipants()
+    const selected = available.filter((participant) => input.participantUuids.includes(participant.userUuid))
+    const meetingUuid = this.#createUuid()
+    const now = this.#now().toISOString()
+    const meeting: CompanyMeeting = {
+      ...input,
+      meetingUuid,
+      participants: selected,
+      organizerName: mockUser.name ?? 'Usuario',
+      organizerEmail: mockUser.email,
+      createdAt: now,
+    }
+    this.#meetings.set(meetingUuid, meeting)
+    const invitation = meetingInvitationText(meeting)
+    for (const participant of selected) {
+      await this.createMeetingCommunication(meeting, 'EMAIL', participant.email, invitation, now)
+    }
+    for (const recipient of input.whatsappRecipients) {
+      await this.createMeetingCommunication(meeting, 'WHATSAPP', recipient, invitation, now)
+    }
+    return {
+      meeting: { ...meeting },
+      emailInvitations: selected.length,
+      whatsappInvitations: input.whatsappRecipients.length,
+    }
+  }
+
   async listCommunications(): Promise<readonly ScheduledCommunication[]> {
     return [...this.#communications.values()]
       .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt))
@@ -173,6 +219,32 @@ export class MockRepository implements Repository {
     }
     this.#communications.set(communicationUuid, next)
     return { ...next }
+  }
+
+  private async createMeetingCommunication(
+    meeting: CompanyMeeting,
+    channel: 'EMAIL' | 'WHATSAPP',
+    recipient: string,
+    message: string,
+    scheduledAt: string,
+  ): Promise<void> {
+    const communicationUuid = this.#createUuid()
+    this.#communications.set(communicationUuid, {
+      communicationUuid,
+      entityTable: 'Reuniones',
+      entityUuid: meeting.meetingUuid,
+      entityTitle: 'Reunión · ' + meeting.title,
+      channel,
+      recipient,
+      subject: channel === 'EMAIL' ? 'Invitación a reunión · ' + meeting.title : '',
+      message,
+      scheduledAt,
+      status: 'PROGRAMADO',
+      createdAt: scheduledAt,
+      openedAt: '',
+      sentAt: '',
+      cancelledAt: '',
+    })
   }
 
   async getSummaries(): Promise<readonly TableSummary[]> {
@@ -297,3 +369,12 @@ export class MockRepository implements Repository {
 }
 
 export const mockRepository = new MockRepository()
+
+function meetingInvitationText(meeting: CompanyMeeting): string {
+  return [
+    'Reunión TRAIOT: ' + meeting.title,
+    'Inicio: ' + meeting.startAt,
+    'Google Meet: ' + meeting.meetUrl,
+    meeting.description,
+  ].filter(Boolean).join('\n\n')
+}

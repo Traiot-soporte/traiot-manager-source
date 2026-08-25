@@ -73,11 +73,12 @@ export interface RolePermissionSyncResult {
 }
 
 export type CommunicationChannel = 'EMAIL' | 'WHATSAPP'
+export type CommunicationEntityTable = 'CLIENTES' | 'Gestion Clientes' | 'Reuniones'
 export type CommunicationStatus = 'PROGRAMADO' | 'ABIERTO' | 'ENVIADO' | 'CANCELADO'
 
 export interface ScheduledCommunication {
   readonly communicationUuid: string
-  readonly entityTable: 'CLIENTES' | 'Gestion Clientes'
+  readonly entityTable: CommunicationEntityTable
   readonly entityUuid: string
   readonly entityTitle: string
   readonly channel: CommunicationChannel
@@ -103,6 +104,42 @@ export interface CreateCommunicationInput {
   readonly scheduledAt: string
 }
 
+export interface MeetingParticipant {
+  readonly userUuid: string
+  readonly name: string
+  readonly email: string
+  readonly role: string
+}
+
+export interface CompanyMeeting {
+  readonly meetingUuid: string
+  readonly title: string
+  readonly description: string
+  readonly startAt: string
+  readonly endAt: string
+  readonly meetUrl: string
+  readonly participants: readonly MeetingParticipant[]
+  readonly organizerName: string
+  readonly organizerEmail: string
+  readonly createdAt: string
+}
+
+export interface CreateCompanyMeetingInput {
+  readonly title: string
+  readonly description: string
+  readonly startAt: string
+  readonly endAt: string
+  readonly meetUrl: string
+  readonly participantUuids: readonly string[]
+  readonly whatsappRecipients: readonly string[]
+}
+
+export interface CreateCompanyMeetingResult {
+  readonly meeting: CompanyMeeting
+  readonly emailInvitations: number
+  readonly whatsappInvitations: number
+}
+
 export interface Repository {
   readonly source: 'mock' | 'apps-script'
   readonly sourceLabel: string
@@ -121,6 +158,9 @@ export interface Repository {
   setAuthUserActive(userUuid: string, active: boolean): Promise<void>
   syncRolePermissions(): Promise<RolePermissionSyncResult>
   activateAuthentication(): Promise<void>
+  listMeetingParticipants(): Promise<readonly MeetingParticipant[]>
+  listCompanyMeetings(): Promise<readonly CompanyMeeting[]>
+  createCompanyMeeting(input: CreateCompanyMeetingInput): Promise<CreateCompanyMeetingResult>
   listCommunications(): Promise<readonly ScheduledCommunication[]>
   createCommunication(input: CreateCommunicationInput): Promise<ScheduledCommunication>
   updateCommunicationStatus(

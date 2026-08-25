@@ -24,7 +24,6 @@ var TRAIOT_COMMUNICATION_HEADERS = Object.freeze([
 ]);
 
 function listScheduledCommunications_(user) {
-  assertCommunicationCrmAccess_(user);
   var spreadsheet = openConfiguredSpreadsheet_();
   var sheet = ensureCommunicationsSheet_(spreadsheet);
   var values = sheet.getDataRange().getValues();
@@ -118,7 +117,6 @@ function createScheduledCommunication_(user, submitted, mutationId) {
 }
 
 function updateScheduledCommunicationStatus_(user, communicationUuid, requestedStatus, mutationId) {
-  assertCommunicationCrmAccess_(user);
   var normalizedUuid = normalizeCell_(communicationUuid).toLowerCase();
   var status = normalizeLookupValue_(requestedStatus);
 

@@ -120,6 +120,22 @@ function apiRequest(request) {
     return syncRolePermissionMatrix_(user);
   }
 
+  if (action === 'meeting-participants') {
+    return listMeetingParticipants_(user);
+  }
+
+  if (action === 'meeting-list') {
+    return listCompanyMeetings_(user);
+  }
+
+  if (action === 'meeting-create') {
+    return createCompanyMeeting_(
+      user,
+      safeRequest.meeting,
+      safeRequest.mutationId
+    );
+  }
+
   if (action === 'communication-list') {
     return listScheduledCommunications_(user);
   }

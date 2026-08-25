@@ -10,10 +10,14 @@ import type {
   AuthSecurityUser,
   AuthStatus,
   ChangePasswordInput,
+  CompanyMeeting,
+  CreateCompanyMeetingInput,
+  CreateCompanyMeetingResult,
   CreateCommunicationInput,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
+  MeetingParticipant,
   Repository,
   RolePermissionSyncResult,
   ScheduledCommunication,
@@ -154,6 +158,26 @@ export class AppsScriptRepository implements Repository {
   async activateAuthentication(): Promise<void> {
     await this.#authenticatedCall({ action: 'auth-activate' })
     this.#session.clear()
+  }
+
+  async listMeetingParticipants(): Promise<readonly MeetingParticipant[]> {
+    return await this.#authenticatedCall({
+      action: 'meeting-participants',
+    }) as readonly MeetingParticipant[]
+  }
+
+  async listCompanyMeetings(): Promise<readonly CompanyMeeting[]> {
+    return await this.#authenticatedCall({
+      action: 'meeting-list',
+    }) as readonly CompanyMeeting[]
+  }
+
+  async createCompanyMeeting(input: CreateCompanyMeetingInput): Promise<CreateCompanyMeetingResult> {
+    return await this.#authenticatedCall({
+      action: 'meeting-create',
+      meeting: input,
+      mutationId: this.#createMutationId(),
+    }) as CreateCompanyMeetingResult
   }
 
   async listCommunications(): Promise<readonly ScheduledCommunication[]> {

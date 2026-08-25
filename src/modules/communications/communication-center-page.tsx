@@ -4,7 +4,6 @@ import { Navigate } from 'react-router'
 
 import { ModuleHeader } from '@/components/module-header'
 import { useRepository } from '@/data/use-repository'
-import { canRoleAccessSection } from '@/modules/auth/auth-permissions'
 import { CommunicationList } from '@/views/communication-list'
 
 export function CommunicationCenterPage() {
@@ -16,13 +15,13 @@ export function CommunicationCenterPage() {
   const communications = useQuery({
     queryKey: ['communications'],
     queryFn: () => repository.listCommunications(),
-    enabled: Boolean(currentUser.data && canRoleAccessSection(currentUser.data.role, 'crm')),
+    enabled: Boolean(currentUser.data),
     refetchInterval: 60_000,
     staleTime: 0,
   })
 
   if (currentUser.isPending) return <Status text="Preparando comunicaciones…" />
-  if (!currentUser.data || !canRoleAccessSection(currentUser.data.role, 'crm')) return <Navigate replace to="/" />
+  if (!currentUser.data) return <Navigate replace to="/" />
 
   const active = (communications.data ?? []).filter((item) => item.status === 'PROGRAMADO' || item.status === 'ABIERTO')
   const history = (communications.data ?? [])
@@ -35,7 +34,7 @@ export function CommunicationCenterPage() {
       <ModuleHeader
         description="Mensajes preparados para abrir, confirmar y registrar desde tu cuenta."
         eyebrow="CRM"
-        footer={<span>{active.length} programadas · {dueCount} pendientes</span>}
+        footer={<span>{active.length} pendientes de enviar · {dueCount} por atender</span>}
         icon={<CalendarClock className="size-5" />}
         title="Comunicaciones"
         tone="light"

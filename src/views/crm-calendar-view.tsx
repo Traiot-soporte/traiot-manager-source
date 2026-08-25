@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Building2, ChevronLeft, ChevronRight, Plus, UserRound } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, Plus, UserRound, Video } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
 import { useRepository } from '@/data/use-repository'
+import type { CompanyMeeting } from '@/data/repository'
 import { cn } from '@/lib/utils'
 import type { RowData } from '@/schema'
 import { crmResponsibles } from '@/schema/catalogs'
@@ -31,6 +32,11 @@ const unassignedColor = { background: '#f1f5f9', border: '#64748b', text: '#3341
 export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
   const repository = useRepository()
   const currentUser = useQuery({ queryKey: ['current-user'], queryFn: () => repository.getCurrentUser() })
+  const meetings = useQuery({
+    queryKey: ['company-meetings'],
+    queryFn: () => repository.listCompanyMeetings(),
+    staleTime: 30_000,
+  })
   const [scope, setScope] = useState<CalendarScope>('personal')
   const [month, setMonth] = useState(() => mexicoCurrentMonth())
   const currentUserUuid = currentUser.data?.userUuid ?? ''
@@ -41,6 +47,11 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
     [currentUserUuid, rows, scope],
   )
   const eventsByDay = useMemo(() => groupEventsByDay(visibleRows), [visibleRows])
+  const companyMeetings = useMemo(
+    () => scope === 'company' ? meetings.data ?? [] : [],
+    [meetings.data, scope],
+  )
+  const meetingsByDay = useMemo(() => groupMeetingsByDay(companyMeetings), [companyMeetings])
   const calendarDays = buildMonthCells(month)
   const today = mexicoDateKey(new Date())
   const responsibles = useMemo(() => uniqueResponsibles(visibleRows), [visibleRows])
@@ -75,7 +86,7 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
             <button aria-label="Mes siguiente" className="grid size-10 place-items-center rounded-xl border border-black/5 hover:bg-brand-50" onClick={() => moveMonth(1)} type="button"><ChevronRight className="size-4" /></button>
             <button className="ml-1 min-h-10 rounded-xl px-3 text-xs font-black text-brand-700 hover:bg-brand-50" onClick={() => setMonth(mexicoCurrentMonth())} type="button">HOY</button>
           </div>
-          <span className="text-xs font-bold text-ink-800/45">{visibleRows.length} evento{visibleRows.length === 1 ? '' : 's'} visibles</span>
+          <span className="text-xs font-bold text-ink-800/45">{visibleRows.length + companyMeetings.length} evento{visibleRows.length + companyMeetings.length === 1 ? '' : 's'} visibles</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -87,15 +98,19 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
               {calendarDays.map((day, index) => {
                 if (!day) return <div className="min-h-32 border-b border-r border-black/5 bg-black/[0.015]" key={'blank-' + index} />
                 const dayEvents = eventsByDay.get(day.key) ?? []
+                const dayMeetings = meetingsByDay.get(day.key) ?? []
+                const totalEvents = dayEvents.length + dayMeetings.length
+                const crmLimit = Math.max(0, 3 - dayMeetings.length)
                 return (
                   <div className={cn('min-h-32 border-b border-r border-black/5 p-2', day.key === today && 'bg-brand-50/60')} key={day.key}>
                     <div className="mb-2 flex items-center justify-between">
                       <span className={cn('grid size-7 place-items-center rounded-full text-xs font-black', day.key === today ? 'bg-brand-500 text-[#191919]' : 'text-ink-800/55')}>{day.number}</span>
-                      {dayEvents.length > 0 && <span className="text-[10px] font-black text-ink-800/30">{dayEvents.length}</span>}
+                      {totalEvents > 0 && <span className="text-[10px] font-black text-ink-800/30">{totalEvents}</span>}
                     </div>
                     <div className="space-y-1.5">
-                      {dayEvents.slice(0, 3).map((row) => <CalendarEvent basePath={basePath} colorByResponsible={colorByResponsible} key={String(row._uuid)} row={row} />)}
-                      {dayEvents.length > 3 && <p className="px-1 text-[10px] font-black text-brand-700">+{dayEvents.length - 3} más</p>}
+                      {dayMeetings.slice(0, 3).map((meeting) => <MeetingCalendarEvent key={meeting.meetingUuid} meeting={meeting} />)}
+                      {dayEvents.slice(0, crmLimit).map((row) => <CalendarEvent basePath={basePath} colorByResponsible={colorByResponsible} key={String(row._uuid)} row={row} />)}
+                      {totalEvents > 3 && <p className="px-1 text-[10px] font-black text-brand-700">+{totalEvents - 3} más</p>}
                     </div>
                   </div>
                 )
@@ -104,6 +119,10 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
           </div>
         </div>
       </section>
+
+      {scope === 'company' && meetings.isError && (
+        <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">No fue posible consultar las reuniones empresariales.</p>
+      )}
 
       {scope === 'personal' && !currentUser.isPending && visibleRows.length === 0 && (
         <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">Tu calendario personal está vacío. Usa “Agregar personal” para crear un evento privado para tu cuenta.</p>
@@ -117,6 +136,21 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
         }) : <span className="text-xs font-semibold text-ink-800/35">Sin responsables visibles.</span>}
       </section>
     </div>
+  )
+}
+
+function MeetingCalendarEvent({ meeting }: { readonly meeting: CompanyMeeting }) {
+  return (
+    <a
+      className="block rounded-md border-l-[3px] border-sky-500 bg-sky-50 px-2 py-1.5 text-[10px] font-black leading-4 text-sky-900 transition hover:bg-sky-100"
+      href={meeting.meetUrl}
+      rel="noopener noreferrer"
+      target="_blank"
+      title={`${meeting.title} · ${formatMeetingTime(meeting.startAt)}`}
+    >
+      <span className="flex items-center gap-1 truncate"><Video className="size-3 shrink-0" /> {meeting.title}</span>
+      <span className="block truncate font-semibold opacity-70">{formatMeetingTime(meeting.startAt)} · {meeting.participants.length} invitados</span>
+    </a>
   )
 }
 
@@ -144,6 +178,31 @@ function groupEventsByDay(rows: readonly RowData[]): Map<string, RowData[]> {
     if (key) grouped.set(key, [...(grouped.get(key) ?? []), row])
   }
   return grouped
+}
+
+function groupMeetingsByDay(meetings: readonly CompanyMeeting[]): Map<string, CompanyMeeting[]> {
+  const grouped = new Map<string, CompanyMeeting[]>()
+  for (const meeting of meetings) {
+    const key = meetingDateKey(meeting.startAt)
+    if (key) grouped.set(key, [...(grouped.get(key) ?? []), meeting])
+  }
+  return grouped
+}
+
+function meetingDateKey(value: string): string | undefined {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return undefined
+  return mexicoDateKey(date)
+}
+
+function formatMeetingTime(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Hora pendiente'
+  return new Intl.DateTimeFormat('es-MX', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Mexico_City',
+  }).format(date)
 }
 
 function eventDateKey(value: unknown): string | undefined {
