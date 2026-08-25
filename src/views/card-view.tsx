@@ -13,6 +13,7 @@ import {
   getListColumns,
   getNamedListColumns,
   getRowTitle,
+  supplierPreviewColumnNames,
   warehouseCardColumnNames,
 } from '@/views/view-utils'
 
@@ -23,9 +24,11 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
     : undefined
   const columns = table.name === 'ALMACEN'
     ? getNamedListColumns(table, warehouseCardColumnNames)
-    : getListColumns(table, coverColumn ? 5 : 4)
-      .filter((column) => !coverColumn || column.name !== table.label)
-      .slice(0, 4)
+    : table.name === 'PROVEEDORES'
+      ? getNamedListColumns(table, supplierPreviewColumnNames)
+      : getListColumns(table, coverColumn ? 5 : 4)
+        .filter((column) => !coverColumn || column.name !== table.label)
+        .slice(0, 4)
   const technicalSheetColumn = table.name === 'MATRIZ DISPOSITIVOS'
     ? table.columns.find((column) => column.name === 'Ficha_Tecnica' && column.type === 'Url')
     : undefined

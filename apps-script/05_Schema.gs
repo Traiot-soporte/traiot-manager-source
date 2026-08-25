@@ -1944,7 +1944,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "name": "CORREO_E",
         "sourceHeader": "CORREO_E",
         "origin": "appsheet",
-        "type": "Url",
+        "type": "Email",
         "required": false,
         "hidden": false,
         "sensitive": false,

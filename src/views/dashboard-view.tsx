@@ -10,8 +10,10 @@ import { CardView } from '@/views/card-view'
 import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
+import { kardexDashboardMetrics } from '@/views/kardex-dashboard'
 import { outboundDashboardMetrics } from '@/views/outbound-dashboard'
 import { purchaseDashboardMetrics, type PurchaseVolumeMetric } from '@/views/purchase-dashboard'
+import { supplierDashboardMetrics } from '@/views/supplier-dashboard'
 import { TableView } from '@/views/table-view'
 import { warehouseDashboardMetrics } from '@/views/warehouse-dashboard'
 
@@ -33,6 +35,12 @@ export function DashboardView(props: CollectionViewProps) {
   }
   if (props.table.name === 'ALMACEN') {
     return <WarehouseDashboardView {...props} />
+  }
+  if (props.table.name === 'KARDEX') {
+    return <KardexDashboardView {...props} />
+  }
+  if (props.table.name === 'PROVEEDORES') {
+    return <SupplierDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -61,6 +69,58 @@ export function DashboardView(props: CollectionViewProps) {
       <section>
         <h2 className="mb-4 text-lg font-black text-ink-950">Registros recientes</h2>
         <CardView {...props} rows={rows.slice(0, 6)} />
+      </section>
+    </div>
+  )
+}
+
+function KardexDashboardView(props: CollectionViewProps) {
+  const metrics = kardexDashboardMetrics(props.rows)
+  const recentRows = [...props.rows]
+    .sort((left, right) => String(right.FECHA ?? '').localeCompare(String(left.FECHA ?? '')))
+    .slice(0, 8)
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <OperationCountCard icon={Database} label="Movimientos" value={metrics.movements} />
+        <OperationCountCard icon={TrendingUp} label="Unidades de entrada" value={metrics.incomingUnits} />
+        <OperationCountCard icon={PackageMinus} label="Unidades de salida" value={metrics.outgoingUnits} />
+        <OperationCountCard icon={Layers3} label="Productos con movimiento" value={metrics.movedProducts} />
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Trazabilidad de inventario</p>
+            <h2 className="mt-1 text-lg font-black text-ink-950">MOVIMIENTOS RECIENTES</h2>
+          </div>
+          <span className="text-xs font-bold text-ink-800/40">Últimos {recentRows.length}</span>
+        </div>
+        <TableView {...props} rows={recentRows} />
+      </section>
+    </div>
+  )
+}
+
+function SupplierDashboardView(props: CollectionViewProps) {
+  const metrics = supplierDashboardMetrics(props.rows)
+  const recentRows = [...props.rows]
+    .sort((left, right) => Number(right.ID ?? 0) - Number(left.ID ?? 0))
+    .slice(0, 6)
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <OperationCountCard icon={UsersRound} label="Proveedores" value={metrics.suppliers} />
+        <OperationCountCard icon={Tags} label="Países" value={metrics.countries} />
+        <OperationCountCard icon={Layers3} label="Ciudades" value={metrics.cities} />
+        <OperationCountCard icon={UserCheck} label="Con correo" value={metrics.withEmail} />
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-black text-ink-950">PROVEEDORES RECIENTES</h2>
+        <CardView {...props} rows={recentRows} />
       </section>
     </div>
   )

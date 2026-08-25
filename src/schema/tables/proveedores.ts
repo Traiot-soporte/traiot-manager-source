@@ -22,7 +22,7 @@ export const proveedoresTable = defineTable({
     ...namedColumns(['MUNICIPIO', 'CIUDAD', 'ESTADO']),
     { name: 'PAIS', type: 'Enum', values: ['México', 'CHINA', 'LITHUANIA'] },
     ...namedColumns(['TELEFONO', 'TELEFONO2', 'TELEFONO3', 'TELEFONO4']),
-    { name: 'CORREO_E', type: 'Url' },
+    { name: 'CORREO_E', label: 'EMAIL', type: 'Email' },
     { name: 'WEB', type: 'Text' },
     { name: 'DIAS_PRONTO_PAGO', type: 'Number', required: true },
     { name: 'DIAS_PLAZO', type: 'Number', required: true },

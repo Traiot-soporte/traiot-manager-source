@@ -7,13 +7,16 @@ import {
   getListColumns,
   getNamedListColumns,
   getRowTitle,
+  supplierPreviewColumnNames,
   warehouseDeckColumnNames,
 } from '@/views/view-utils'
 
 export function DeckView({ basePath, rows, table }: CollectionViewProps) {
   const columns = table.name === 'ALMACEN'
     ? getNamedListColumns(table, warehouseDeckColumnNames)
-    : getListColumns(table, 3)
+    : table.name === 'PROVEEDORES'
+      ? getNamedListColumns(table, supplierPreviewColumnNames)
+      : getListColumns(table, 3)
 
   return (
     <div className="space-y-3">

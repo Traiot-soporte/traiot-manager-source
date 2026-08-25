@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { almacenTable } from '@/schema/tables/almacen'
 import { clientesTable } from '@/schema/tables/clientes'
 import { kardexTable } from '@/schema/tables/kardex'
+import { proveedoresTable } from '@/schema/tables/proveedores'
 import {
   getDisplayColumns,
   getListColumns,
   getNamedListColumns,
   getRowTitle,
   getTableViewColumns,
+  supplierPreviewColumnNames,
   warehouseCardColumnNames,
   warehouseDeckColumnNames,
 } from '@/views/view-utils'
@@ -59,6 +61,25 @@ describe('utilidades de vistas genéricas', () => {
       'STOCK',
       'PROVEEDOR',
     ])
+  })
+
+  it('limita las vistas previas de proveedores a sus datos de contacto principales', () => {
+    expect(getTableViewColumns(proveedoresTable).map((column) => column.name)).toEqual([
+      'ID',
+      'RAZON_SOCIAL',
+      'CALLE',
+      'TELEFONO',
+      'CORREO_E',
+      'CIUDAD',
+    ])
+    expect(getNamedListColumns(proveedoresTable, supplierPreviewColumnNames).map((column) => column.name)).toEqual([
+      'RAZON_SOCIAL',
+      'CALLE',
+      'TELEFONO',
+      'CORREO_E',
+      'CIUDAD',
+    ])
+    expect(proveedoresTable.columns.find((column) => column.name === 'CORREO_E')?.label).toBe('EMAIL')
   })
 
   it('usa la columna label como título del registro', () => {

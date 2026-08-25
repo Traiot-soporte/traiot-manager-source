@@ -45,6 +45,8 @@ export function TablePage() {
   const basePath = '/tablas/' + encodeURIComponent(table.name)
   const createLabel = table.name === 'ALMACEN'
     ? 'Agregar producto'
+    : table.name === 'PROVEEDORES'
+      ? 'Nuevo proveedor'
     : table.name === 'COMPRAS'
       ? 'Nueva compra'
       : table.name === 'PEDIDOS' ? 'Nueva salida' : 'Nuevo registro'

@@ -51,9 +51,30 @@ export const warehouseDeckColumnNames = [
   'PROVEEDOR',
 ] as const
 
+export const supplierTableColumnNames = [
+  'ID',
+  'RAZON_SOCIAL',
+  'CALLE',
+  'TELEFONO',
+  'CORREO_E',
+  'CIUDAD',
+] as const
+
+export const supplierPreviewColumnNames = [
+  'RAZON_SOCIAL',
+  'CALLE',
+  'TELEFONO',
+  'CORREO_E',
+  'CIUDAD',
+] as const
+
 export function getTableViewColumns(table: TableDef) {
   if (table.name === 'ALMACEN') {
     return getNamedListColumns(table, warehouseTableColumnNames)
+  }
+
+  if (table.name === 'PROVEEDORES') {
+    return getNamedListColumns(table, supplierTableColumnNames)
   }
 
   if (table.name === 'Gestion Clientes') {
