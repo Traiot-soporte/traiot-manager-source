@@ -310,6 +310,10 @@ function prepareApiMutationRecord_(
     record.FOLIO = nextApiTicketFolio_(spreadsheet, now);
   }
 
+  if (schemaTable.name === 'ALMACEN' && isCreate) {
+    record['No. Item'] = nextApiWarehouseItem_(spreadsheet);
+  }
+
   if (schemaTable.name === 'COMPRAS' && isCreate) {
     record['ID COMPRA'] = nextApiPurchaseId_(spreadsheet);
     record['ESTATUS COMPRA'] = 'RECIBIDA';
@@ -909,6 +913,27 @@ function buildNextApiTicketFolio_(folios, year) {
   }, 0);
 
   return prefix + String(maximum + 1).padStart(4, '0');
+}
+
+function nextApiWarehouseItem_(spreadsheet) {
+  var schemaTable = requireApiTable_('ALMACEN');
+  var sheet = requireApiSheet_(spreadsheet, schemaTable);
+  var headers = readApiHeaders_(sheet);
+  var itemIndex = requireHeaderIndex_(headers, 'No. Item', schemaTable);
+  var values = sheet.getLastRow() > 1
+    ? sheet.getRange(2, itemIndex + 1, sheet.getLastRow() - 1, 1).getDisplayValues()
+      .map(function (row) { return row[0]; })
+    : [];
+  return buildNextApiWarehouseItem_(values);
+}
+
+function buildNextApiWarehouseItem_(values) {
+  var maximum = (values || []).reduce(function (currentMaximum, value) {
+    var numericValue = Number(normalizeCell_(value).replace(/,/g, ''));
+    if (!Number.isFinite(numericValue) || numericValue < 0) return currentMaximum;
+    return Math.max(currentMaximum, Math.floor(numericValue));
+  }, 0);
+  return maximum + 1;
 }
 
 function nextApiPurchaseId_(spreadsheet) {

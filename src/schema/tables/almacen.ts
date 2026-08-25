@@ -14,7 +14,13 @@ export const almacenTable = defineTable({
   defaultView: 'table',
   columns: [
     migrationRef('proveedor_uuid', 'Proveedor interno', 'PROVEEDORES'),
-    { name: 'No. Item', type: 'Number', required: true },
+    {
+      name: 'No. Item',
+      type: 'Number',
+      required: true,
+      readOnly: true,
+      description: 'Consecutivo asignado automáticamente por el servidor.',
+    },
     { name: 'ID PRODUCTO', type: 'Text', labelColumn: true, required: true },
     { name: 'IMAGEN', type: 'Image', required: true },
     {

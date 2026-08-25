@@ -42,6 +42,11 @@ describe('registro de metadata', () => {
 
   it('modela los acumulados de Almacén sin selectores de relaciones', () => {
     const warehouse = tableDefinitions.find((table) => table.name === 'ALMACEN')
+    expect(warehouse?.columns.find((column) => column.name === 'No. Item')).toMatchObject({
+      type: 'Number',
+      readOnly: true,
+      required: true,
+    })
     expect(warehouse?.columns.find((column) => column.name === 'PROVEEDOR')).toMatchObject({
       type: 'Text',
     })

@@ -284,8 +284,10 @@ export class MockRepository implements Repository {
       throw new Error('Ya existe una fila con el identificador ' + rowUuid + '.')
     }
 
+    const submitted = copyRow(input.values)
+    if (input.table === 'ALMACEN') submitted['No. Item'] = this.#nextWarehouseItem()
     const row = this.#applyFormulas(input.table, {
-      ...copyRow(input.values),
+      ...submitted,
       _uuid: rowUuid,
       _updatedAt: this.#now().toISOString(),
       _deleted: false,
@@ -331,6 +333,13 @@ export class MockRepository implements Repository {
     return [...(this.#tables.get(table)?.values() ?? [])].filter(
       (row) => row._deleted !== true,
     )
+  }
+
+  #nextWarehouseItem(): number {
+    return [...(this.#tables.get('ALMACEN')?.values() ?? [])].reduce((maximum, row) => {
+      const value = Number(row['No. Item'])
+      return Number.isFinite(value) ? Math.max(maximum, Math.floor(value)) : maximum
+    }, 0) + 1
   }
 
   #assertTable(table: string): void {

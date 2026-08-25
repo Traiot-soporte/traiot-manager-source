@@ -38,4 +38,19 @@ describe('MockRepository', () => {
     const repository = new MockRepository({}, fixedNow, () => 'new-id')
     await expect(repository.list('DESCONOCIDA')).rejects.toThrow('Tabla no registrada')
   })
+
+  it('asigna automaticamente el consecutivo de nuevos productos', async () => {
+    const repository = new MockRepository({
+      ALMACEN: [
+        { _uuid: 'product-38', _deleted: true, 'No. Item': 38, 'ID PRODUCTO': 'ANTERIOR' },
+      ],
+    }, fixedNow, () => 'product-39')
+
+    const product = await repository.create({
+      table: 'ALMACEN',
+      values: { 'ID PRODUCTO': 'ARNES OBD2' },
+    })
+
+    expect(product['No. Item']).toBe(39)
+  })
 })

@@ -37,6 +37,7 @@ interface CrudSandbox {
   ) => void
   readonly calculateApiLaboratorySemaphore_: (status: unknown, days: number | null) => string
   readonly buildNextApiTicketFolio_: (folios: readonly string[], year: string) => string
+  readonly buildNextApiWarehouseItem_: (values: readonly unknown[]) => number
   readonly buildNextApiCrmId_: (ids: readonly unknown[]) => string
   readonly buildNextApiPurchaseId_: (
     ids: readonly unknown[],
@@ -230,6 +231,13 @@ describe('CRUD de Apps Script', () => {
 
     expect(buildNextApiTicketFolio_(['TS-2026-0001', 'TS-2025-0099', 'TS-2026-0012'], '2026'))
       .toBe('TS-2026-0013')
+  })
+
+  it('genera el siguiente numero de producto sin reutilizar eliminados', () => {
+    const { buildNextApiWarehouseItem_ } = loadCrudSandbox()
+
+    expect(buildNextApiWarehouseItem_([1, '38', '', 'invalido', '37.8'])).toBe(39)
+    expect(buildNextApiWarehouseItem_([])).toBe(1)
   })
 
   it('genera un consecutivo global entero para nuevos registros del CRM', () => {
