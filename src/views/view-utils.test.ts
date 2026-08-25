@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { almacenTable } from '@/schema/tables/almacen'
 import { clientesTable } from '@/schema/tables/clientes'
+import { gestionClientesTable } from '@/schema/tables/gestion-clientes'
 import { kardexTable } from '@/schema/tables/kardex'
 import { proveedoresTable } from '@/schema/tables/proveedores'
 import {
@@ -86,6 +87,33 @@ describe('utilidades de vistas genéricas', () => {
     expect(getRowTitle(clientesTable, { _uuid: 'client-001', 'ID CLIENTE': 'CLI-001' })).toBe(
       'CLI-001',
     )
+  })
+
+  it('presenta la ficha profesional de seguimiento en el orden solicitado', () => {
+    expect(getDisplayColumns(gestionClientesTable).map((column) => column.name)).toEqual([
+      'ID',
+      'Nombre',
+      'Apellido',
+      'Segundo Nombre',
+      'Cargo',
+      'Compañía',
+      'Tipo de Contacto',
+      'Responsable',
+      'Teléfono del trabajo',
+      'Móvil',
+      'Otro número de teléfono',
+      'Sitio web Corporativo',
+      'E-mail del trabajo',
+      'Última actualización en',
+      'Origen',
+      'Información de origen',
+      'Incluido en la exportación',
+      'Creado por',
+      'Creado',
+      'Modificado por',
+      'Modificado',
+      'Comentarios',
+    ])
   })
 
   it('muestra los campos auditables del Kardex y oculta sus identificadores internos', () => {

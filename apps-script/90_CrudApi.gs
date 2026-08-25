@@ -21,6 +21,7 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+    ensureCrmContactStorage_(openConfiguredSpreadsheet_(), false);
   }
   if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
     ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), false);
@@ -101,6 +102,7 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
   }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(openConfiguredSpreadsheet_(), false);
+    ensureCrmContactStorage_(openConfiguredSpreadsheet_(), false);
   }
   if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
     ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), false);
@@ -332,8 +334,11 @@ function prepareApiMutationRecord_(
   }
 
   if (schemaTable.name === 'Gestion Clientes' && isCreate) {
-    record.Id_CRM = nextApiCrmId_(spreadsheet);
+    record.ID = nextApiCrmId_(spreadsheet);
+    record.Id_CRM = record.ID;
   }
+
+  applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCreate, now, user);
 
   applyCrmCalendarOwnership_(user, schemaTable, record, isCreate);
 
@@ -375,6 +380,47 @@ function applyApiRoleRules_(schemaTable, record) {
   }
 }
 
+function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCreate, now, user) {
+  if (schemaTable.name !== 'Gestion Clientes') return;
+
+  var userLabel = crmLifecycleUserLabel_(user);
+  var fullName = [record.Nombre, record['Segundo Nombre'], record.Apellido]
+    .map(normalizeCell_)
+    .filter(Boolean)
+    .join(' ');
+  var contactType = normalizeLookupValue_(record['Tipo de Contacto']);
+
+  record.ID = normalizeCell_(record.ID || record.Id_CRM);
+  record.Id_CRM = record.ID;
+  record.Fecha_contacto = record.Fecha_contacto || String(now).slice(0, 10);
+  record.Nombre_empresa = normalizeCell_(record['Compañía']);
+  record.Pagina_empresa = normalizeCell_(record['Sitio web Corporativo']);
+  record.Contacto = fullName;
+  record.Telefono = normalizeCell_(
+    record.Móvil || record['Teléfono del trabajo'] || record['Otro número de teléfono']
+  );
+  record.Email = normalizeCell_(record['E-mail del trabajo']);
+  record.Tipo_cliente = contactType === 'CLIENTE' ? '🟢Activo' : '🔵Prospecto';
+  record.Notas = normalizeCell_(record.Comentarios);
+  record['Última actualización en'] = now;
+  record['Modificado por'] = userLabel;
+  record.Modificado = now;
+
+  if (isCreate) {
+    record['Creado por'] = userLabel;
+    record.Creado = now;
+    record.Accion = record.Accion || '💬Seguimiento WhatsApp';
+    if (contactType === 'CLIENTE') {
+      record.Estatus_cliente = record.Estatus_cliente || '🟢Activo';
+    } else {
+      record.Estatus_prospeccion = record.Estatus_prospeccion || '⏳Por contactar';
+    }
+  } else {
+    record['Creado por'] = record['Creado por'] || (currentRecord && currentRecord['Creado por']) || userLabel;
+    record.Creado = record.Creado || (currentRecord && currentRecord.Creado) || now;
+  }
+}
+
 function applyCrmCalendarOwnership_(user, schemaTable, record, isCreate) {
   if (schemaTable.name !== 'Gestion Clientes') {
     return;
@@ -383,7 +429,7 @@ function applyCrmCalendarOwnership_(user, schemaTable, record, isCreate) {
   var requestedScope = normalizeCell_(record.Calendario);
   var scope = requestedScope
     ? normalizeCrmCalendarScope_(requestedScope)
-    : (isCreate ? 'Personal' : 'Empresarial');
+    : 'Empresarial';
 
   record.Calendario = scope;
 
@@ -699,6 +745,25 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
   if (schemaTable.name === 'Gestion Clientes') {
     columnNames.push('Calendario');
     columnNames.push('_calendarOwnerUuid');
+    [
+      'ID',
+      'Id_CRM',
+      'Fecha_contacto',
+      'Nombre_empresa',
+      'Pagina_empresa',
+      'Contacto',
+      'Telefono',
+      'Email',
+      'Tipo_cliente',
+      'Estatus_prospeccion',
+      'Estatus_cliente',
+      'Notas',
+      'Última actualización en',
+      'Creado por',
+      'Creado',
+      'Modificado por',
+      'Modificado'
+    ].forEach(function (columnName) { columnNames.push(columnName); });
   }
 
   if (schemaTable.name === 'ALMACEN') {
@@ -1155,11 +1220,19 @@ function nextApiCrmId_(spreadsheet) {
   var schemaTable = requireApiTable_('Gestion Clientes');
   var sheet = requireApiSheet_(spreadsheet, schemaTable);
   var headers = readApiHeaders_(sheet);
-  var idIndex = requireHeaderIndex_(headers, 'Id_CRM', schemaTable);
-  var ids = sheet.getLastRow() > 1
-    ? sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getValues()
-      .map(function (row) { return row[0]; })
-    : [];
+  var idHeaders = ['ID', 'Id_CRM'].filter(function (header) {
+    return headers.indexOf(header) >= 0;
+  });
+  var ids = [];
+  if (sheet.getLastRow() > 1) {
+    idHeaders.forEach(function (header) {
+      var idIndex = headers.indexOf(header);
+      ids = ids.concat(
+        sheet.getRange(2, idIndex + 1, sheet.getLastRow() - 1, 1).getValues()
+          .map(function (row) { return row[0]; })
+      );
+    });
+  }
 
   return buildNextApiCrmId_(ids);
 }
@@ -1170,11 +1243,11 @@ function buildNextApiCrmId_(ids) {
     return sequence !== null && sequence > currentMaximum ? sequence : currentMaximum;
   }, 0);
 
-  return String(maximum + 1);
+  return formatApiCrmId_(maximum + 1);
 }
 
 function parseApiCrmSequence_(value) {
-  var normalized = normalizeCell_(value).replace(',', '.');
+  var normalized = normalizeCell_(value).toUpperCase().replace(/^GC-/, '').replace(',', '.');
   var numericValue = Number(normalized);
 
   if (!normalized || !Number.isFinite(numericValue) || numericValue < 1) {
@@ -1182,6 +1255,11 @@ function parseApiCrmSequence_(value) {
   }
 
   return Math.floor(numericValue + 0.000000001);
+}
+
+function formatApiCrmId_(sequence) {
+  var value = Math.max(1, Math.floor(Number(sequence) || 1));
+  return 'GC-' + String(value).padStart(4, '0');
 }
 
 function diagnosticarConsecutivoCrm() {
@@ -1209,7 +1287,7 @@ function diagnosticarConsecutivoCrm() {
     range: 'A2:A' + lastRow,
     rowsInspected: values.length,
     decimalIds: decimalIds.length,
-    maximumSequence: Number(nextId) - 1,
+    maximumSequence: parseApiCrmSequence_(nextId) - 1,
     nextId: nextId,
     lastValues: values.slice(Math.max(values.length - 15, 0)).map(String)
   };

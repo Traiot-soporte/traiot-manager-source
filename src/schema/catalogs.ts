@@ -29,6 +29,18 @@ export const orderCustomerTypes = [
 export const orderStatuses = ['APROBADO', 'NO APROBADO', 'PENDIENTE APROBACION'] as const
 
 export const crmCustomerTypes = ['🟢Activo', '🔵Prospecto'] as const
+export const crmContactTypes = ['Prospecto', 'Cliente', 'Proveedor', 'Socio', 'Otro'] as const
+export const crmContactOrigins = [
+  'Prospección',
+  'Referido',
+  'Sitio web',
+  'Evento',
+  'WhatsApp',
+  'Llamada',
+  'Correo',
+  'Migración',
+  'Otro',
+] as const
 export const crmLifecycleStages = ['Prospecto', 'Cliente', 'Descartado'] as const
 export const crmActions = [
   '📞Llamada telefónica',

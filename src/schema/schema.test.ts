@@ -173,8 +173,16 @@ describe('registro de metadata', () => {
     expect(crm?.sheet).toBe('Gestion Clientes')
     expect(crm?.permissionView).toBe('Gestion Clientes')
     expect(crm?.defaultView).toBe('dashboard')
-    expect(crm?.columns.find((column) => column.name === 'Id_CRM')?.readOnly)
-      .toBe(true)
+    expect(crm?.label).toBe('ID')
+    expect(crm?.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
+      hidden: true,
+      readOnly: true,
+    })
+    expect(crm?.columns.find((column) => column.name === 'ID')).toMatchObject({
+      labelColumn: true,
+      origin: 'migration',
+      readOnly: true,
+    })
     expect(crm?.columns.find((column) => column.name === 'Responsable')).toMatchObject({
       type: 'EnumList',
       required: true,
@@ -182,6 +190,9 @@ describe('registro de metadata', () => {
     })
     expect(crm?.columns.find((column) => column.name === 'Calendario')?.values)
       .toEqual(['Personal', 'Empresarial'])
+    expect(crm?.columns.find((column) => column.name === 'Calendario')?.hidden).toBe(true)
+    expect(crm?.columns.find((column) => column.name === 'Tipo de Contacto')?.values)
+      .toEqual(['Prospecto', 'Cliente', 'Proveedor', 'Socio', 'Otro'])
     expect(crm?.columns.find((column) => column.name === '_calendarOwnerUuid')?.origin)
       .toBe('system')
     expect(crm?.columns.find((column) => column.name === 'Etapa_actual')).toMatchObject({

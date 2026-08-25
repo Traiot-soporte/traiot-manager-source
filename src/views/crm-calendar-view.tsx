@@ -162,7 +162,7 @@ function CalendarEvent({ basePath, colorByResponsible, row }: { readonly basePat
   const responsible = responsibleName(row)
   const primaryResponsible = responsibleNames(row)[0] ?? 'Sin responsable'
   const color = colorForResponsible(primaryResponsible, colorByResponsible)
-  const action = String(row.Accion ?? 'Seguimiento')
+  const action = String(row['Tipo de Contacto'] ?? row.Accion ?? 'Seguimiento')
   return (
     <Link className="block truncate rounded-md border-l-[3px] px-2 py-1.5 text-[10px] font-black leading-4 transition hover:brightness-95" style={{ backgroundColor: color.background, borderLeftColor: color.border, color: color.text }} title={`${action} · ${responsible}`} to={basePath + '/' + encodeURIComponent(String(row._uuid))}>
       {action}
@@ -174,7 +174,7 @@ function CalendarEvent({ basePath, colorByResponsible, row }: { readonly basePat
 function groupEventsByDay(rows: readonly RowData[]): Map<string, RowData[]> {
   const grouped = new Map<string, RowData[]>()
   for (const row of rows) {
-    const key = eventDateKey(row.Fecha_contacto)
+    const key = eventDateKey(row.Creado ?? row['Última actualización en'] ?? row.Fecha_contacto)
     if (key) grouped.set(key, [...(grouped.get(key) ?? []), row])
   }
   return grouped

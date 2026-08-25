@@ -49,7 +49,9 @@ export function TablePage() {
       ? 'Nuevo proveedor'
     : table.name === 'COMPRAS'
       ? 'Nueva compra'
-      : table.name === 'PEDIDOS' ? 'Nueva salida' : 'Nuevo registro'
+      : table.name === 'PEDIDOS'
+        ? 'Nueva salida'
+        : table.name === 'Gestion Clientes' ? 'Nuevo contacto' : 'Nuevo registro'
 
   const changeView = (nextView: CollectionViewKind) => {
     const next = new URLSearchParams(searchParams)

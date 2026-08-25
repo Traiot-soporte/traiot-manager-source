@@ -1,4 +1,4 @@
-import { Activity, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, PackageMinus, ShoppingBag, Tags, TimerReset, TrendingDown, TrendingUp, UserCheck, UsersRound, X } from 'lucide-react'
+import { Activity, Building2, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Clock3, Columns3, Database, FileCheck2, Gauge, Layers3, Mail, PackageMinus, ShoppingBag, Smartphone, Tags, TimerReset, TrendingDown, TrendingUp, UserCheck, UsersRound, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -8,7 +8,6 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import type { CollectionViewProps } from '@/views/types'
 import { useRepository } from '@/data/use-repository'
 import { CardView } from '@/views/card-view'
-import { getCurrentCrmAccounts } from '@/views/crm-lifecycle'
 import { matrixDeviceBreakdown, matrixDeviceMetrics, type MatrixBreakdownColumn } from '@/views/dashboard-metrics'
 import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
 import { kardexDashboardMetrics } from '@/views/kardex-dashboard'
@@ -598,30 +597,27 @@ function MatrixBreakdownDialog({ column, onClose, rows }: {
 
 function CrmDashboardView(props: CollectionViewProps) {
   const { rows } = props
-  const accounts = getCurrentCrmAccounts(rows)
-  const activeCustomers = accounts.filter((account) => account.stage === 'Cliente')
-  const prospects = accounts.filter((account) => account.stage === 'Prospecto')
+  const companies = new Set(rows.map((row) => String(row['Compañía'] ?? row.Nombre_empresa ?? '').trim()).filter(Boolean))
+  const withEmail = rows.filter((row) => String(row['E-mail del trabajo'] ?? row.Email ?? '').trim()).length
+  const withMobile = rows.filter((row) => String(row.Móvil ?? row.Telefono ?? '').trim()).length
   const recentRows = [...rows]
-    .sort((left, right) => String(right.Fecha_contacto ?? '').localeCompare(String(left.Fecha_contacto ?? '')))
+    .sort((left, right) => String(right.Modificado ?? right._updatedAt ?? right.Fecha_contacto ?? '').localeCompare(String(left.Modificado ?? left._updatedAt ?? left.Fecha_contacto ?? '')))
     .slice(0, 8)
-  const attention = activeCustomers.filter((account) =>
-    /REQUIERE ATENCION|RIESGO|PERDIDO/.test(normalizeCrmValue(account.latestRow.Estatus_cliente)),
-  ).length
 
   return (
     <div className="space-y-4">
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <CrmMetric icon={Database} label="Seguimientos" value={rows.length} />
-        <CrmMetric icon={UserCheck} label="Clientes" value={activeCustomers.length} />
-        <CrmMetric icon={UsersRound} label="Prospectos" value={prospects.length} />
-        <CrmMetric icon={CircleAlert} label="Requieren atención" value={attention} />
+        <CrmMetric icon={UsersRound} label="Contactos" value={rows.length} />
+        <CrmMetric icon={Building2} label="Compañías" value={companies.size} />
+        <CrmMetric icon={Mail} label="Con correo" value={withEmail} />
+        <CrmMetric icon={Smartphone} label="Con móvil" value={withMobile} />
       </section>
 
       <section>
         <div className="mb-3 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Actividad comercial</p>
-            <h2 className="mt-1 text-lg font-black text-ink-950">SEGUIMIENTOS RECIENTES</h2>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">Directorio comercial</p>
+            <h2 className="mt-1 text-lg font-black text-ink-950">CONTACTOS RECIENTES</h2>
           </div>
           <span className="text-xs font-bold text-ink-800/40">Últimos {recentRows.length}</span>
         </div>
@@ -629,8 +625,8 @@ function CrmDashboardView(props: CollectionViewProps) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <CrmStatusChart column="Estatus_cliente" rows={activeCustomers.map((account) => account.latestRow)} title="ESTADO DE CLIENTES" />
-        <CrmStatusChart column="Estatus_prospeccion" rows={prospects.map((account) => account.latestRow)} title="ESTADO DE PROSPECTOS" />
+        <CrmStatusChart column="Tipo de Contacto" rows={rows} title="TIPOS DE CONTACTO" />
+        <CrmStatusChart column="Origen" rows={rows} title="ORIGEN DE CONTACTOS" />
       </section>
     </div>
   )
@@ -656,7 +652,7 @@ function CrmStatusChart({ column, rows, title }: { readonly column: string; read
   return (
     <article className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
       <h2 className="text-sm font-black text-ink-950">{title}</h2>
-      <p className="mt-1 text-xs text-ink-800/45">Distribución de los seguimientos registrados.</p>
+      <p className="mt-1 text-xs text-ink-800/45">Distribución de las fichas profesionales registradas.</p>
       {data.length > 0 ? (
         <div className="mt-3 h-[260px] w-full" role="img" aria-label={title}>
           <ResponsiveContainer height="100%" width="100%">
@@ -674,13 +670,4 @@ function CrmStatusChart({ column, rows, title }: { readonly column: string; read
       )}
     </article>
   )
-}
-
-function normalizeCrmValue(value: unknown): string {
-  const text = Array.isArray(value)
-    ? value.join(' ')
-    : typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-      ? String(value)
-      : ''
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()
 }

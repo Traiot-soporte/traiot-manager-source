@@ -81,6 +81,14 @@ interface CrudSandbox {
     clientStage: string,
     isCreate: boolean,
   ) => boolean
+  readonly applyCrmContactCompatibility_: (
+    table: CrudTable,
+    record: Record<string, unknown>,
+    currentRecord: Readonly<Record<string, unknown>> | null,
+    isCreate: boolean,
+    now: string,
+    user: Readonly<Record<string, unknown>>,
+  ) => void
   readonly inventoryContributionForRecord_: (
     tableName: string,
     record: Readonly<Record<string, unknown>>,
@@ -263,8 +271,45 @@ describe('CRUD de Apps Script', () => {
     const { buildNextApiCrmId_ } = loadCrudSandbox()
 
     expect(buildNextApiCrmId_([275, '278.6666667', '291.2380952', '', 'invalido']))
-      .toBe('292')
-    expect(buildNextApiCrmId_([])).toBe('1')
+      .toBe('GC-0292')
+    expect(buildNextApiCrmId_(['GC-0292', 'GC-0003'])).toBe('GC-0293')
+    expect(buildNextApiCrmId_([])).toBe('GC-0001')
+  })
+
+  it('sincroniza la nueva ficha profesional con la compatibilidad del CRM', () => {
+    const { applyCrmContactCompatibility_ } = loadCrudSandbox()
+    const record: Record<string, unknown> = {
+      ID: 'GC-0007',
+      Nombre: 'Hector',
+      'Segundo Nombre': 'Manuel',
+      Apellido: 'Ramos',
+      'Compañía': '2RP SOLUTIONS',
+      'Tipo de Contacto': 'Prospecto',
+      Móvil: '5589266665',
+      'E-mail del trabajo': 'h.ramos@2rp.mx',
+      Comentarios: 'Primer contacto',
+    }
+
+    applyCrmContactCompatibility_(
+      { name: 'Gestion Clientes', columns: [] },
+      record,
+      null,
+      true,
+      '2026-08-25T18:00:00.000Z',
+      { name: 'Manuel Soto', email: 'soporte@traiot.com.mx' },
+    )
+
+    expect(record).toMatchObject({
+      Id_CRM: 'GC-0007',
+      Fecha_contacto: '2026-08-25',
+      Nombre_empresa: '2RP SOLUTIONS',
+      Contacto: 'Hector Manuel Ramos',
+      Telefono: '5589266665',
+      Email: 'h.ramos@2rp.mx',
+      Notas: 'Primer contacto',
+      'Creado por': 'Manuel Soto',
+      'Modificado por': 'Manuel Soto',
+    })
   })
 
   it('genera compras consecutivas sin reutilizar números reservados o eliminados', () => {

@@ -251,7 +251,12 @@ function applyCrmLifecycleRules_(
 
   var client = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
   if (!client) {
-    throw new Error('Selecciona una empresa valida antes de guardar el seguimiento.');
+    applyCrmActivityLifecycle_(
+      record,
+      normalizeLookupValue_(record['Tipo de Contacto']) === 'CLIENTE' ? 'Cliente' : 'Prospecto',
+      isCreate
+    );
+    return;
   }
 
   var clientStage = normalizeCrmLifecycleStage_(client.Etapa_CRM);
@@ -348,4 +353,183 @@ function enrichCrmLifecycleRows_(spreadsheet, rows) {
 
 function migrarCicloCrm() {
   return ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), true);
+}
+
+var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V2';
+var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
+  'ID',
+  'Nombre',
+  'Apellido',
+  'Segundo Nombre',
+  'Cargo',
+  'Compañía',
+  'Tipo de Contacto',
+  'Teléfono del trabajo',
+  'Móvil',
+  'Otro número de teléfono',
+  'Sitio web Corporativo',
+  'E-mail del trabajo',
+  'Última actualización en',
+  'Origen',
+  'Información de origen',
+  'Incluido en la exportación',
+  'Creado por',
+  'Creado',
+  'Modificado por',
+  'Modificado',
+  'Comentarios'
+]);
+
+function ensureCrmContactStorage_(spreadsheet, force) {
+  var properties = PropertiesService.getScriptProperties();
+  if (!force && properties.getProperty(TRAIOT_CRM_CONTACT_PROPERTY) === 'true') {
+    return { migrated: false, ready: true };
+  }
+
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) {
+    throw new Error('No fue posible preparar las fichas de contacto. Intenta nuevamente.');
+  }
+
+  try {
+    if (!force && properties.getProperty(TRAIOT_CRM_CONTACT_PROPERTY) === 'true') {
+      return { migrated: false, ready: true };
+    }
+
+    var schemaTable = requireApiTable_('Gestion Clientes');
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    var addedHeaders = [];
+
+    TRAIOT_CRM_CONTACT_HEADERS.forEach(function (header) {
+      if (headers.indexOf(header) < 0) {
+        sheet.getRange(1, headers.length + 1).setValue(header);
+        headers.push(header);
+        addedHeaders.push(header);
+      }
+    });
+    SpreadsheetApp.flush();
+
+    var migratedRows = backfillCrmContactRows_(spreadsheet, sheet, headers);
+    properties.setProperty(TRAIOT_CRM_CONTACT_PROPERTY, 'true');
+    return {
+      migrated: addedHeaders.length > 0 || migratedRows > 0,
+      ready: true,
+      addedHeaders: addedHeaders,
+      rowsMigrated: migratedRows
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function backfillCrmContactRows_(spreadsheet, sheet, headers) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+
+  var values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  var clients = readApiRows_(spreadsheet, requireApiTable_('CLIENTES'));
+  var clientsByUuid = {};
+  var clientsByName = {};
+  clients.forEach(function (client) {
+    var uuid = normalizeCell_(client._uuid).toLowerCase();
+    var name = normalizeLookupValue_(client['RAZON SOCIAL']);
+    if (uuid) clientsByUuid[uuid] = client;
+    if (name) clientsByName[name] = client;
+  });
+
+  var maximum = values.reduce(function (current, row) {
+    return Math.max(
+      current,
+      parseApiCrmSequence_(crmContactCell_(row, headers, 'ID')) || 0,
+      parseApiCrmSequence_(crmContactCell_(row, headers, 'Id_CRM')) || 0
+    );
+  }, 0);
+  var usedIds = {};
+  var migratedRows = 0;
+
+  values.forEach(function (row) {
+    var uuid = normalizeCell_(crmContactCell_(row, headers, 'cliente_uuid')).toLowerCase();
+    var companyLegacy = crmContactCell_(row, headers, 'Nombre_empresa');
+    var client = clientsByUuid[uuid] || clientsByName[normalizeLookupValue_(companyLegacy)] || {};
+    var updatedAt = crmContactFirstValue_(
+      crmContactCell_(row, headers, '_updatedAt'),
+      new Date().toISOString()
+    );
+    var existingId = crmContactFirstValue_(
+      crmContactCell_(row, headers, 'ID'),
+      crmContactCell_(row, headers, 'Id_CRM')
+    );
+    var sequence = parseApiCrmSequence_(existingId);
+    var formattedId = sequence ? formatApiCrmId_(sequence) : '';
+    if (!sequence || usedIds[formattedId]) {
+      maximum += 1;
+      sequence = maximum;
+      formattedId = formatApiCrmId_(sequence);
+    }
+    usedIds[formattedId] = true;
+
+    var defaults = {
+      'ID': formattedId,
+      'Nombre': crmContactFirstValue_(crmContactCell_(row, headers, 'Contacto'), client.CONTACTO, 'Contacto sin nombre'),
+      'Compañía': crmContactFirstValue_(companyLegacy, client['RAZON SOCIAL'], 'Sin compañía'),
+      'Tipo de Contacto': crmContactTypeFromLegacy_(crmContactCell_(row, headers, 'Tipo_cliente')),
+      'Teléfono del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'Telefono'), client['TELEFONO CONTACTO'], client.TELEFONO),
+      'Sitio web Corporativo': crmContactCell_(row, headers, 'Pagina_empresa'),
+      'E-mail del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'Email'), client.EMAIL),
+      'Última actualización en': updatedAt,
+      'Origen': 'Migración',
+      'Información de origen': 'Historial anterior del CRM',
+      'Incluido en la exportación': false,
+      'Creado por': 'Migración TRAIOT',
+      'Creado': updatedAt,
+      'Modificado por': 'Migración TRAIOT',
+      'Modificado': updatedAt,
+      'Comentarios': crmContactCell_(row, headers, 'Notas')
+    };
+
+    var changed = false;
+    var idIndex = headers.indexOf('ID');
+    if (idIndex >= 0 && normalizeCell_(row[idIndex]) !== formattedId) {
+      row[idIndex] = formattedId;
+      changed = true;
+    }
+    Object.keys(defaults).forEach(function (header) {
+      var index = headers.indexOf(header);
+      if (header !== 'ID' && index >= 0 && isApiBlank_(row[index])) {
+        row[index] = defaults[header];
+        changed = true;
+      }
+    });
+    if (changed) migratedRows += 1;
+  });
+
+  TRAIOT_CRM_CONTACT_HEADERS.forEach(function (header) {
+    var index = headers.indexOf(header);
+    sheet.getRange(2, index + 1, values.length, 1).setValues(values.map(function (row) {
+      return [row[index]];
+    }));
+  });
+  SpreadsheetApp.flush();
+  return migratedRows;
+}
+
+function crmContactCell_(row, headers, header) {
+  var index = headers.indexOf(header);
+  return index >= 0 ? row[index] : '';
+}
+
+function crmContactFirstValue_() {
+  for (var index = 0; index < arguments.length; index += 1) {
+    if (!isApiBlank_(arguments[index])) return arguments[index];
+  }
+  return '';
+}
+
+function crmContactTypeFromLegacy_(value) {
+  return normalizeLookupValue_(value).indexOf('ACTIVO') >= 0 ? 'Cliente' : 'Prospecto';
+}
+
+function migrarContactosCrm() {
+  return ensureCrmContactStorage_(openConfiguredSpreadsheet_(), true);
 }

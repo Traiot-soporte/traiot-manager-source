@@ -65,7 +65,12 @@ describe('schema Zod derivado de metadata', () => {
     const fields = Object.keys(buildFormSchema(gestionClientesTable).shape)
 
     expect(fields).not.toContain('Id_CRM')
+    expect(fields).not.toContain('ID')
     expect(gestionClientesTable.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
+      readOnly: true,
+      required: true,
+    })
+    expect(gestionClientesTable.columns.find((column) => column.name === 'ID')).toMatchObject({
       readOnly: true,
       required: true,
     })

@@ -7,6 +7,7 @@ import { Link } from 'react-router'
 import { FieldRenderer } from '@/fields/field-renderer'
 import { buildFormSchema } from '@/schema/form-schema'
 import type { CellValue, FormulaContext, RowData, TableDef, UserContext } from '@/schema'
+import { getDisplayColumns } from '@/views/view-utils'
 
 interface FormViewProps {
   readonly table: TableDef
@@ -30,11 +31,9 @@ function prepareDefaults(table: TableDef, initialRow: RowData | undefined, conte
 }
 
 function editableColumns(table: TableDef) {
-  return table.columns.filter(
+  return getDisplayColumns(table).filter(
     (column) =>
       column.origin !== 'system' &&
-      !column.hidden &&
-      !column.virtual &&
       !column.readOnly &&
       !column.formula &&
       column.type !== 'List' &&
@@ -101,12 +100,12 @@ export function FormView({
         <aside className="flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-4 text-brand-700" role="note">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm"><Hash className="size-5" /></span>
           <div>
-            <p className="text-sm font-black">Consecutivo CRM automático</p>
+            <p className="text-sm font-black">Ficha de contacto con ID automático</p>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
-              No necesitas capturar ningún ID. Para un cliente nuevo, regístralo primero en Clientes; después selecciónalo aquí y captura la actividad. Al guardar, el sistema asignará automáticamente el siguiente consecutivo.
+              No necesitas capturar el ID ni los datos de auditoría. El sistema asignará el siguiente consecutivo GC-0001 y registrará quién creó o modificó la ficha.
             </p>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
-              Cuando el Estatus de prospección sea ✅Cliente, la empresa cambiará automáticamente a Cliente y dejará de aparecer como prospecto, sin perder su historial.
+              Los teléfonos y el correo habilitan las acciones rápidas de WhatsApp, llamada, correo y comunicaciones programadas.
             </p>
           </div>
         </aside>

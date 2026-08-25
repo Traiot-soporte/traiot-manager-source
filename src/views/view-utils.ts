@@ -1,13 +1,20 @@
 import type { RowData, TableDef } from '@/schema'
 
 export function getDisplayColumns(table: TableDef) {
-  return table.columns.filter(
+  const columns = table.columns.filter(
     (column) =>
       !column.hidden &&
       !column.virtual &&
       column.type !== 'List' &&
       column.type !== 'Show',
   )
+
+  if (table.name !== 'Gestion Clientes') return columns
+
+  return crmContactColumnNames.flatMap((name) => {
+    const column = columns.find((candidate) => candidate.name === name)
+    return column ? [column] : []
+  })
 }
 
 export function getListColumns(table: TableDef, limit = 6) {
@@ -68,6 +75,31 @@ export const supplierPreviewColumnNames = [
   'CIUDAD',
 ] as const
 
+export const crmContactColumnNames = [
+  'ID',
+  'Nombre',
+  'Apellido',
+  'Segundo Nombre',
+  'Cargo',
+  'Compañía',
+  'Tipo de Contacto',
+  'Responsable',
+  'Teléfono del trabajo',
+  'Móvil',
+  'Otro número de teléfono',
+  'Sitio web Corporativo',
+  'E-mail del trabajo',
+  'Última actualización en',
+  'Origen',
+  'Información de origen',
+  'Incluido en la exportación',
+  'Creado por',
+  'Creado',
+  'Modificado por',
+  'Modificado',
+  'Comentarios',
+] as const
+
 export function getTableViewColumns(table: TableDef) {
   if (table.name === 'ALMACEN') {
     return getNamedListColumns(table, warehouseTableColumnNames)
@@ -78,9 +110,7 @@ export function getTableViewColumns(table: TableDef) {
   }
 
   if (table.name === 'Gestion Clientes') {
-    return getListColumns(table, 8)
-      .filter((column) => column.name !== 'Pagina_empresa')
-      .slice(0, 6)
+    return getDisplayColumns(table)
   }
 
   return getListColumns(table, 7)

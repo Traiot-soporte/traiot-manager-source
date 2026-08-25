@@ -64,18 +64,22 @@ export function RecordFormPage() {
     ? editing ? 'EDITAR COMPRA' : 'NUEVA COMPRA'
     : table.name === 'PEDIDOS'
       ? editing ? 'EDITAR SALIDA' : 'NUEVA SALIDA'
+    : table.name === 'Gestion Clientes'
+      ? editing ? 'EDITAR CONTACTO' : 'NUEVO CONTACTO'
     : editing ? 'EDITAR ' + tableDisplayName : 'CREAR EN ' + tableDisplayName
   const formDescription = table.name === 'COMPRAS'
     ? 'Registra la recepción; el ID de compra y la entrada al inventario se generan automáticamente.'
     : table.name === 'PEDIDOS'
       ? 'Registra la salida; el folio y el movimiento de inventario se generan automáticamente.'
     : table.name === 'Gestion Clientes'
-      ? 'Selecciona el cliente y registra la actividad; el consecutivo CRM se genera automáticamente.'
+      ? 'Captura la ficha profesional; el ID y la auditoría se generan automáticamente.'
       : 'Completa la información necesaria del registro.'
   const formSubmitLabel = table.name === 'COMPRAS'
     ? editing ? 'Guardar compra' : 'Registrar compra'
     : table.name === 'PEDIDOS'
       ? editing ? 'Guardar salida' : 'Registrar salida'
+    : table.name === 'Gestion Clientes'
+      ? editing ? 'Guardar contacto' : 'Crear contacto'
     : editing ? 'Guardar cambios' : 'Crear registro'
 
   return (
@@ -87,6 +91,8 @@ export function RecordFormPage() {
           ? 'Nueva compra'
           : !editing && table.name === 'PEDIDOS'
             ? 'Nueva salida'
+            : !editing && table.name === 'Gestion Clientes'
+              ? 'Nuevo contacto'
             : editing ? 'Edición' : 'Nuevo registro'}
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={formTitle}

@@ -15,4 +15,21 @@ describe('destinatario de comunicaciones', () => {
       phone: '',
     })
   })
+
+  it('usa los datos de la nueva ficha profesional de seguimiento', () => {
+    expect(resolveCommunicationTarget('Gestion Clientes', {
+      ID: 'GC-0001',
+      Nombre: 'Hector',
+      'Segundo Nombre': 'Manuel',
+      Apellido: 'Ramos',
+      Compañía: '2RP SOLUTIONS',
+      Móvil: '5589266665',
+      'E-mail del trabajo': 'h.ramos@2rp.mx',
+    })).toEqual({
+      title: '2RP SOLUTIONS',
+      contactName: 'Hector Manuel Ramos',
+      email: 'h.ramos@2rp.mx',
+      phone: '5589266665',
+    })
+  })
 })

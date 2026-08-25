@@ -342,6 +342,7 @@ function readVisibleApiRows_(spreadsheet, schemaTable, user) {
   }
   if (schemaTable.name === 'Gestion Clientes') {
     ensureCrmCalendarStorage_(spreadsheet, false);
+    ensureCrmContactStorage_(spreadsheet, false);
   }
   if (schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes') {
     ensureCrmLifecycleStorage_(spreadsheet, false);

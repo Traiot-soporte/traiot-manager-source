@@ -21,13 +21,19 @@ export function resolveCommunicationTarget(
   client?: RowData,
 ): CommunicationTarget {
   const source = tableName === 'CLIENTES' ? row : client
-  const fallbackTitle = value(row, 'Nombre_empresa', 'Id_CRM', '_uuid')
+  const fallbackTitle = value(row, 'Compañía', 'Nombre_empresa', 'ID', 'Id_CRM', '_uuid')
   return {
     title: value(source, 'RAZON SOCIAL', 'ID CLIENTE') || fallbackTitle,
-    contactName: value(row, 'Contacto') || value(source, 'CONTACTO'),
-    email: value(row, 'Email') || value(source, 'EMAIL'),
-    phone: value(row, 'Telefono') || value(source, 'TELEFONO CONTACTO', 'TELEFONO'),
+    contactName: contactFullName(row) || value(row, 'Contacto') || value(source, 'CONTACTO'),
+    email: value(row, 'E-mail del trabajo', 'Email') || value(source, 'EMAIL'),
+    phone: value(row, 'Móvil', 'Teléfono del trabajo', 'Otro número de teléfono', 'Telefono') || value(source, 'TELEFONO CONTACTO', 'TELEFONO'),
   }
+}
+
+function contactFullName(row: RowData): string {
+  return [value(row, 'Nombre'), value(row, 'Segundo Nombre'), value(row, 'Apellido')]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export function defaultCommunicationMessage(target: CommunicationTarget): string {
