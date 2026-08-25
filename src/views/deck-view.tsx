@@ -3,10 +3,17 @@ import { Link } from 'react-router'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CellDisplay } from '@/views/cell-display'
-import { getListColumns, getRowTitle } from '@/views/view-utils'
+import {
+  getListColumns,
+  getNamedListColumns,
+  getRowTitle,
+  warehouseDeckColumnNames,
+} from '@/views/view-utils'
 
 export function DeckView({ basePath, rows, table }: CollectionViewProps) {
-  const columns = getListColumns(table, 3)
+  const columns = table.name === 'ALMACEN'
+    ? getNamedListColumns(table, warehouseDeckColumnNames)
+    : getListColumns(table, 3)
 
   return (
     <div className="space-y-3">

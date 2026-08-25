@@ -6,8 +6,11 @@ import { kardexTable } from '@/schema/tables/kardex'
 import {
   getDisplayColumns,
   getListColumns,
+  getNamedListColumns,
   getRowTitle,
   getTableViewColumns,
+  warehouseCardColumnNames,
+  warehouseDeckColumnNames,
 } from '@/views/view-utils'
 
 describe('utilidades de vistas genéricas', () => {
@@ -41,6 +44,21 @@ describe('utilidades de vistas genéricas', () => {
       'AVISO DE COMPRA',
     ])
     expect(columns.find((column) => column.name === 'STOCK')?.label).toBe('EXISTENCIAS')
+  })
+
+  it('incluye existencias y categoria en tarjetas y lista de almacen', () => {
+    expect(getNamedListColumns(almacenTable, warehouseCardColumnNames).map((column) => column.name)).toEqual([
+      'NOMBRE',
+      'CATEGORIA',
+      'PROVEEDOR',
+      'STOCK',
+    ])
+    expect(getNamedListColumns(almacenTable, warehouseDeckColumnNames).map((column) => column.name)).toEqual([
+      'NOMBRE',
+      'CATEGORIA',
+      'STOCK',
+      'PROVEEDOR',
+    ])
   })
 
   it('usa la columna label como título del registro', () => {

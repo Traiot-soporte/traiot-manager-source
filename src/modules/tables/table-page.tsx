@@ -43,9 +43,11 @@ export function TablePage() {
 
   if (!table) return <MissingTable />
   const basePath = '/tablas/' + encodeURIComponent(table.name)
-  const createLabel = table.name === 'COMPRAS'
-    ? 'Nueva compra'
-    : table.name === 'PEDIDOS' ? 'Nueva salida' : 'Nuevo registro'
+  const createLabel = table.name === 'ALMACEN'
+    ? 'Agregar producto'
+    : table.name === 'COMPRAS'
+      ? 'Nueva compra'
+      : table.name === 'PEDIDOS' ? 'Nueva salida' : 'Nuevo registro'
 
   const changeView = (nextView: CollectionViewKind) => {
     const next = new URLSearchParams(searchParams)

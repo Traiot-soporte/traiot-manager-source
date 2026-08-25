@@ -13,6 +13,7 @@ import { laboratoryDashboardMetrics } from '@/views/laboratory-dashboard'
 import { outboundDashboardMetrics } from '@/views/outbound-dashboard'
 import { purchaseDashboardMetrics, type PurchaseVolumeMetric } from '@/views/purchase-dashboard'
 import { TableView } from '@/views/table-view'
+import { warehouseDashboardMetrics } from '@/views/warehouse-dashboard'
 
 export function DashboardView(props: CollectionViewProps) {
   if (props.table.name === 'Gestion Clientes') {
@@ -29,6 +30,9 @@ export function DashboardView(props: CollectionViewProps) {
   }
   if (props.table.name === 'PEDIDOS') {
     return <OutboundDashboardView {...props} />
+  }
+  if (props.table.name === 'ALMACEN') {
+    return <WarehouseDashboardView {...props} />
   }
 
   const { rows, table } = props
@@ -57,6 +61,27 @@ export function DashboardView(props: CollectionViewProps) {
       <section>
         <h2 className="mb-4 text-lg font-black text-ink-950">Registros recientes</h2>
         <CardView {...props} rows={rows.slice(0, 6)} />
+      </section>
+    </div>
+  )
+}
+
+function WarehouseDashboardView(props: CollectionViewProps) {
+  const metrics = warehouseDashboardMetrics(props.rows)
+
+  return (
+    <div className="space-y-5">
+      <section className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        <OperationCountCard icon={Database} label="Registros" value={metrics.products} />
+        <OperationVolumeCard icon={Gauge} label="GPS con más existencia" metric={metrics.categories.GPS} />
+        <OperationVolumeCard icon={Activity} label="Sensor con más existencia" metric={metrics.categories.SENSOR} />
+        <OperationVolumeCard icon={Layers3} label="Accesorio con más existencia" metric={metrics.categories.ACCESORIO} />
+        <OperationVolumeCard icon={FileCheck2} label="CCTV con más existencia" metric={metrics.categories.CCTV} />
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-black text-ink-950">PRODUCTOS RECIENTES</h2>
+        <CardView {...props} rows={props.rows.slice(0, 6)} />
       </section>
     </div>
   )

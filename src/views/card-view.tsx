@@ -9,16 +9,23 @@ import { CellDisplay } from '@/views/cell-display'
 import type { CollectionViewProps } from '@/views/types'
 import { useClientDeletion } from '@/views/use-client-deletion'
 import { safeExternalUrl } from '@/views/url-utils'
-import { getListColumns, getRowTitle } from '@/views/view-utils'
+import {
+  getListColumns,
+  getNamedListColumns,
+  getRowTitle,
+  warehouseCardColumnNames,
+} from '@/views/view-utils'
 
 export function CardView({ basePath, rows, table }: CollectionViewProps) {
   const deletion = useClientDeletion(table.name)
   const coverColumn = table.name === 'MATRIZ DISPOSITIVOS'
     ? table.columns.find((column) => column.name === 'Imagen' && column.type === 'Image')
     : undefined
-  const columns = getListColumns(table, coverColumn ? 5 : 4)
-    .filter((column) => !coverColumn || column.name !== table.label)
-    .slice(0, 4)
+  const columns = table.name === 'ALMACEN'
+    ? getNamedListColumns(table, warehouseCardColumnNames)
+    : getListColumns(table, coverColumn ? 5 : 4)
+      .filter((column) => !coverColumn || column.name !== table.label)
+      .slice(0, 4)
   const technicalSheetColumn = table.name === 'MATRIZ DISPOSITIVOS'
     ? table.columns.find((column) => column.name === 'Ficha_Tecnica' && column.type === 'Url')
     : undefined

@@ -16,6 +16,15 @@ export function getListColumns(table: TableDef, limit = 6) {
     .slice(0, limit)
 }
 
+export function getNamedListColumns(table: TableDef, names: readonly string[]) {
+  const columns = getListColumns(table, table.columns.length)
+
+  return names.flatMap((name) => {
+    const column = columns.find((candidate) => candidate.name === name)
+    return column ? [column] : []
+  })
+}
+
 const warehouseTableColumnNames = [
   'No. Item',
   'ID PRODUCTO',
@@ -28,14 +37,23 @@ const warehouseTableColumnNames = [
   'AVISO DE COMPRA',
 ]
 
+export const warehouseCardColumnNames = [
+  'NOMBRE',
+  'CATEGORIA',
+  'PROVEEDOR',
+  'STOCK',
+] as const
+
+export const warehouseDeckColumnNames = [
+  'NOMBRE',
+  'CATEGORIA',
+  'STOCK',
+  'PROVEEDOR',
+] as const
+
 export function getTableViewColumns(table: TableDef) {
   if (table.name === 'ALMACEN') {
-    const columns = getListColumns(table, table.columns.length)
-
-    return warehouseTableColumnNames.flatMap((name) => {
-      const column = columns.find((candidate) => candidate.name === name)
-      return column ? [column] : []
-    })
+    return getNamedListColumns(table, warehouseTableColumnNames)
   }
 
   if (table.name === 'Gestion Clientes') {
