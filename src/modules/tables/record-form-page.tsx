@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
+import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
 import { FormView } from '@/views/form-view'
@@ -36,8 +37,11 @@ export function RecordFormPage() {
     const saved = editing && rowUuid
       ? await repository.update({ table: table.name, rowUuid, changes: values })
       : await repository.create({ table: table.name, values })
+    const affectedTables = getMutationAffectedTables(table.name)
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['table', table.name] }),
+      ...affectedTables.map((affectedTable) =>
+        queryClient.invalidateQueries({ queryKey: ['table', affectedTable] }),
+      ),
       queryClient.invalidateQueries({ queryKey: ['table-summaries'] }),
       queryClient.invalidateQueries({ queryKey: ['row', table.name, saved._uuid] }),
     ])

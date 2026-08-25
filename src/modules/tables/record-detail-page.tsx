@@ -7,6 +7,7 @@ import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { AuthAdminPanel } from '@/modules/auth/auth-admin-panel'
 import { isAdministratorRole } from '@/modules/auth/auth-permissions'
+import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
 import { getAdjacentRecords } from '@/modules/tables/record-navigation'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import { DetailView } from '@/views/detail-view'
@@ -33,8 +34,11 @@ export function RecordDetailPage() {
   const remove = useMutation({
     mutationFn: () => repository.delete({ table: tableName, rowUuid }),
     onSuccess: async () => {
+      const affectedTables = getMutationAffectedTables(tableName)
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['table', tableName] }),
+        ...affectedTables.map((affectedTable) =>
+          queryClient.invalidateQueries({ queryKey: ['table', affectedTable] }),
+        ),
         queryClient.invalidateQueries({ queryKey: ['table-summaries'] }),
       ])
       void navigate(basePath)
