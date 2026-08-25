@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
+import { almacenTable } from '@/schema/tables/almacen'
 import { clientesTable } from '@/schema/tables/clientes'
 import { kardexTable } from '@/schema/tables/kardex'
-import { getDisplayColumns, getListColumns, getRowTitle } from '@/views/view-utils'
+import {
+  getDisplayColumns,
+  getListColumns,
+  getRowTitle,
+  getTableViewColumns,
+} from '@/views/view-utils'
 
 describe('utilidades de vistas genéricas', () => {
   it('oculta columnas técnicas y virtuales en el detalle', () => {
@@ -18,6 +24,23 @@ describe('utilidades de vistas genéricas', () => {
 
     expect(columns).toHaveLength(3)
     expect(columns.every((column) => column.type !== 'Image')).toBe(true)
+  })
+
+  it('muestra categoria y existencias en la tabla de almacen', () => {
+    const columns = getTableViewColumns(almacenTable)
+
+    expect(columns.map((column) => column.name)).toEqual([
+      'No. Item',
+      'ID PRODUCTO',
+      'PROVEEDOR',
+      'NOMBRE',
+      'CATEGORIA',
+      'STOCK',
+      'STOCK MINIMO',
+      'STOCK MAXIMO',
+      'AVISO DE COMPRA',
+    ])
+    expect(columns.find((column) => column.name === 'STOCK')?.label).toBe('EXISTENCIAS')
   })
 
   it('usa la columna label como título del registro', () => {

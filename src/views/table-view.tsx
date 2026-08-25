@@ -5,21 +5,24 @@ import type { CollectionViewProps } from '@/views/types'
 import { CellDisplay } from '@/views/cell-display'
 import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import { useClientDeletion } from '@/views/use-client-deletion'
-import { getListColumns, getRowTitle } from '@/views/view-utils'
+import { getRowTitle, getTableViewColumns } from '@/views/view-utils'
 
 export function TableView({ basePath, rows, table }: CollectionViewProps) {
-  const columns = table.name === 'Gestion Clientes'
-    ? getListColumns(table, 8).filter((column) => column.name !== 'Pagina_empresa').slice(0, 6)
-    : getListColumns(table, 7)
+  const columns = getTableViewColumns(table)
   const deletion = useClientDeletion(table.name)
   const communicationsAvailable = table.name === 'CLIENTES' || table.name === 'Gestion Clientes'
+  const tableClassName = communicationsAvailable
+    ? 'w-full min-w-[920px] table-fixed border-collapse text-left'
+    : table.name === 'ALMACEN'
+      ? 'w-full min-w-[1240px] border-collapse text-left'
+      : 'w-full min-w-[760px] border-collapse text-left'
 
   if (rows.length === 0) return <EmptyCollection />
 
   return (
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <table className={communicationsAvailable ? 'w-full min-w-[920px] table-fixed border-collapse text-left' : 'w-full min-w-[760px] border-collapse text-left'}>
+        <table className={tableClassName}>
           <thead className="bg-ink-950 text-white">
             <tr>
               {columns.map((column) => (

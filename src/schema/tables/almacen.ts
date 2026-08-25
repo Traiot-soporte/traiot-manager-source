@@ -76,7 +76,13 @@ export const almacenTable = defineTable({
       readOnly: true,
       description: 'Total acumulado de unidades con salida aprobada.',
     },
-    { name: 'STOCK', type: 'Number', readOnly: true },
+    {
+      name: 'STOCK',
+      label: 'EXISTENCIAS',
+      type: 'Number',
+      readOnly: true,
+      description: 'Cantidad actual calculada a partir de las entradas y salidas de inventario.',
+    },
     {
       name: 'Related PEDIDOSs',
       type: 'List',
