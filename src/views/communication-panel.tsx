@@ -46,8 +46,6 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
   const quickEmail = emailHref(target.email, { subject: defaultSubject, body: defaultMessage })
   const quickWhatsApp = whatsappHref(target.phone, defaultMessage)
 
-  if (!quickEmail && !quickWhatsApp && entityCommunications.length === 0) return null
-
   return (
     <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm sm:p-7">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -59,7 +57,7 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
         <div className="flex flex-wrap gap-2">
           {quickWhatsApp && <a className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#128c4a] px-4 text-sm font-black text-white transition hover:bg-[#0f773f]" href={quickWhatsApp} rel="noopener noreferrer" target="_blank"><WhatsAppIcon className="size-5" /> WHATSAPP</a>}
           {quickEmail && <a className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-black text-brand-700 transition hover:bg-brand-100" href={quickEmail}><Mail className="size-5" /> CORREO</a>}
-          {(quickEmail || quickWhatsApp) && <button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-4 text-sm font-black text-white hover:bg-ink-900" onClick={() => setFormOpen((current) => !current)} type="button"><CalendarClock className="size-5" /> PROGRAMAR</button>}
+          <button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-4 text-sm font-black text-white hover:bg-ink-900" onClick={() => setFormOpen((current) => !current)} type="button"><CalendarClock className="size-5" /> PROGRAMAR</button>
         </div>
       </div>
 
@@ -83,7 +81,7 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
         <h3 className="mb-3 text-sm font-black text-ink-950">Historial programado</h3>
         {communications.isPending
           ? <p className="text-sm font-semibold text-ink-800/45">Consultando comunicaciones…</p>
-          : <CommunicationList communications={entityCommunications} compact />}
+          : <CommunicationList communications={entityCommunications} compact referenceTime={communications.dataUpdatedAt} />}
       </div>
     </section>
   )
@@ -109,11 +107,18 @@ function CommunicationForm({
   readonly phone: string
 }) {
   const repository = useRepository()
-  const [channel, setChannel] = useState<CommunicationChannel>(phone ? 'WHATSAPP' : 'EMAIL')
+  const [channel, setChannel] = useState<CommunicationChannel>(whatsappHref(phone) ? 'WHATSAPP' : 'EMAIL')
+  const [recipients, setRecipients] = useState<Record<CommunicationChannel, string>>({
+    EMAIL: email,
+    WHATSAPP: phone,
+  })
   const [subject, setSubject] = useState(initialSubject)
   const [message, setMessage] = useState(initialMessage)
   const [scheduledAt, setScheduledAt] = useState(defaultLocalDateTime())
-  const recipient = channel === 'WHATSAPP' ? phone : email
+  const recipient = recipients[channel]
+  const validRecipient = channel === 'WHATSAPP'
+    ? Boolean(whatsappHref(recipient))
+    : Boolean(emailHref(recipient))
   const create = useMutation({
     mutationFn: () => repository.createCommunication({
       entityTable,
@@ -129,7 +134,7 @@ function CommunicationForm({
   })
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    if (recipient && message.trim() && scheduledAt) create.mutate()
+    if (validRecipient && message.trim() && scheduledAt) create.mutate()
   }
 
   return (
@@ -138,15 +143,25 @@ function CommunicationForm({
         <div>
           <span className="text-xs font-black text-ink-950">CANAL</span>
           <div className="mt-2 flex gap-2">
-            <ChannelButton active={channel === 'WHATSAPP'} disabled={!phone} icon={<WhatsAppIcon className="size-5" />} label="WhatsApp" onClick={() => setChannel('WHATSAPP')} tone="whatsapp" />
-            <ChannelButton active={channel === 'EMAIL'} disabled={!email} icon={<Mail className="size-5" />} label="Correo" onClick={() => setChannel('EMAIL')} tone="email" />
+            <ChannelButton active={channel === 'WHATSAPP'} icon={<WhatsAppIcon className="size-5" />} label="WhatsApp" onClick={() => setChannel('WHATSAPP')} tone="whatsapp" />
+            <ChannelButton active={channel === 'EMAIL'} icon={<Mail className="size-5" />} label="Correo" onClick={() => setChannel('EMAIL')} tone="email" />
           </div>
         </div>
         <label className="text-xs font-black text-ink-950">FECHA Y HORA
           <input className="mt-2 min-h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm font-bold outline-none focus:border-brand-500" min={minimumLocalDateTime()} onChange={(event) => setScheduledAt(event.target.value)} required type="datetime-local" value={scheduledAt} />
         </label>
         <label className="text-xs font-black text-ink-950">DESTINATARIO
-          <input className="mt-2 min-h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm font-bold text-ink-800/60" readOnly value={recipient} />
+          <input
+            aria-invalid={!validRecipient}
+            className="mt-2 min-h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm font-bold outline-none focus:border-brand-500 aria-invalid:border-red-300 aria-invalid:ring-2 aria-invalid:ring-red-100"
+            onChange={(event) => setRecipients((current) => ({ ...current, [channel]: event.target.value }))}
+            placeholder={channel === 'WHATSAPP' ? 'Ej. 81 1234 5678' : 'correo@empresa.com'}
+            required
+            type={channel === 'WHATSAPP' ? 'tel' : 'email'}
+            value={recipient}
+          />
+          {!validRecipient && <span className="mt-1.5 block text-[11px] font-bold text-red-600">{channel === 'WHATSAPP' ? 'Captura un teléfono de al menos 10 dígitos.' : 'Captura un correo electrónico válido.'}</span>}
+          <span className="mt-1 block text-[10px] font-semibold normal-case text-ink-800/40">Puedes reemplazarlo solo para esta programación; el registro del cliente no se modifica.</span>
         </label>
         {channel === 'EMAIL' && <label className="text-xs font-black text-ink-950">ASUNTO
           <input className="mt-2 min-h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm font-bold outline-none focus:border-brand-500" maxLength={180} onChange={(event) => setSubject(event.target.value)} required value={subject} />
@@ -157,23 +172,22 @@ function CommunicationForm({
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs font-semibold text-ink-800/50">Al llegar la hora, abrirás el mensaje preparado y confirmarás el envío.</p>
-        <button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-5 text-sm font-black text-white disabled:opacity-50" disabled={create.isPending || !recipient} type="submit"><Send className="size-4" />{create.isPending ? 'GUARDANDO…' : 'GUARDAR PROGRAMACIÓN'}</button>
+        <button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-5 text-sm font-black text-white disabled:opacity-50" disabled={create.isPending || !validRecipient} type="submit"><Send className="size-4" />{create.isPending ? 'GUARDANDO…' : 'GUARDAR PROGRAMACIÓN'}</button>
       </div>
-      {create.isError && <p className="mt-3 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">No fue posible guardar la programación. Revisa los datos e intenta nuevamente.</p>}
+      {create.isError && <p className="mt-3 rounded-xl bg-red-50 p-3 text-xs font-bold text-red-700">{create.error instanceof Error ? create.error.message : 'No fue posible guardar la programación.'}</p>}
     </form>
   )
 }
 
-function ChannelButton({ active, disabled, icon, label, onClick, tone }: {
+function ChannelButton({ active, icon, label, onClick, tone }: {
   readonly active: boolean
-  readonly disabled: boolean
   readonly icon: ReactNode
   readonly label: string
   readonly onClick: () => void
   readonly tone: 'email' | 'whatsapp'
 }) {
   const activeStyle = tone === 'whatsapp' ? 'border-[#128c4a] bg-[#128c4a] text-white' : 'border-brand-500 bg-brand-500 text-[#191919]'
-  return <button className={'inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 text-xs font-black disabled:cursor-not-allowed disabled:opacity-35 ' + (active ? activeStyle : 'border-black/10 bg-white text-ink-800/65')} disabled={disabled} onClick={onClick} type="button">{icon}{label.toLocaleUpperCase('es-MX')}</button>
+  return <button className={'inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 text-xs font-black ' + (active ? activeStyle : 'border-black/10 bg-white text-ink-800/65')} onClick={onClick} type="button">{icon}{label.toLocaleUpperCase('es-MX')}</button>
 }
 
 function localDateTime(date: Date): string {

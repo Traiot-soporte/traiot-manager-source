@@ -10,7 +10,7 @@ export interface CommunicationTarget {
 function value(row: RowData | undefined, ...keys: readonly string[]): string {
   for (const key of keys) {
     const candidate = String(row?.[key] ?? '').trim()
-    if (candidate) return candidate
+    if (candidate && !/^(?:-|--|—|N\/?A|SIN DATO)$/i.test(candidate)) return candidate
   }
   return ''
 }

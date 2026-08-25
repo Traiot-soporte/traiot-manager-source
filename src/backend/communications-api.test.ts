@@ -16,10 +16,16 @@ interface CommunicationSandbox {
 }
 
 function loadSandbox(): CommunicationSandbox {
+  const stringify = (value: unknown) => {
+    if (value === null || value === undefined) return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+    return JSON.stringify(value)
+  }
   const sandbox = createContext({
-    normalizeCell_: (value: unknown) => String(value ?? '').trim(),
-    normalizeLookupValue_: (value: unknown) => String(value ?? '').trim().toUpperCase(),
-    normalizeApiEmail_: (value: unknown) => String(value ?? '').trim().toLowerCase(),
+    normalizeCell_: (value: unknown) => stringify(value).trim(),
+    normalizeLookupValue_: (value: unknown) => stringify(value).trim().toUpperCase(),
+    normalizeApiEmail_: (value: unknown) => stringify(value).trim().toLowerCase(),
   })
   runInContext(readFileSync('apps-script/86_Communications.gs', 'utf8'), sandbox)
   return sandbox as CommunicationSandbox

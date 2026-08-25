@@ -10,9 +10,10 @@ interface CommunicationListProps {
   readonly communications: readonly ScheduledCommunication[]
   readonly compact?: boolean
   readonly emptyText?: string
+  readonly referenceTime?: number
 }
 
-export function CommunicationList({ communications, compact = false, emptyText = 'No hay comunicaciones programadas.' }: CommunicationListProps) {
+export function CommunicationList({ communications, compact = false, emptyText = 'No hay comunicaciones programadas.', referenceTime = 0 }: CommunicationListProps) {
   if (communications.length === 0) {
     return <p className="rounded-2xl border border-dashed border-black/10 bg-black/[0.015] p-5 text-sm font-semibold text-ink-800/45">{emptyText}</p>
   }
@@ -20,15 +21,16 @@ export function CommunicationList({ communications, compact = false, emptyText =
   return (
     <div className="grid gap-3">
       {communications.map((communication) => (
-        <CommunicationItem communication={communication} compact={compact} key={communication.communicationUuid} />
+        <CommunicationItem communication={communication} compact={compact} key={communication.communicationUuid} referenceTime={referenceTime} />
       ))}
     </div>
   )
 }
 
-function CommunicationItem({ communication, compact }: {
+function CommunicationItem({ communication, compact, referenceTime }: {
   readonly communication: ScheduledCommunication
   readonly compact: boolean
+  readonly referenceTime: number
 }) {
   const repository = useRepository()
   const queryClient = useQueryClient()
@@ -40,7 +42,7 @@ function CommunicationItem({ communication, compact }: {
     },
   })
   const isClosed = communication.status === 'ENVIADO' || communication.status === 'CANCELADO'
-  const due = new Date(communication.scheduledAt).getTime() <= Date.now()
+  const due = new Date(communication.scheduledAt).getTime() <= referenceTime
   const href = communication.channel === 'WHATSAPP'
     ? whatsappHref(communication.recipient, communication.message)
     : emailHref(communication.recipient, {
@@ -121,7 +123,7 @@ function StatusBadge({ due, status }: { readonly due: boolean; readonly status: 
   return <span className={'rounded-full px-2.5 py-1 text-[9px] font-black ' + styles}>{label}</span>
 }
 
-export function formatScheduledAt(value: string): string {
+function formatScheduledAt(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return 'Fecha no disponible'
   return new Intl.DateTimeFormat('es-MX', {

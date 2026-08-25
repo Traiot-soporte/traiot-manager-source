@@ -28,7 +28,7 @@ export function CommunicationCenterPage() {
   const history = (communications.data ?? [])
     .filter((item) => item.status === 'ENVIADO' || item.status === 'CANCELADO')
     .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt))
-  const dueCount = active.filter((item) => new Date(item.scheduledAt).getTime() <= Date.now()).length
+  const dueCount = active.filter((item) => new Date(item.scheduledAt).getTime() <= communications.dataUpdatedAt).length
 
   return (
     <div className="space-y-5">
@@ -51,12 +51,12 @@ export function CommunicationCenterPage() {
             </div>
             {dueCount > 0 && <span className="rounded-full bg-amber-100 px-3 py-1.5 text-[10px] font-black text-amber-800">{dueCount} POR ATENDER</span>}
           </div>
-          <CommunicationList communications={active} emptyText="No tienes comunicaciones pendientes. Prográmalas desde Clientes o Seguimiento Clientes." />
+          <CommunicationList communications={active} emptyText="No tienes comunicaciones pendientes. Prográmalas desde Clientes o Seguimiento Clientes." referenceTime={communications.dataUpdatedAt} />
         </section>
         <section>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-800/40">Historial</p>
           <h2 className="mb-3 mt-1 text-xl font-black text-ink-950">Enviadas y canceladas</h2>
-          <CommunicationList communications={history} compact emptyText="Todavía no hay comunicaciones cerradas." />
+          <CommunicationList communications={history} compact emptyText="Todavía no hay comunicaciones cerradas." referenceTime={communications.dataUpdatedAt} />
         </section>
       </>}
     </div>

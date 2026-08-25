@@ -14,7 +14,7 @@ export function CommunicationReminderButton() {
   })
   const due = (communications.data ?? []).filter((item) =>
     (item.status === 'PROGRAMADO' || item.status === 'ABIERTO') &&
-    new Date(item.scheduledAt).getTime() <= Date.now(),
+    new Date(item.scheduledAt).getTime() <= communications.dataUpdatedAt,
   ).length
 
   return (
