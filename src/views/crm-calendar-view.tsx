@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Building2, ChevronLeft, ChevronRight, Plus, UserRound, Video } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, UserRound, Video } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -72,9 +72,6 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
             <ScopeButton active={scope === 'personal'} icon={UserRound} label="MI CALENDARIO" onClick={() => setScope('personal')} />
             <ScopeButton active={scope === 'company'} icon={Building2} label="EMPRESARIAL" onClick={() => setScope('company')} />
           </div>
-          <Link className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-500 px-3 text-[11px] font-black text-[#191919] hover:bg-brand-400" to={basePath + '/nuevo?calendario=' + (scope === 'personal' ? 'Personal' : 'Empresarial')}>
-            <Plus className="size-4" /> AGREGAR {scope === 'personal' ? 'PERSONAL' : 'EMPRESARIAL'}
-          </Link>
         </div>
       </section>
 
@@ -125,7 +122,7 @@ export function CrmCalendarView({ basePath, rows }: CollectionViewProps) {
       )}
 
       {scope === 'personal' && !currentUser.isPending && visibleRows.length === 0 && (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">Tu calendario personal está vacío. Usa “Agregar personal” para crear un evento privado para tu cuenta.</p>
+        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">Tu calendario personal no tiene eventos registrados.</p>
       )}
 
       <section className="flex flex-wrap items-center gap-2 rounded-2xl border border-black/5 bg-white p-4 shadow-sm">
