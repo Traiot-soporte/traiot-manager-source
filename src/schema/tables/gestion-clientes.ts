@@ -27,7 +27,7 @@ export const gestionClientesTable = defineTable({
       section: 'Información profesional',
       description: 'Consecutivo automático con formato GC-0001.',
     },
-    { name: 'Nombre', label: 'NOMBRE', type: 'Name', required: true, section: 'Información profesional' },
+    { name: 'Nombre', label: 'NOMBRE DEL CONTACTO', type: 'Name', required: true, section: 'Datos de contacto' },
     { name: 'Cargo', label: 'CARGO', type: 'Text', section: 'Información profesional' },
     { name: 'NOMBRE_EMPRESA', type: 'Text', required: true, section: 'Información profesional' },
     {
@@ -53,7 +53,7 @@ export const gestionClientesTable = defineTable({
     { name: 'Otro número de teléfono', label: 'OTRO NÚMERO DE TELÉFONO', type: 'Phone', section: 'Datos de contacto' },
     { name: 'Sitio web Corporativo', label: 'SITIO WEB CORPORATIVO', type: 'Url', section: 'Datos de contacto' },
     { name: 'E-mail del trabajo', label: 'E-MAIL DEL TRABAJO', type: 'Email', section: 'Datos de contacto' },
-    { name: 'Última actualización en', label: 'ÚLTIMA ACTUALIZACIÓN EN', type: 'DateTime', readOnly: true, section: 'Auditoría' },
+    { name: 'Última actualización en', label: 'ÚLTIMA ACTUALIZACIÓN EN', type: 'DateTime', readOnly: true, hidden: true, section: 'Auditoría' },
     {
       name: 'Origen',
       label: 'ORIGEN',
@@ -64,9 +64,9 @@ export const gestionClientesTable = defineTable({
     },
     { name: 'Información de origen', label: 'INFORMACIÓN DE ORIGEN', type: 'Text', section: 'Procedencia' },
     { name: 'Creado por', label: 'CREADO POR', type: 'Text', readOnly: true, section: 'Auditoría' },
-    { name: 'Creado', label: 'CREADO', type: 'DateTime', readOnly: true, section: 'Auditoría' },
+    { name: 'Creado', label: 'FECHA DE CREACIÓN', type: 'DateTime', readOnly: true, section: 'Auditoría' },
     { name: 'Modificado por', label: 'MODIFICADO POR', type: 'Text', readOnly: true, section: 'Auditoría' },
-    { name: 'Modificado', label: 'MODIFICADO', type: 'DateTime', readOnly: true, section: 'Auditoría' },
+    { name: 'Modificado', label: 'FECHA DE MODIFICACIÓN', type: 'DateTime', readOnly: true, section: 'Auditoría' },
     { name: 'Comentarios', label: 'COMENTARIOS', type: 'LongText', section: 'Comentarios' },
     {
       name: 'Calendario',

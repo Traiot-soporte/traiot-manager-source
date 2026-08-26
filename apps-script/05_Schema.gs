@@ -2645,7 +2645,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "origin": "appsheet",
         "type": "DateTime",
         "required": false,
-        "hidden": false,
+        "hidden": true,
         "sensitive": false,
         "readOnly": true,
         "hasFormula": false,

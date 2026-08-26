@@ -32,6 +32,10 @@ export function formatCell(value: CellValue | undefined, type: ColumnType): stri
     return '—'
   }
 
+  if (typeof value === 'string' && /^#(?:ERROR|REF|VALUE|NAME|N\/A|DIV\/0)/i.test(value.trim())) {
+    return '—'
+  }
+
   if (Array.isArray(value)) {
     return value.join(', ')
   }

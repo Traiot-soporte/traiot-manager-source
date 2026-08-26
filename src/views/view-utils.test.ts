@@ -103,7 +103,6 @@ describe('utilidades de vistas genéricas', () => {
       'Otro número de teléfono',
       'Sitio web Corporativo',
       'E-mail del trabajo',
-      'Última actualización en',
       'Origen',
       'Información de origen',
       'Creado por',

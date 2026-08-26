@@ -341,7 +341,7 @@ function migrarCicloCrm() {
   return ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), true);
 }
 
-var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V5';
+var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V6';
 var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
   'ID_CRM',
   'Nombre',
@@ -439,6 +439,8 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
       crmContactCell_(row, headers, '_updatedAt'),
       new Date().toISOString()
     );
+    var changed = repairCrmContactCreatedFields_(row, headers, updatedAt);
+    var createdValue = crmContactCell_(row, headers, 'Creado');
     var existingId = crmContactCell_(row, headers, 'ID_CRM');
     var sequence = parseApiCrmSequence_(existingId);
     var formattedId = sequence ? formatApiCrmId_(sequence) : '';
@@ -461,13 +463,12 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
       'Origen': 'Migración',
       'Información de origen': 'Historial anterior del CRM',
       'Creado por': 'Migración TRAIOT',
-      'Creado': updatedAt,
+      'Creado': createdValue || updatedAt,
       'Modificado por': 'Migración TRAIOT',
       'Modificado': updatedAt,
       'Comentarios': crmContactCell_(row, headers, 'Comentarios')
     };
 
-    var changed = false;
     var idIndex = headers.indexOf('ID_CRM');
     if (idIndex >= 0 && normalizeCell_(row[idIndex]) !== formattedId) {
       row[idIndex] = formattedId;
@@ -503,6 +504,28 @@ function crmContactFirstValue_() {
     if (!isApiBlank_(arguments[index])) return arguments[index];
   }
   return '';
+}
+
+function isCrmContactDateValue_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]') {
+    return !isNaN(value.getTime());
+  }
+  var normalized = normalizeCell_(value);
+  return Boolean(normalized && /\d/.test(normalized) && !isNaN(Date.parse(normalized)));
+}
+
+function repairCrmContactCreatedFields_(row, headers, updatedAt) {
+  var nameIndex = headers.indexOf('Nombre');
+  var createdIndex = headers.indexOf('Creado');
+  if (createdIndex < 0 || isCrmContactDateValue_(row[createdIndex])) return false;
+
+  var createdValue = row[createdIndex];
+  var lastUpdatedValue = crmContactCell_(row, headers, 'Última actualización en');
+  if (nameIndex >= 0 && isApiBlank_(row[nameIndex]) && !isApiBlank_(createdValue)) {
+    row[nameIndex] = createdValue;
+  }
+  row[createdIndex] = isCrmContactDateValue_(lastUpdatedValue) ? lastUpdatedValue : updatedAt;
+  return true;
 }
 
 function crmContactTypeFromLegacy_(value) {

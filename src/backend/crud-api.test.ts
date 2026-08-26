@@ -89,6 +89,11 @@ interface CrudSandbox {
     now: string,
     user: Readonly<Record<string, unknown>>,
   ) => void
+  readonly repairCrmContactCreatedFields_: (
+    row: unknown[],
+    headers: string[],
+    updatedAt: string,
+  ) => boolean
   readonly inventoryContributionForRecord_: (
     tableName: string,
     record: Readonly<Record<string, unknown>>,
@@ -305,6 +310,19 @@ describe('CRUD de Apps Script', () => {
     })
     expect(record).not.toHaveProperty('Id_CRM')
     expect(record).not.toHaveProperty('Nombre_empresa')
+  })
+
+  it('recupera el nombre desplazado a Creado y restaura la fecha de creación', () => {
+    const { repairCrmContactCreatedFields_ } = loadCrudSandbox()
+    const headers = ['Nombre', 'Última actualización en', 'Creado']
+    const row = ['', '2025-10-06T22:45:00.000Z', 'DAVID MONTOYA']
+
+    expect(repairCrmContactCreatedFields_(row, headers, '2026-08-25T20:00:00.000Z')).toBe(true)
+    expect(row).toEqual([
+      'DAVID MONTOYA',
+      '2025-10-06T22:45:00.000Z',
+      '2025-10-06T22:45:00.000Z',
+    ])
   })
 
   it('genera compras consecutivas sin reutilizar números reservados o eliminados', () => {

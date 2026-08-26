@@ -18,4 +18,8 @@ describe('formato de fechas', () => {
     expect(formatted).toContain('5:30')
     expect(formatted).not.toContain('11:30')
   })
+
+  it('oculta errores de fórmula heredados en lugar de mostrarlos al usuario', () => {
+    expect(formatCell('#ERROR!', 'Phone')).toBe('—')
+  })
 })

@@ -195,6 +195,16 @@ describe('registro de metadata', () => {
     expect(crm?.columns.find((column) => column.name === 'NOMBRE_EMPRESA')).toMatchObject({
       required: true,
     })
+    expect(crm?.columns.find((column) => column.name === 'Nombre')).toMatchObject({
+      label: 'NOMBRE DEL CONTACTO',
+      section: 'Datos de contacto',
+    })
+    expect(crm?.columns.find((column) => column.name === 'Última actualización en')).toMatchObject({
+      hidden: true,
+      readOnly: true,
+    })
+    expect(crm?.columns.find((column) => column.name === 'Creado')?.label).toBe('FECHA DE CREACIÓN')
+    expect(crm?.columns.find((column) => column.name === 'Modificado')?.label).toBe('FECHA DE MODIFICACIÓN')
     expect(crm?.columns.find((column) => column.name === 'Incluido en la exportación')).toBeUndefined()
     const comments = crm?.columns.find((column) => column.name === 'Comentarios')
     expect(comments).toMatchObject({
