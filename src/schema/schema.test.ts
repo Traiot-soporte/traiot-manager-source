@@ -102,6 +102,7 @@ describe('registro de metadata', () => {
     const warehouse = tableDefinitions.find((candidate) => candidate.name === 'ALMACEN')
     const warehouseCategory = warehouse?.columns.find((column) => column.name === 'CATEGORIA')
     expect(warehouseCategory).toMatchObject({
+      allowOther: true,
       required: true,
       values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
     })
@@ -111,6 +112,7 @@ describe('registro de metadata', () => {
       const table = tableDefinitions.find((candidate) => candidate.name === tableName)
       const category = table?.columns.find((column) => column.name === 'CATEGORIA')
       expect(category).toMatchObject({
+        allowOther: true,
         required: true,
         values: ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'],
       })

@@ -384,6 +384,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
           "ACCESORIO",
           "CCTV"
         ],
+        "allowOther": true,
         "syncTo": "",
         "refTable": ""
       },
@@ -942,6 +943,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
           "ACCESORIO",
           "CCTV"
         ],
+        "allowOther": true,
         "syncTo": "",
         "refTable": ""
       },
@@ -1318,6 +1320,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
           "ACCESORIO",
           "CCTV"
         ],
+        "allowOther": true,
         "syncTo": "",
         "refTable": ""
       },

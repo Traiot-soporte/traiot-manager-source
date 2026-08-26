@@ -599,11 +599,12 @@ function ensureProductCategoryStorage_(spreadsheet, force) {
 
 function canonicalApiProductCategory_(value) {
   var category = normalizeLookupValue_(value);
-  return ['GPS', 'SENSOR', 'ACCESORIO', 'CCTV'].indexOf(category) >= 0 ? category : '';
+  return category ? category.slice(0, 60) : '';
 }
 
 function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'ALMACEN') {
+    record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA);
     record['PRECIO VENTA PARA ASESOR'] = roundApiCurrency_(apiNumber_(record.COSTO) * 1.16);
     record.STOCK = apiNumber_(record.STOCK);
     record.COMPRAS = apiNumber_(record.COMPRAS);
@@ -623,8 +624,8 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'COMPRAS') {
     var purchasedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(purchasedProduct, record, ['NOMBRE', 'PROVEEDOR', 'COSTO', 'KIT INSTALACION']);
-    record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA) ||
-      canonicalApiProductCategory_(purchasedProduct && purchasedProduct.CATEGORIA);
+    record.CATEGORIA = canonicalApiProductCategory_(purchasedProduct && purchasedProduct.CATEGORIA) ||
+      canonicalApiProductCategory_(record.CATEGORIA);
     record.SUBTOTAL = roundApiCurrency_(
       apiNumber_(record.COSTO) * apiNumber_(record.CANTIDAD) + apiNumber_(record['KIT INSTALACION'])
     );
@@ -634,8 +635,8 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'PEDIDOS') {
     var orderedProduct = lookupApiReference_(spreadsheet, 'ALMACEN', record.producto_uuid);
     copyApiFields_(orderedProduct, record, ['NOMBRE', 'PRECIO VENTA PARA ASESOR']);
-    record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA) ||
-      canonicalApiProductCategory_(orderedProduct && orderedProduct.CATEGORIA);
+    record.CATEGORIA = canonicalApiProductCategory_(orderedProduct && orderedProduct.CATEGORIA) ||
+      canonicalApiProductCategory_(record.CATEGORIA);
     var orderedClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
     copyApiFields_(orderedClient, record, [
       'ID CLIENTE',
@@ -684,7 +685,7 @@ function validateApiRecord_(schemaTable, record) {
   });
 
   schemaTable.columns.filter(function (column) {
-    return column.values && column.values.length > 0;
+    return !column.allowOther && column.values && column.values.length > 0;
   }).forEach(function (column) {
     var value = record[column.name];
 

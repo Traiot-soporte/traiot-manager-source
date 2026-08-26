@@ -61,6 +61,18 @@ describe('schema Zod derivado de metadata', () => {
     })
   })
 
+  it('acepta categorias de producto creadas por el usuario', () => {
+    const schema = buildFormSchema(pedidosTable)
+    const result = schema.safeParse({
+      FECHA: '2026-08-21',
+      'ID PRODUCTO': 'product-001',
+      CATEGORIA: 'CABLEADO ESPECIAL',
+      'EQUIPOS A VENDER': 1,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
   it('no solicita el consecutivo CRM porque se genera en el servidor', () => {
     const fields = Object.keys(buildFormSchema(gestionClientesTable).shape)
 

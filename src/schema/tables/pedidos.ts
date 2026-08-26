@@ -48,8 +48,9 @@ export const pedidosTable = defineTable({
       name: 'CATEGORIA',
       type: 'Enum',
       values: productCategories,
+      allowOther: true,
       required: true,
-      description: 'Clasificacion de la salida: GPS, Sensor, Accesorio o CCTV.',
+      description: 'Categoria tomada del producto seleccionado.',
     },
     {
       name: 'PRECIO VENTA PARA ASESOR',

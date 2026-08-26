@@ -7,6 +7,7 @@ import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { upsertMutationResult } from '@/modules/tables/mutation-cache'
 import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
+import { PurchaseBatchForm } from '@/modules/inventory/purchase-batch-form'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
 import { FormView } from '@/views/form-view'
@@ -23,6 +24,11 @@ export function RecordFormPage() {
     queryKey: ['row', tableName, rowUuid],
     queryFn: () => repository.get(tableName, rowUuid ?? ''),
     enabled: Boolean(table && rowUuid),
+  })
+  const warehouse = useQuery({
+    queryKey: ['table', 'ALMACEN'],
+    queryFn: () => repository.list('ALMACEN'),
+    enabled: tableName === 'COMPRAS' && !rowUuid,
   })
 
   if (!table) return <FormMessage text="Tabla no encontrada" to="/" />
@@ -51,6 +57,28 @@ export function RecordFormPage() {
       queryClient.invalidateQueries({ queryKey: ['row', table.name, saved._uuid] }),
     ])
     void navigate(basePath + '/' + encodeURIComponent(String(saved._uuid)))
+  }
+
+  const savePurchaseBatch = async (rows: readonly RowData[]) => {
+    let completed = 0
+    try {
+      for (const values of rows) {
+        const saved = await repository.create({ table: table.name, values })
+        completed += 1
+        queryClient.setQueryData<readonly RowData[]>(
+          ['table', table.name],
+          (currentRows) => upsertMutationResult(currentRows, saved),
+        )
+      }
+    } catch (error) {
+      await invalidateMutationTables(queryClient, table.name)
+      const detail = error instanceof Error ? error.message : 'Error desconocido.'
+      throw new Error(completed > 0
+        ? 'Se registraron ' + completed + ' de ' + rows.length + ' compras. La siguiente línea falló: ' + detail
+        : 'No fue posible registrar la compra: ' + detail)
+    }
+    await invalidateMutationTables(queryClient, table.name)
+    void navigate(basePath)
   }
 
   const cancelTo = editing && rowUuid ? basePath + '/' + encodeURIComponent(rowUuid) : basePath
@@ -97,9 +125,31 @@ export function RecordFormPage() {
         icon={<TableIcon className="size-5" name={table.icon} />}
         title={formTitle}
       />
-      <FormView cancelTo={cancelTo} initialRow={initialRow} onSubmit={save} submitLabel={formSubmitLabel} table={table} user={user.data} />
+      {table.name === 'COMPRAS' && !editing ? (
+        <PurchaseBatchForm
+          cancelTo={cancelTo}
+          onSubmit={savePurchaseBatch}
+          products={warehouse.data ?? []}
+          productsLoading={warehouse.isPending}
+        />
+      ) : (
+        <FormView cancelTo={cancelTo} initialRow={initialRow} onSubmit={save} submitLabel={formSubmitLabel} table={table} user={user.data} />
+      )}
     </div>
   )
+}
+
+async function invalidateMutationTables(
+  queryClient: ReturnType<typeof useQueryClient>,
+  tableName: string,
+) {
+  const affectedTables = getMutationAffectedTables(tableName)
+  await Promise.all([
+    ...affectedTables.map((affectedTable) =>
+      queryClient.invalidateQueries({ queryKey: ['table', affectedTable] }),
+    ),
+    queryClient.invalidateQueries({ queryKey: ['table-summaries'] }),
+  ])
 }
 
 function FormMessage({ text, to }: { readonly text: string; readonly to: string }) {

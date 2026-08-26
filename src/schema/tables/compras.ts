@@ -40,8 +40,9 @@ export const comprasTable = defineTable({
       name: 'CATEGORIA',
       type: 'Enum',
       values: productCategories,
+      allowOther: true,
       required: true,
-      description: 'Clasificacion de la recepcion: GPS, Sensor, Accesorio o CCTV.',
+      description: 'Categoria tomada del producto seleccionado.',
     },
     {
       name: 'PROVEEDOR',

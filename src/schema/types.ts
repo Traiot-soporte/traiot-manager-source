@@ -68,6 +68,7 @@ export interface ColumnDef<T extends RowData = RowData> {
   readonly exportable?: boolean
   readonly origin?: DataOrigin
   readonly values?: readonly string[]
+  readonly allowOther?: boolean
   readonly ref?: {
     readonly table: string
     readonly keyColumn: string

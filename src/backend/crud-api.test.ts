@@ -13,6 +13,7 @@ interface CrudColumn {
   readonly readOnly: boolean
   readonly hasFormula: boolean
   readonly values: readonly string[]
+  readonly allowOther?: boolean
   readonly syncTo?: string
 }
 
@@ -257,7 +258,7 @@ describe('CRUD de Apps Script', () => {
     expect(canonicalApiProductCategory_('Gps')).toBe('GPS')
     expect(canonicalApiProductCategory_('Sensor')).toBe('SENSOR')
     expect(canonicalApiProductCategory_('Accesorio')).toBe('ACCESORIO')
-    expect(canonicalApiProductCategory_('sin clasificar')).toBe('')
+    expect(canonicalApiProductCategory_('Cableado especial')).toBe('CABLEADO ESPECIAL')
   })
 
   it('rechaza obligatorios vacios y opciones fuera del catalogo', () => {
@@ -268,6 +269,13 @@ describe('CRUD de Apps Script', () => {
     expect(() => validateApiRecord_(table, { ESTATUS: 'Desconocido' })).toThrow(
       'opcion no permitida',
     )
+  })
+
+  it('acepta valores nuevos cuando el catalogo es abierto', () => {
+    const { validateApiRecord_ } = loadCrudSandbox()
+    const table = { name: 'ALMACEN', columns: [column({ allowOther: true })] }
+
+    expect(() => validateApiRecord_(table, { ESTATUS: 'CATEGORIA NUEVA' })).not.toThrow()
   })
 
   it('calcula el precio de almacen y corrige el semaforo de laboratorio', () => {

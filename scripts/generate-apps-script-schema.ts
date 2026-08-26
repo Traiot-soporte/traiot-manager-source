@@ -31,6 +31,7 @@ const schema = tableDefinitions.map((table) => {
       readOnly: Boolean(column.readOnly),
       hasFormula: Boolean(column.formula),
       values: column.values ?? [],
+      ...(column.allowOther ? { allowOther: true } : {}),
       syncTo: column.syncTo ?? '',
       refTable: column.ref?.table ?? '',
     })),

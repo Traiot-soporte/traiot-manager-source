@@ -64,6 +64,7 @@ function schemaForColumn(column: ColumnDef): z.ZodType<unknown> {
 
     if (
       (column.type === 'Enum' || column.type === 'Color') &&
+      !column.allowOther &&
       column.values &&
       !column.values.includes(value)
     ) {
