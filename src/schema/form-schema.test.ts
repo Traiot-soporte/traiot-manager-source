@@ -64,18 +64,13 @@ describe('schema Zod derivado de metadata', () => {
   it('no solicita el consecutivo CRM porque se genera en el servidor', () => {
     const fields = Object.keys(buildFormSchema(gestionClientesTable).shape)
 
-    expect(fields).not.toContain('Id_CRM')
-    expect(fields).not.toContain('ID')
-    expect(fields).toContain('Apellido')
-    expect(fields).toContain('Segundo Nombre')
+    expect(fields).not.toContain('ID_CRM')
+    expect(fields).not.toContain('Apellido')
+    expect(fields).not.toContain('Segundo Nombre')
     expect(fields).toContain('Otro número de teléfono')
     expect(fields).not.toContain('Incluido en la exportación')
     expect(fields).toContain('Comentarios')
-    expect(gestionClientesTable.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
-      readOnly: true,
-      required: true,
-    })
-    expect(gestionClientesTable.columns.find((column) => column.name === 'ID')).toMatchObject({
+    expect(gestionClientesTable.columns.find((column) => column.name === 'ID_CRM')).toMatchObject({
       readOnly: true,
       required: true,
     })

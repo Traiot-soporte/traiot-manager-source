@@ -18,11 +18,9 @@ describe('destinatario de comunicaciones', () => {
 
   it('usa los datos de la nueva ficha profesional de seguimiento', () => {
     expect(resolveCommunicationTarget('Gestion Clientes', {
-      ID: 'GC-0001',
-      Nombre: 'Hector',
-      'Segundo Nombre': 'Manuel',
-      Apellido: 'Ramos',
-      Compañía: '2RP SOLUTIONS',
+      ID_CRM: 'GC-0001',
+      Nombre: 'Hector Manuel Ramos',
+      NOMBRE_EMPRESA: '2RP SOLUTIONS',
       Móvil: '5589266665',
       'E-mail del trabajo': 'h.ramos@2rp.mx',
     })).toEqual({

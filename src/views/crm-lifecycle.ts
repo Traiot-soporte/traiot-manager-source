@@ -37,7 +37,7 @@ function crmAccountKey(row: RowData, index: number): string {
   const uuid = String(row.cliente_uuid ?? '').trim().toLowerCase()
   if (uuid) return 'uuid:' + uuid
 
-  const company = normalizeCrmText(row.Nombre_empresa)
+  const company = normalizeCrmText(row.NOMBRE_EMPRESA)
   return company ? 'empresa:' + company : 'registro:' + String(index)
 }
 
@@ -45,14 +45,14 @@ function compareCrmRows(left: RowData, right: RowData): number {
   const dateDifference = crmTimestamp(left) - crmTimestamp(right)
   if (dateDifference !== 0) return dateDifference
 
-  const idDifference = crmSequence(left.Id_CRM) - crmSequence(right.Id_CRM)
+  const idDifference = crmSequence(left.ID_CRM) - crmSequence(right.ID_CRM)
   if (idDifference !== 0) return idDifference
 
   return String(left._updatedAt ?? '').localeCompare(String(right._updatedAt ?? ''))
 }
 
 function crmTimestamp(row: RowData): number {
-  const parsed = Date.parse(String(row.Fecha_contacto ?? ''))
+  const parsed = Date.parse(String(row.Modificado ?? row['Última actualización en'] ?? row.Creado ?? row._updatedAt ?? ''))
   return Number.isFinite(parsed) ? parsed : 0
 }
 
@@ -71,14 +71,7 @@ function resolveCrmStage(
   if (authoritative.includes('CLIENTE')) return 'Cliente'
   if (authoritative.includes('PROSPECT')) return 'Prospecto'
 
-  if (orderedRows.some((row) => normalizeCrmText(row.Estatus_prospeccion).includes('CLIENTE'))) {
-    return 'Cliente'
-  }
-
-  if (normalizeCrmText(latestRow.Tipo_cliente).includes('ACTIVO')) return 'Cliente'
-  if (normalizeCrmText(latestRow.Estatus_prospeccion).includes('NO INTERESADO')) {
-    return 'Descartado'
-  }
+  if (orderedRows.some((row) => normalizeCrmText(row['Tipo de Contacto']) === 'CLIENTE')) return 'Cliente'
   return 'Prospecto'
 }
 

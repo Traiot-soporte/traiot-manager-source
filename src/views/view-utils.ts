@@ -76,12 +76,10 @@ export const supplierPreviewColumnNames = [
 ] as const
 
 export const crmContactColumnNames = [
-  'ID',
+  'ID_CRM',
   'Nombre',
-  'Apellido',
-  'Segundo Nombre',
   'Cargo',
-  'Compañía',
+  'NOMBRE_EMPRESA',
   'Tipo de Contacto',
   'Responsable',
   'Teléfono del trabajo',
@@ -100,8 +98,8 @@ export const crmContactColumnNames = [
 ] as const
 
 export const crmContactPreviewColumnNames = [
-  'ID',
-  'Compañía',
+  'ID_CRM',
+  'NOMBRE_EMPRESA',
   'Nombre',
   'Teléfono del trabajo',
   'Móvil',

@@ -92,12 +92,10 @@ describe('utilidades de vistas genéricas', () => {
 
   it('presenta la ficha profesional de seguimiento en el orden solicitado', () => {
     expect(getDisplayColumns(gestionClientesTable).map((column) => column.name)).toEqual([
-      'ID',
+      'ID_CRM',
       'Nombre',
-      'Apellido',
-      'Segundo Nombre',
       'Cargo',
-      'Compañía',
+      'NOMBRE_EMPRESA',
       'Tipo de Contacto',
       'Responsable',
       'Teléfono del trabajo',

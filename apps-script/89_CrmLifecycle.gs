@@ -111,7 +111,7 @@ function buildCrmHistoryIndex_(rows) {
   var index = {};
 
   rows.forEach(function (row) {
-    var keys = crmLifecycleKeys_(row.cliente_uuid, row.Nombre_empresa);
+    var keys = crmLifecycleKeys_(row.cliente_uuid, row.NOMBRE_EMPRESA);
     keys.forEach(function (key) {
       index[key] = index[key] || [];
       index[key].push(row);
@@ -126,7 +126,7 @@ function collectCrmHistory_(index, clientUuid, companyName) {
 
   crmLifecycleKeys_(clientUuid, companyName).forEach(function (key) {
     (index[key] || []).forEach(function (row) {
-      var identity = normalizeCell_(row._uuid) || normalizeCell_(row.Id_CRM);
+      var identity = normalizeCell_(row._uuid) || normalizeCell_(row.ID_CRM);
       if (!identity || !seen[identity]) {
         if (identity) {
           seen[identity] = true;
@@ -159,36 +159,39 @@ function inferCrmLifecycleFromHistory_(rows) {
 
   var ordered = rows.slice().sort(compareCrmLifecycleRows_);
   var conversions = ordered.filter(function (row) {
-    return isCrmProspectConversion_(row.Estatus_prospeccion);
+    return normalizeLookupValue_(row['Tipo de Contacto']) === 'CLIENTE';
   });
 
   if (conversions.length > 0) {
     var conversion = conversions[conversions.length - 1];
     return {
       stage: 'Cliente',
-      convertedAt: normalizeCell_(conversion.Fecha_contacto),
+      convertedAt: normalizeCell_(
+        conversion.Modificado || conversion['Última actualización en'] || conversion.Creado
+      ),
       convertedBy: crmLifecycleResponsible_(conversion.Responsable)
     };
   }
 
   var latest = ordered[ordered.length - 1];
-  if (normalizeLookupValue_(latest.Tipo_cliente).indexOf('ACTIVO') >= 0) {
+  if (normalizeLookupValue_(latest['Tipo de Contacto']) === 'CLIENTE') {
     return { stage: 'Cliente', convertedAt: '', convertedBy: '' };
-  }
-  if (normalizeLookupValue_(latest.Estatus_prospeccion).indexOf('NO INTERESADO') >= 0) {
-    return { stage: 'Descartado', convertedAt: '', convertedBy: '' };
   }
   return { stage: 'Prospecto', convertedAt: '', convertedBy: '' };
 }
 
 function compareCrmLifecycleRows_(left, right) {
-  var leftDate = Date.parse(normalizeCell_(left.Fecha_contacto)) || 0;
-  var rightDate = Date.parse(normalizeCell_(right.Fecha_contacto)) || 0;
+  var leftDate = Date.parse(normalizeCell_(
+    left.Modificado || left['Última actualización en'] || left.Creado || left._updatedAt
+  )) || 0;
+  var rightDate = Date.parse(normalizeCell_(
+    right.Modificado || right['Última actualización en'] || right.Creado || right._updatedAt
+  )) || 0;
 
   if (leftDate !== rightDate) {
     return leftDate - rightDate;
   }
-  return crmLifecycleSequence_(left.Id_CRM) - crmLifecycleSequence_(right.Id_CRM);
+  return crmLifecycleSequence_(left.ID_CRM) - crmLifecycleSequence_(right.ID_CRM);
 }
 
 function crmLifecycleSequence_(value) {
@@ -250,41 +253,24 @@ function applyCrmLifecycleRules_(
   }
 
   var client = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
-  if (!client) {
-    applyCrmActivityLifecycle_(
-      record,
-      normalizeLookupValue_(record['Tipo de Contacto']) === 'CLIENTE' ? 'Cliente' : 'Prospecto',
-      isCreate
-    );
-    return;
-  }
-
-  var clientStage = normalizeCrmLifecycleStage_(client.Etapa_CRM);
+  var clientStage = client ? normalizeCrmLifecycleStage_(client.Etapa_CRM) : 'Prospecto';
   var convertsProspect = applyCrmActivityLifecycle_(record, clientStage, isCreate);
 
-  if (convertsProspect) {
+  if (client && convertsProspect) {
     writeCrmClientLifecycle_(spreadsheet, client, 'Cliente', now, user);
   }
 }
 
 function applyCrmActivityLifecycle_(record, clientStage, isCreate) {
-  var convertsProspect = isCrmProspectConversion_(record.Estatus_prospeccion);
+  var contactType = normalizeLookupValue_(record['Tipo de Contacto']);
+  var convertsProspect = contactType === 'CLIENTE';
 
-  if (convertsProspect) {
-    record.Tipo_cliente = '🟢Activo';
-    record.Estatus_cliente = record.Estatus_cliente || '🟢Activo';
-    return true;
+  if (isCreate && !contactType) {
+    record['Tipo de Contacto'] = normalizeCrmLifecycleStage_(clientStage) === 'Cliente'
+      ? 'Cliente'
+      : 'Prospecto';
   }
-
-  if (isCreate) {
-    if (normalizeCrmLifecycleStage_(clientStage) === 'Cliente') {
-      record.Tipo_cliente = '🟢Activo';
-      record.Estatus_cliente = record.Estatus_cliente || '🟢Activo';
-    } else {
-      record.Tipo_cliente = '🔵Prospecto';
-    }
-  }
-  return false;
+  return convertsProspect;
 }
 
 function writeCrmClientLifecycle_(spreadsheet, client, stage, now, user) {
@@ -340,7 +326,7 @@ function enrichCrmLifecycleRows_(spreadsheet, rows) {
 
   return rows.map(function (row) {
     var uuid = normalizeCell_(row.cliente_uuid).toLowerCase();
-    var name = normalizeLookupValue_(row.Nombre_empresa);
+    var name = normalizeLookupValue_(row.NOMBRE_EMPRESA);
     var client = byUuid[uuid] || byName[name];
     if (client) {
       row.Etapa_actual = normalizeCrmLifecycleStage_(client.Etapa_CRM);
@@ -355,15 +341,14 @@ function migrarCicloCrm() {
   return ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), true);
 }
 
-var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V4';
+var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V5';
 var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
-  'ID',
+  'ID_CRM',
   'Nombre',
-  'Apellido',
-  'Segundo Nombre',
   'Cargo',
-  'Compañía',
+  'NOMBRE_EMPRESA',
   'Tipo de Contacto',
+  'Responsable',
   'Teléfono del trabajo',
   'Móvil',
   'Otro número de teléfono',
@@ -440,8 +425,7 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
   var maximum = values.reduce(function (current, row) {
     return Math.max(
       current,
-      parseApiCrmSequence_(crmContactCell_(row, headers, 'ID')) || 0,
-      parseApiCrmSequence_(crmContactCell_(row, headers, 'Id_CRM')) || 0
+      parseApiCrmSequence_(crmContactCell_(row, headers, 'ID_CRM')) || 0
     );
   }, 0);
   var usedIds = {};
@@ -449,16 +433,13 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
 
   values.forEach(function (row) {
     var uuid = normalizeCell_(crmContactCell_(row, headers, 'cliente_uuid')).toLowerCase();
-    var companyLegacy = crmContactCell_(row, headers, 'Nombre_empresa');
-    var client = clientsByUuid[uuid] || clientsByName[normalizeLookupValue_(companyLegacy)] || {};
+    var company = crmContactCell_(row, headers, 'NOMBRE_EMPRESA');
+    var client = clientsByUuid[uuid] || clientsByName[normalizeLookupValue_(company)] || {};
     var updatedAt = crmContactFirstValue_(
       crmContactCell_(row, headers, '_updatedAt'),
       new Date().toISOString()
     );
-    var existingId = crmContactFirstValue_(
-      crmContactCell_(row, headers, 'ID'),
-      crmContactCell_(row, headers, 'Id_CRM')
-    );
+    var existingId = crmContactCell_(row, headers, 'ID_CRM');
     var sequence = parseApiCrmSequence_(existingId);
     var formattedId = sequence ? formatApiCrmId_(sequence) : '';
     if (!sequence || usedIds[formattedId]) {
@@ -469,13 +450,13 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
     usedIds[formattedId] = true;
 
     var defaults = {
-      'ID': formattedId,
-      'Nombre': crmContactFirstValue_(crmContactCell_(row, headers, 'Contacto'), client.CONTACTO, 'Contacto sin nombre'),
-      'Compañía': crmContactFirstValue_(companyLegacy, client['RAZON SOCIAL'], 'Sin compañía'),
-      'Tipo de Contacto': crmContactTypeFromLegacy_(crmContactCell_(row, headers, 'Tipo_cliente')),
-      'Teléfono del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'Telefono'), client['TELEFONO CONTACTO'], client.TELEFONO),
-      'Sitio web Corporativo': crmContactCell_(row, headers, 'Pagina_empresa'),
-      'E-mail del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'Email'), client.EMAIL),
+      'ID_CRM': formattedId,
+      'Nombre': crmContactFirstValue_(crmContactCell_(row, headers, 'Nombre'), client.CONTACTO, 'Contacto sin nombre'),
+      'NOMBRE_EMPRESA': crmContactFirstValue_(company, client['RAZON SOCIAL'], 'Sin compañía'),
+      'Tipo de Contacto': crmContactFirstValue_(crmContactCell_(row, headers, 'Tipo de Contacto'), 'Prospecto'),
+      'Teléfono del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'Teléfono del trabajo'), client['TELEFONO CONTACTO'], client.TELEFONO),
+      'Sitio web Corporativo': crmContactCell_(row, headers, 'Sitio web Corporativo'),
+      'E-mail del trabajo': crmContactFirstValue_(crmContactCell_(row, headers, 'E-mail del trabajo'), client.EMAIL),
       'Última actualización en': updatedAt,
       'Origen': 'Migración',
       'Información de origen': 'Historial anterior del CRM',
@@ -483,18 +464,18 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
       'Creado': updatedAt,
       'Modificado por': 'Migración TRAIOT',
       'Modificado': updatedAt,
-      'Comentarios': crmContactCell_(row, headers, 'Notas')
+      'Comentarios': crmContactCell_(row, headers, 'Comentarios')
     };
 
     var changed = false;
-    var idIndex = headers.indexOf('ID');
+    var idIndex = headers.indexOf('ID_CRM');
     if (idIndex >= 0 && normalizeCell_(row[idIndex]) !== formattedId) {
       row[idIndex] = formattedId;
       changed = true;
     }
     Object.keys(defaults).forEach(function (header) {
       var index = headers.indexOf(header);
-      if (header !== 'ID' && index >= 0 && isApiBlank_(row[index])) {
+      if (header !== 'ID_CRM' && index >= 0 && isApiBlank_(row[index])) {
         row[index] = defaults[header];
         changed = true;
       }

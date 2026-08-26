@@ -37,7 +37,7 @@ export function DeckView({ basePath, rows, table }: CollectionViewProps) {
             <span className="block truncate font-black text-ink-950">{getRowTitle(table, row)}</span>
             <span className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs font-semibold text-ink-800/55">
               {columns.map((column) => (
-                <span key={column.name}><span className="font-black">{column.label ?? column.name}:</span> <CellDisplay column={column} table={table.name} value={row[column.name]} /></span>
+                <span key={column.name}><span className="font-black uppercase">{column.label ?? column.name}:</span> <CellDisplay column={column} table={table.name} value={row[column.name]} /></span>
               ))}
             </span>
           </span>

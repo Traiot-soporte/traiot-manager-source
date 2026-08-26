@@ -334,8 +334,7 @@ function prepareApiMutationRecord_(
   }
 
   if (schemaTable.name === 'Gestion Clientes' && isCreate) {
-    record.ID = nextApiCrmId_(spreadsheet);
-    record.Id_CRM = record.ID;
+    record.ID_CRM = nextApiCrmId_(spreadsheet);
   }
 
   applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCreate, now, user);
@@ -384,24 +383,8 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
   if (schemaTable.name !== 'Gestion Clientes') return;
 
   var userLabel = crmLifecycleUserLabel_(user);
-  var fullName = [record.Nombre, record['Segundo Nombre'], record.Apellido]
-    .map(normalizeCell_)
-    .filter(Boolean)
-    .join(' ');
-  var contactType = normalizeLookupValue_(record['Tipo de Contacto']);
 
-  record.ID = normalizeCell_(record.ID || record.Id_CRM);
-  record.Id_CRM = record.ID;
-  record.Fecha_contacto = record.Fecha_contacto || String(now).slice(0, 10);
-  record.Nombre_empresa = normalizeCell_(record['Compañía']);
-  record.Pagina_empresa = normalizeCell_(record['Sitio web Corporativo']);
-  record.Contacto = fullName;
-  record.Telefono = normalizeCell_(
-    record.Móvil || record['Teléfono del trabajo'] || record['Otro número de teléfono']
-  );
-  record.Email = normalizeCell_(record['E-mail del trabajo']);
-  record.Tipo_cliente = contactType === 'CLIENTE' ? '🟢Activo' : '🔵Prospecto';
-  record.Notas = normalizeCell_(record.Comentarios);
+  record.ID_CRM = normalizeCell_(record.ID_CRM);
   record['Última actualización en'] = now;
   record['Modificado por'] = userLabel;
   record.Modificado = now;
@@ -409,12 +392,6 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
   if (isCreate) {
     record['Creado por'] = userLabel;
     record.Creado = now;
-    record.Accion = record.Accion || '💬Seguimiento WhatsApp';
-    if (contactType === 'CLIENTE') {
-      record.Estatus_cliente = record.Estatus_cliente || '🟢Activo';
-    } else {
-      record.Estatus_prospeccion = record.Estatus_prospeccion || '⏳Por contactar';
-    }
   } else {
     record['Creado por'] = record['Creado por'] || (currentRecord && currentRecord['Creado por']) || userLabel;
     record.Creado = record.Creado || (currentRecord && currentRecord.Creado) || now;
@@ -641,9 +618,11 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
     var crmClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
 
     if (crmClient) {
-      record.Contacto = crmClient.CONTACTO;
-      record.Telefono = crmClient['TELEFONO CONTACTO'];
-      record.Email = crmClient.EMAIL;
+      record.NOMBRE_EMPRESA = record.NOMBRE_EMPRESA || crmClient['RAZON SOCIAL'];
+      record.Nombre = record.Nombre || crmClient.CONTACTO;
+      record['Teléfono del trabajo'] = record['Teléfono del trabajo'] ||
+        crmClient['TELEFONO CONTACTO'] || crmClient.TELEFONO;
+      record['E-mail del trabajo'] = record['E-mail del trabajo'] || crmClient.EMAIL;
     }
   }
 
@@ -746,18 +725,7 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
     columnNames.push('Calendario');
     columnNames.push('_calendarOwnerUuid');
     [
-      'ID',
-      'Id_CRM',
-      'Fecha_contacto',
-      'Nombre_empresa',
-      'Pagina_empresa',
-      'Contacto',
-      'Telefono',
-      'Email',
-      'Tipo_cliente',
-      'Estatus_prospeccion',
-      'Estatus_cliente',
-      'Notas',
+      'ID_CRM',
       'Última actualización en',
       'Creado por',
       'Creado',
@@ -1220,9 +1188,7 @@ function nextApiCrmId_(spreadsheet) {
   var schemaTable = requireApiTable_('Gestion Clientes');
   var sheet = requireApiSheet_(spreadsheet, schemaTable);
   var headers = readApiHeaders_(sheet);
-  var idHeaders = ['ID', 'Id_CRM'].filter(function (header) {
-    return headers.indexOf(header) >= 0;
-  });
+  var idHeaders = ['ID_CRM'].filter(function (header) { return headers.indexOf(header) >= 0; });
   var ids = [];
   if (sheet.getLastRow() > 1) {
     idHeaders.forEach(function (header) {
@@ -1267,7 +1233,7 @@ function diagnosticarConsecutivoCrm() {
   var schemaTable = requireApiTable_('Gestion Clientes');
   var sheet = requireApiSheet_(spreadsheet, schemaTable);
   var headers = readApiHeaders_(sheet);
-  var idIndex = requireHeaderIndex_(headers, 'Id_CRM', schemaTable);
+  var idIndex = requireHeaderIndex_(headers, 'ID_CRM', schemaTable);
   var lastRow = sheet.getLastRow();
   var values = lastRow > 1
     ? sheet.getRange(2, idIndex + 1, lastRow - 1, 1).getValues()

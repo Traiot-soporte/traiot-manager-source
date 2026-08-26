@@ -596,16 +596,16 @@ function MatrixBreakdownDialog({ column, onClose, rows }: {
 
 function CrmDashboardView(props: CollectionViewProps) {
   const { rows } = props
-  const companies = new Set(rows.map((row) => String(row['Compañía'] ?? row.Nombre_empresa ?? '').trim()).filter(Boolean))
+  const companies = new Set(rows.map((row) => String(row.NOMBRE_EMPRESA ?? '').trim()).filter(Boolean))
   const responsibles = new Set(rows.flatMap((row) => {
     const value = row.Responsable
     return (Array.isArray(value) ? value : String(value ?? '').split(','))
       .map((responsible) => String(responsible).trim())
       .filter(Boolean)
   }))
-  const withPhone = rows.filter((row) => String(row.Móvil ?? row['Teléfono del trabajo'] ?? row.Telefono ?? '').trim()).length
+  const withPhone = rows.filter((row) => String(row.Móvil ?? row['Teléfono del trabajo'] ?? '').trim()).length
   const recentRows = [...rows]
-    .sort((left, right) => String(right.Modificado ?? right._updatedAt ?? right.Fecha_contacto ?? '').localeCompare(String(left.Modificado ?? left._updatedAt ?? left.Fecha_contacto ?? '')))
+    .sort((left, right) => String(right.Modificado ?? right._updatedAt ?? '').localeCompare(String(left.Modificado ?? left._updatedAt ?? '')))
     .slice(0, 8)
 
   return (

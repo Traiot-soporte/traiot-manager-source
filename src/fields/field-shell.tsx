@@ -14,7 +14,7 @@ export const inputClassName =
 export function FieldShell({ children, column, error, inputId }: FieldShellProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-black text-ink-950" htmlFor={inputId}>
+      <label className="block text-sm font-black uppercase text-ink-950" htmlFor={inputId}>
         {column.label ?? column.name}
         {column.required && <span className="ml-1 text-red-600">*</span>}
       </label>

@@ -171,7 +171,7 @@ function CalendarEvent({ basePath, colorByResponsible, row }: { readonly basePat
 function groupEventsByDay(rows: readonly RowData[]): Map<string, RowData[]> {
   const grouped = new Map<string, RowData[]>()
   for (const row of rows) {
-    const key = eventDateKey(row.Creado ?? row['Última actualización en'] ?? row.Fecha_contacto)
+    const key = eventDateKey(row.Creado ?? row['Última actualización en'] ?? row._updatedAt)
     if (key) grouped.set(key, [...(grouped.get(key) ?? []), row])
   }
   return grouped

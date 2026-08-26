@@ -279,11 +279,9 @@ describe('CRUD de Apps Script', () => {
   it('sincroniza la nueva ficha profesional con la compatibilidad del CRM', () => {
     const { applyCrmContactCompatibility_ } = loadCrudSandbox()
     const record: Record<string, unknown> = {
-      ID: 'GC-0007',
-      Nombre: 'Hector',
-      'Segundo Nombre': 'Manuel',
-      Apellido: 'Ramos',
-      'Compañía': '2RP SOLUTIONS',
+      ID_CRM: 'GC-0007',
+      Nombre: 'Hector Manuel Ramos',
+      NOMBRE_EMPRESA: '2RP SOLUTIONS',
       'Tipo de Contacto': 'Prospecto',
       Móvil: '5589266665',
       'E-mail del trabajo': 'h.ramos@2rp.mx',
@@ -300,16 +298,13 @@ describe('CRUD de Apps Script', () => {
     )
 
     expect(record).toMatchObject({
-      Id_CRM: 'GC-0007',
-      Fecha_contacto: '2026-08-25',
-      Nombre_empresa: '2RP SOLUTIONS',
-      Contacto: 'Hector Manuel Ramos',
-      Telefono: '5589266665',
-      Email: 'h.ramos@2rp.mx',
-      Notas: 'Primer contacto',
+      ID_CRM: 'GC-0007',
+      'Última actualización en': '2026-08-25T18:00:00.000Z',
       'Creado por': 'Manuel Soto',
       'Modificado por': 'Manuel Soto',
     })
+    expect(record).not.toHaveProperty('Id_CRM')
+    expect(record).not.toHaveProperty('Nombre_empresa')
   })
 
   it('genera compras consecutivas sin reutilizar números reservados o eliminados', () => {
@@ -350,16 +345,14 @@ describe('CRUD de Apps Script', () => {
 
     expect(inferCrmLifecycleFromHistory_([]).stage).toBe('Cliente')
     expect(inferCrmLifecycleFromHistory_([{
-      Id_CRM: '10',
-      Fecha_contacto: '2026-08-20',
-      Tipo_cliente: '🔵Prospecto',
-      Estatus_prospeccion: '🤝En negociación',
+      ID_CRM: 'GC-0010',
+      Modificado: '2026-08-20',
+      'Tipo de Contacto': 'Prospecto',
     }]).stage).toBe('Prospecto')
     expect(inferCrmLifecycleFromHistory_([{
-      Id_CRM: '11',
-      Fecha_contacto: '2026-08-22',
-      Tipo_cliente: '🔵Prospecto',
-      Estatus_prospeccion: '✅Cliente',
+      ID_CRM: 'GC-0011',
+      Modificado: '2026-08-22',
+      'Tipo de Contacto': 'Cliente',
       Responsable: ['Manuel Soto'],
     }])).toEqual({
       stage: 'Cliente',
@@ -371,22 +364,15 @@ describe('CRUD de Apps Script', () => {
   it('convierte el seguimiento y normaliza actividades nuevas según la etapa maestra', () => {
     const { applyCrmActivityLifecycle_ } = loadCrudSandbox()
     const conversion: Record<string, unknown> = {
-      Tipo_cliente: '🔵Prospecto',
-      Estatus_prospeccion: '✅Cliente',
+      'Tipo de Contacto': 'Cliente',
     }
 
     expect(applyCrmActivityLifecycle_(conversion, 'Prospecto', true)).toBe(true)
-    expect(conversion).toMatchObject({
-      Tipo_cliente: '🟢Activo',
-      Estatus_cliente: '🟢Activo',
-    })
+    expect(conversion).toMatchObject({ 'Tipo de Contacto': 'Cliente' })
 
-    const activeActivity: Record<string, unknown> = { Tipo_cliente: '🔵Prospecto' }
+    const activeActivity: Record<string, unknown> = {}
     expect(applyCrmActivityLifecycle_(activeActivity, 'Cliente', true)).toBe(false)
-    expect(activeActivity).toMatchObject({
-      Tipo_cliente: '🟢Activo',
-      Estatus_cliente: '🟢Activo',
-    })
+    expect(activeActivity).toMatchObject({ 'Tipo de Contacto': 'Cliente' })
   })
 
   it('permite campos visibles de tablas normalizadas y protege campos ocultos', () => {

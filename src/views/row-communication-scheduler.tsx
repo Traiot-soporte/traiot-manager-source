@@ -25,7 +25,7 @@ export function RowCommunicationScheduler({ row, table }: {
     queryFn: () => repository.list('CLIENTES'),
     enabled: open && table.name === 'Gestion Clientes',
   })
-  const clientUuid = String(row.cliente_uuid ?? row.Nombre_empresa ?? '')
+  const clientUuid = String(row.cliente_uuid ?? '')
   const client = clients.data?.find((candidate) => String(candidate._uuid ?? '') === clientUuid)
   const target = useMemo(
     () => resolveCommunicationTarget(table.name, row, client),

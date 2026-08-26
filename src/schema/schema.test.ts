@@ -9,7 +9,7 @@ const expectedAppSheetColumns: Readonly<Record<string, number>> = {
   PEDIDOS: 26,
   PROVEEDORES: 26,
   CLIENTES: 13,
-  'Gestion Clientes': 13,
+  'Gestion Clientes': 19,
   'Ticket Soporte': 15,
   INSTALACIONES: 93,
   Laboratorio: 25,
@@ -37,7 +37,7 @@ describe('registro de metadata', () => {
       expect(appsheetColumnCount(table!), tableName).toBe(expectedCount)
       total += expectedCount
     }
-    expect(total).toBe(280)
+    expect(total).toBe(286)
   })
 
   it('modela los acumulados de Almacén sin selectores de relaciones', () => {
@@ -173,14 +173,10 @@ describe('registro de metadata', () => {
     expect(crm?.sheet).toBe('Gestion Clientes')
     expect(crm?.permissionView).toBe('Gestion Clientes')
     expect(crm?.defaultView).toBe('dashboard')
-    expect(crm?.label).toBe('ID')
-    expect(crm?.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
-      hidden: true,
-      readOnly: true,
-    })
-    expect(crm?.columns.find((column) => column.name === 'ID')).toMatchObject({
+    expect(crm?.label).toBe('ID_CRM')
+    expect(crm?.legacyBusinessKey).toBe('ID_CRM')
+    expect(crm?.columns.find((column) => column.name === 'ID_CRM')).toMatchObject({
       labelColumn: true,
-      origin: 'migration',
       readOnly: true,
     })
     expect(crm?.columns.find((column) => column.name === 'Responsable')).toMatchObject({
@@ -193,13 +189,12 @@ describe('registro de metadata', () => {
     expect(crm?.columns.find((column) => column.name === 'Calendario')?.hidden).toBe(true)
     expect(crm?.columns.find((column) => column.name === 'Tipo de Contacto')?.values)
       .toEqual(['Prospecto', 'Cliente', 'Proveedor', 'Socio', 'Otro'])
-    for (const restoredField of [
-      'Apellido',
-      'Segundo Nombre',
-      'Otro número de teléfono',
-    ]) {
-      expect(crm?.columns.find((column) => column.name === restoredField)?.hidden).not.toBe(true)
-    }
+    expect(crm?.columns.find((column) => column.name === 'Apellido')).toBeUndefined()
+    expect(crm?.columns.find((column) => column.name === 'Segundo Nombre')).toBeUndefined()
+    expect(crm?.columns.find((column) => column.name === 'Otro número de teléfono')?.hidden).not.toBe(true)
+    expect(crm?.columns.find((column) => column.name === 'NOMBRE_EMPRESA')).toMatchObject({
+      required: true,
+    })
     expect(crm?.columns.find((column) => column.name === 'Incluido en la exportación')).toBeUndefined()
     const comments = crm?.columns.find((column) => column.name === 'Comentarios')
     expect(comments).toMatchObject({
