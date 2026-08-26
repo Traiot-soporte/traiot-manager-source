@@ -39,9 +39,8 @@ describe('utilidades de vistas genéricas', () => {
     expect(columns.map((column) => column.name)).toEqual([
       'No. Item',
       'ID PRODUCTO',
-      'PROVEEDOR',
-      'NOMBRE',
       'CATEGORIA',
+      'PROVEEDOR',
       'STOCK',
       'STOCK MINIMO',
       'STOCK MAXIMO',

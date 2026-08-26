@@ -35,9 +35,8 @@ export function getNamedListColumns(table: TableDef, names: readonly string[]) {
 const warehouseTableColumnNames = [
   'No. Item',
   'ID PRODUCTO',
-  'PROVEEDOR',
-  'NOMBRE',
   'CATEGORIA',
+  'PROVEEDOR',
   'STOCK',
   'STOCK MINIMO',
   'STOCK MAXIMO',

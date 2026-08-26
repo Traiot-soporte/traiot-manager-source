@@ -69,7 +69,7 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
     }
     const style = noticeStyles[notice]
     return style
-      ? <span className={'inline-flex rounded-full px-2.5 py-1 text-xs font-black ring-1 ring-inset ' + style}>{notice}</span>
+      ? <span className={'inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-black ring-1 ring-inset ' + style}>{notice}</span>
       : <>{formatCell(value, column.type)}</>
   }
 

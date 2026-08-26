@@ -11,12 +11,13 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
   const columns = getTableViewColumns(table)
   const deletion = useClientDeletion(table.name)
   const communicationsAvailable = table.name === 'CLIENTES' || table.name === 'Gestion Clientes'
+  const isWarehouse = table.name === 'ALMACEN'
   const tableClassName = table.name === 'Gestion Clientes'
     ? 'w-full min-w-[1180px] border-separate border-spacing-0 text-left'
     : communicationsAvailable
     ? 'w-full min-w-[920px] table-fixed border-separate border-spacing-0 text-left'
-    : table.name === 'ALMACEN'
-      ? 'w-full min-w-[1240px] border-separate border-spacing-0 text-left'
+    : isWarehouse
+      ? 'w-full min-w-[1010px] table-fixed border-separate border-spacing-0 text-left'
       : 'w-full min-w-[760px] border-separate border-spacing-0 text-left'
 
   if (rows.length === 0) return <EmptyCollection />
@@ -25,10 +26,18 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
     <div className="overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
       <div className="relative overflow-auto lg:max-h-[calc(100vh-16.5rem)]">
         <table className={tableClassName}>
+          {isWarehouse && (
+            <colgroup>
+              {columns.map((column) => (
+                <col className={warehouseColumnWidth[column.name]} key={column.name} />
+              ))}
+              <col className="w-16" />
+            </colgroup>
+          )}
           <thead className="sticky top-0 z-30 bg-ink-950 text-white shadow-[0_5px_12px_-8px_rgba(0,0,0,0.85)]">
             <tr>
               {columns.map((column) => (
-                <th className="bg-ink-950 px-4 py-3 text-xs font-black uppercase tracking-wide" key={column.name}>
+                <th className="bg-ink-950 px-3 py-3 text-xs font-black uppercase tracking-wide" key={column.name}>
                   {column.label ?? column.name}
                 </th>
               ))}
@@ -45,7 +54,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
                     <CellDisplay column={column} table={table.name} value={row[column.name]} />
                   </td>
                 ))}
-                <td className="sticky right-0 bg-white px-2 py-2 shadow-[-8px_0_16px_-16px_rgba(0,0,0,0.45)]">
+                <td className="sticky right-0 z-20 bg-white px-2 py-2 shadow-[-8px_0_16px_-16px_rgba(0,0,0,0.45)]">
                   <div className="flex items-center justify-end gap-1">
                     {communicationsAvailable && <RowCommunicationScheduler row={row} table={table} />}
                     {deletion.available && (
@@ -79,6 +88,17 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
       </div>
     </div>
   )
+}
+
+const warehouseColumnWidth: Readonly<Record<string, string>> = {
+  'No. Item': 'w-[5rem]',
+  'ID PRODUCTO': 'w-[10rem]',
+  CATEGORIA: 'w-[8rem]',
+  PROVEEDOR: 'w-[10rem]',
+  STOCK: 'w-[7rem]',
+  'STOCK MINIMO': 'w-[7.5rem]',
+  'STOCK MAXIMO': 'w-[7.5rem]',
+  'AVISO DE COMPRA': 'w-[12rem]',
 }
 
 function EmptyCollection() {
