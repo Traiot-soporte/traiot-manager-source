@@ -89,6 +89,12 @@ interface CrudSandbox {
     now: string,
     user: Readonly<Record<string, unknown>>,
   ) => void
+  readonly appendCrmCommentHistory_: (
+    previousValue: unknown,
+    submittedValue: unknown,
+    now: string,
+    userLabel: string,
+  ) => string
   readonly repairCrmContactCreatedFields_: (
     row: unknown[],
     headers: string[],
@@ -126,6 +132,22 @@ function loadCrudSandbox(): CrudSandbox {
       if (user.role !== 'ADMIN' && user.role !== 'ADMINISTRADOR') {
         throw new Error('Se requieren permisos de administrador.')
       }
+    },
+    Utilities: {
+      formatDate: (value: string | Date) => {
+        const parts = new Intl.DateTimeFormat('en-GB', {
+          day: '2-digit',
+          hour: '2-digit',
+          hourCycle: 'h23',
+          minute: '2-digit',
+          month: '2-digit',
+          timeZone: 'America/Mexico_City',
+          year: 'numeric',
+        }).formatToParts(new Date(value))
+        const part = (type: Intl.DateTimeFormatPartTypes) =>
+          parts.find((item) => item.type === type)?.value ?? ''
+        return `${part('day')}/${part('month')}/${part('year')} ${part('hour')}:${part('minute')}`
+      },
     },
   })
   runInContext(readFileSync('apps-script/50_DataMigrationAudit.gs', 'utf8'), sandbox)
@@ -304,12 +326,32 @@ describe('CRUD de Apps Script', () => {
 
     expect(record).toMatchObject({
       ID_CRM: 'GC-0007',
+      Comentarios: '[25/08/2026 12:00 · Manuel Soto]\nPrimer contacto',
       'Última actualización en': '2026-08-25T18:00:00.000Z',
       'Creado por': 'Manuel Soto',
       'Modificado por': 'Manuel Soto',
     })
     expect(record).not.toHaveProperty('Id_CRM')
     expect(record).not.toHaveProperty('Nombre_empresa')
+  })
+
+  it('anexa comentarios auditados sin borrar el historial del CRM', () => {
+    const { appendCrmCommentHistory_ } = loadCrudSandbox()
+
+    expect(appendCrmCommentHistory_(
+      'Comentario importado',
+      'Se confirmó la reunión.',
+      '2026-08-25T18:30:00.000Z',
+      'Manuel Soto',
+    )).toBe(
+      'Comentario importado\n\n[25/08/2026 12:30 · Manuel Soto]\nSe confirmó la reunión.',
+    )
+    expect(appendCrmCommentHistory_(
+      'Comentario importado',
+      '',
+      '2026-08-25T18:30:00.000Z',
+      'Manuel Soto',
+    )).toBe('Comentario importado')
   })
 
   it('recupera el nombre desplazado a Creado y restaura la fecha de creación', () => {

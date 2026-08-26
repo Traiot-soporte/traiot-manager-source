@@ -54,6 +54,26 @@ describe('MockRepository', () => {
     expect(product['No. Item']).toBe(39)
   })
 
+  it('conserva y audita el historial de comentarios del CRM', async () => {
+    const repository = new MockRepository({
+      'Gestion Clientes': [{
+        _uuid: 'crm-contact',
+        ID_CRM: 'GC-0001',
+        Comentarios: 'Comentario importado',
+      }],
+    }, fixedNow, () => 'crm-contact-2')
+
+    const contact = await repository.update({
+      table: 'Gestion Clientes',
+      rowUuid: 'crm-contact',
+      changes: { Comentarios: 'Nueva nota' },
+    })
+
+    expect(contact.Comentarios).toBe(
+      'Comentario importado\n\n[21/08/2026 18:00 · manuel@traiot.mx]\nNueva nota',
+    )
+  })
+
   it('prepara un solo correo grupal y WhatsApp solo para colaboradores seleccionados', async () => {
     let sequence = 0
     const repository = new MockRepository(undefined, fixedNow, () => `generated-${++sequence}`)

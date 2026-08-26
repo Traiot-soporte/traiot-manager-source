@@ -1,6 +1,7 @@
 import { getTableDefinition, tableDefinitions } from '@/schema'
 import type { FormulaContext, RowData, TableSummary, UserContext } from '@/schema'
 import { mockRows } from '@/data/mock-data'
+import { appendCrmCommentHistory } from '@/lib/crm-comments'
 import type {
   AuthAdminStatus,
   AuthSecurityUser,
@@ -301,11 +302,20 @@ export class MockRepository implements Repository {
     }
 
     const submitted = copyRow(input.values)
+    const now = this.#now()
     if (input.table === 'ALMACEN') submitted['No. Item'] = this.#nextWarehouseItem()
+    if (input.table === 'Gestion Clientes') {
+      submitted.Comentarios = appendCrmCommentHistory(
+        '',
+        submitted.Comentarios,
+        now,
+        mockUser.email,
+      )
+    }
     const row = this.#applyFormulas(input.table, {
       ...submitted,
       _uuid: rowUuid,
-      _updatedAt: this.#now().toISOString(),
+      _updatedAt: now.toISOString(),
       _deleted: false,
     })
     this.#tables.get(input.table)?.set(rowUuid, row)
@@ -319,11 +329,21 @@ export class MockRepository implements Repository {
       throw new Error('No se encontró la fila solicitada.')
     }
 
+    const changes = copyRow(input.changes)
+    const now = this.#now()
+    if (input.table === 'Gestion Clientes') {
+      changes.Comentarios = appendCrmCommentHistory(
+        current.Comentarios,
+        changes.Comentarios,
+        now,
+        mockUser.email,
+      )
+    }
     const row = this.#applyFormulas(input.table, {
       ...current,
-      ...copyRow(input.changes),
+      ...changes,
       _uuid: input.rowUuid,
-      _updatedAt: this.#now().toISOString(),
+      _updatedAt: now.toISOString(),
     })
     this.#tables.get(input.table)?.set(input.rowUuid, row)
     return copyRow(row)

@@ -67,7 +67,13 @@ export const gestionClientesTable = defineTable({
     { name: 'Creado', label: 'FECHA DE CREACIÓN', type: 'DateTime', readOnly: true, section: 'Auditoría' },
     { name: 'Modificado por', label: 'MODIFICADO POR', type: 'Text', readOnly: true, section: 'Auditoría' },
     { name: 'Modificado', label: 'FECHA DE MODIFICACIÓN', type: 'DateTime', readOnly: true, section: 'Auditoría' },
-    { name: 'Comentarios', label: 'COMENTARIOS', type: 'LongText', section: 'Comentarios' },
+    {
+      name: 'Comentarios',
+      label: 'COMENTARIOS',
+      type: 'LongText',
+      section: 'Comentarios',
+      description: 'Bitácora acumulativa con fecha, hora de CDMX y usuario responsable.',
+    },
     {
       name: 'Calendario',
       type: 'Enum',

@@ -7,6 +7,7 @@ import { Link } from 'react-router'
 import { FieldRenderer } from '@/fields/field-renderer'
 import { buildFormSchema } from '@/schema/form-schema'
 import type { CellValue, FormulaContext, RowData, TableDef, UserContext } from '@/schema'
+import { CrmCommentHistory } from '@/views/crm-comment-history'
 import { getDisplayColumns } from '@/views/view-utils'
 
 interface FormViewProps {
@@ -20,12 +21,19 @@ interface FormViewProps {
 
 const wideFieldTypes = new Set(['LongText', 'Address', 'EnumList', 'Image', 'Signature'])
 
-function prepareDefaults(table: TableDef, initialRow: RowData | undefined, context: FormulaContext) {
+function isPersistedCrmContact(table: TableDef, row: RowData | undefined): boolean {
+  return table.name === 'Gestion Clientes' && typeof row?._uuid === 'string' && row._uuid !== ''
+}
+
+function prepareFormDefaults(table: TableDef, initialRow: RowData | undefined, context: FormulaContext) {
   const defaults: RowData = { ...(initialRow ?? {}) }
   for (const column of table.columns) {
     if (defaults[column.name] === undefined && column.defaultValue) {
       defaults[column.name] = column.defaultValue(defaults, context)
     }
+  }
+  if (isPersistedCrmContact(table, initialRow)) {
+    defaults.Comentarios = ''
   }
   return defaults
 }
@@ -71,7 +79,7 @@ export function FormView({
   )
   const schema = useMemo(() => buildFormSchema(table), [table])
   const defaultValues = useMemo(
-    () => prepareDefaults(table, initialRow, context),
+    () => prepareFormDefaults(table, initialRow, context),
     [context, initialRow, table],
   )
   const form = useForm<RowData>({
@@ -84,6 +92,7 @@ export function FormView({
     (column) => !column.showIf || column.showIf(currentRow, context),
   )
   const sections = [...new Set(columns.map((column) => column.section ?? 'Información general'))]
+  const isEditingCrmContact = isPersistedCrmContact(table, initialRow)
 
   const submit = form.handleSubmit(async (values) => {
     setSubmitError(undefined)
@@ -107,6 +116,9 @@ export function FormView({
             <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
               Los teléfonos y el correo habilitan las acciones rápidas de WhatsApp, llamada, correo y comunicaciones programadas.
             </p>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-ink-800/60">
+              Cada comentario nuevo se anexará con la fecha, hora de CDMX y el usuario que lo escribió; el historial anterior se conservará.
+            </p>
           </div>
         </aside>
       )}
@@ -121,31 +133,49 @@ export function FormView({
             key={section}
           >
             <legend className="px-2 text-lg font-black text-ink-950">{section}</legend>
+            {isEditingCrmContact && section === 'Comentarios' && initialRow && (
+              <div className="mt-3 rounded-2xl border border-black/5 bg-black/[0.015] p-4 sm:p-5">
+                <p className="mb-3 text-xs font-black uppercase tracking-wide text-ink-800/45">
+                  Historial de comentarios
+                </p>
+                <CrmCommentHistory value={initialRow.Comentarios} />
+              </div>
+            )}
             <div className="mt-3 grid gap-5 md:grid-cols-2">
-              {sectionColumns.map((column) => (
-                <div
-                  className={wideFieldTypes.has(column.type)
-                    ? 'md:col-span-2'
-                    : column.compact ? 'md:max-w-xs' : undefined}
-                  key={column.name}
-                >
-                  <Controller
-                    control={form.control}
-                    name={column.name}
-                    render={({ field, fieldState }) => (
-                      <FieldRenderer
-                        column={column}
-                        context={context}
-                        disabled={Boolean(column.editableIf && !column.editableIf(currentRow, context))}
-                        error={fieldState.error?.message}
-                        onChange={(value: CellValue | undefined) => field.onChange(value)}
-                        row={currentRow}
-                        value={field.value}
-                      />
-                    )}
-                  />
-                </div>
-              ))}
+              {sectionColumns.map((column) => {
+                const renderedColumn = isEditingCrmContact && column.name === 'Comentarios'
+                  ? {
+                      ...column,
+                      label: 'AGREGAR COMENTARIO',
+                      description: 'Escribe únicamente la nueva entrada. Al guardar se añadirá al historial con fecha, hora y usuario.',
+                    }
+                  : column
+
+                return (
+                  <div
+                    className={wideFieldTypes.has(column.type)
+                      ? 'md:col-span-2'
+                      : column.compact ? 'md:max-w-xs' : undefined}
+                    key={column.name}
+                  >
+                    <Controller
+                      control={form.control}
+                      name={column.name}
+                      render={({ field, fieldState }) => (
+                        <FieldRenderer
+                          column={renderedColumn}
+                          context={context}
+                          disabled={Boolean(column.editableIf && !column.editableIf(currentRow, context))}
+                          error={fieldState.error?.message}
+                          onChange={(value: CellValue | undefined) => field.onChange(value)}
+                          row={currentRow}
+                          value={field.value}
+                        />
+                      )}
+                    />
+                  </div>
+                )
+              })}
             </div>
           </fieldset>
         )

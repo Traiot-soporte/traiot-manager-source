@@ -383,8 +383,16 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
   if (schemaTable.name !== 'Gestion Clientes') return;
 
   var userLabel = crmLifecycleUserLabel_(user);
+  var previousComments = currentRecord && currentRecord.Comentarios;
+  var submittedComment = record.Comentarios;
 
   record.ID_CRM = normalizeCell_(record.ID_CRM);
+  record.Comentarios = appendCrmCommentHistory_(
+    previousComments,
+    submittedComment,
+    now,
+    userLabel
+  );
   record['Última actualización en'] = now;
   record['Modificado por'] = userLabel;
   record.Modificado = now;
@@ -396,6 +404,38 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
     record['Creado por'] = record['Creado por'] || (currentRecord && currentRecord['Creado por']) || userLabel;
     record.Creado = record.Creado || (currentRecord && currentRecord.Creado) || now;
   }
+}
+
+function appendCrmCommentHistory_(previousValue, submittedValue, now, userLabel) {
+  var previous = normalizeCell_(previousValue);
+  var submitted = normalizeCell_(submittedValue);
+
+  if (!submitted || submitted === previous) {
+    return previous;
+  }
+
+  // Los clientes anteriores enviaban todo el textarea. Conservamos únicamente
+  // el texto nuevo para evitar duplicar el historial ya almacenado.
+  if (previous && submitted.indexOf(previous) === 0) {
+    submitted = submitted.slice(previous.length).trim();
+  }
+
+  if (!submitted) {
+    return previous;
+  }
+
+  var date = new Date(now);
+  if (Number.isNaN(date.getTime())) {
+    date = new Date();
+  }
+  var timestamp = Utilities.formatDate(
+    date,
+    'America/Mexico_City',
+    'dd/MM/yyyy HH:mm'
+  );
+  var entry = '[' + timestamp + ' · ' + (normalizeCell_(userLabel) || 'Sistema') + ']\n' + submitted;
+
+  return previous ? previous + '\n\n' + entry : entry;
 }
 
 function applyCrmCalendarOwnership_(user, schemaTable, record, isCreate) {
@@ -730,7 +770,8 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
       'Creado por',
       'Creado',
       'Modificado por',
-      'Modificado'
+      'Modificado',
+      'Comentarios'
     ].forEach(function (columnName) { columnNames.push(columnName); });
   }
 

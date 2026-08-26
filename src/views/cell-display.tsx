@@ -10,6 +10,7 @@ import { useNearViewport } from '@/lib/use-near-viewport'
 import { getTableDefinition } from '@/schema'
 import type { CellValue, ColumnDef } from '@/schema'
 import { emailHref, mapHref, phoneHrefs } from '@/views/communication-utils'
+import { CrmCommentHistory } from '@/views/crm-comment-history'
 import { safeExternalUrl, urlActionLabel } from '@/views/url-utils'
 import { getRowTitle } from '@/views/view-utils'
 
@@ -54,6 +55,10 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
       window.removeEventListener('keydown', closeOnEscape)
     }
   }, [previewOpen])
+
+  if (table === 'Gestion Clientes' && column.name === 'Comentarios') {
+    return <CrmCommentHistory value={value} />
+  }
 
   if (table === 'ALMACEN' && column.name === 'AVISO DE COMPRA') {
     const notice = String(value ?? '').trim().toLocaleUpperCase('es-MX')
