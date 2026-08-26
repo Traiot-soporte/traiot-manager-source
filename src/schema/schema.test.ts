@@ -193,14 +193,14 @@ describe('registro de metadata', () => {
     expect(crm?.columns.find((column) => column.name === 'Calendario')?.hidden).toBe(true)
     expect(crm?.columns.find((column) => column.name === 'Tipo de Contacto')?.values)
       .toEqual(['Prospecto', 'Cliente', 'Proveedor', 'Socio', 'Otro'])
-    for (const removedField of [
+    for (const restoredField of [
       'Apellido',
       'Segundo Nombre',
       'Otro número de teléfono',
-      'Incluido en la exportación',
     ]) {
-      expect(crm?.columns.find((column) => column.name === removedField)?.hidden).toBe(true)
+      expect(crm?.columns.find((column) => column.name === restoredField)?.hidden).not.toBe(true)
     }
+    expect(crm?.columns.find((column) => column.name === 'Incluido en la exportación')).toBeUndefined()
     const comments = crm?.columns.find((column) => column.name === 'Comentarios')
     expect(comments).toMatchObject({
       section: 'Comentarios',

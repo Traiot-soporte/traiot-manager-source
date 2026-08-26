@@ -355,7 +355,7 @@ function migrarCicloCrm() {
   return ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), true);
 }
 
-var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V3';
+var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V4';
 var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
   'ID',
   'Nombre',
@@ -372,7 +372,6 @@ var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
   'Última actualización en',
   'Origen',
   'Información de origen',
-  'Incluido en la exportación',
   'Creado por',
   'Creado',
   'Modificado por',
@@ -480,7 +479,6 @@ function backfillCrmContactRows_(spreadsheet, sheet, headers) {
       'Última actualización en': updatedAt,
       'Origen': 'Migración',
       'Información de origen': 'Historial anterior del CRM',
-      'Incluido en la exportación': false,
       'Creado por': 'Migración TRAIOT',
       'Creado': updatedAt,
       'Modificado por': 'Migración TRAIOT',

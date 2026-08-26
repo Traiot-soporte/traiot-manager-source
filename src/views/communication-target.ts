@@ -26,12 +26,14 @@ export function resolveCommunicationTarget(
     title: value(source, 'RAZON SOCIAL', 'ID CLIENTE') || fallbackTitle,
     contactName: contactFullName(row) || value(row, 'Contacto') || value(source, 'CONTACTO'),
     email: value(row, 'E-mail del trabajo', 'Email') || value(source, 'EMAIL'),
-    phone: value(row, 'Móvil', 'Teléfono del trabajo', 'Telefono') || value(source, 'TELEFONO CONTACTO', 'TELEFONO'),
+    phone: value(row, 'Móvil', 'Teléfono del trabajo', 'Otro número de teléfono', 'Telefono') || value(source, 'TELEFONO CONTACTO', 'TELEFONO'),
   }
 }
 
 function contactFullName(row: RowData): string {
-  return value(row, 'Nombre')
+  return [value(row, 'Nombre'), value(row, 'Segundo Nombre'), value(row, 'Apellido')]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export function defaultCommunicationMessage(target: CommunicationTarget): string {

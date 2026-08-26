@@ -384,7 +384,10 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
   if (schemaTable.name !== 'Gestion Clientes') return;
 
   var userLabel = crmLifecycleUserLabel_(user);
-  var fullName = normalizeCell_(record.Nombre);
+  var fullName = [record.Nombre, record['Segundo Nombre'], record.Apellido]
+    .map(normalizeCell_)
+    .filter(Boolean)
+    .join(' ');
   var contactType = normalizeLookupValue_(record['Tipo de Contacto']);
 
   record.ID = normalizeCell_(record.ID || record.Id_CRM);
@@ -394,7 +397,7 @@ function applyCrmContactCompatibility_(schemaTable, record, currentRecord, isCre
   record.Pagina_empresa = normalizeCell_(record['Sitio web Corporativo']);
   record.Contacto = fullName;
   record.Telefono = normalizeCell_(
-    record.Móvil || record['Teléfono del trabajo']
+    record.Móvil || record['Teléfono del trabajo'] || record['Otro número de teléfono']
   );
   record.Email = normalizeCell_(record['E-mail del trabajo']);
   record.Tipo_cliente = contactType === 'CLIENTE' ? '🟢Activo' : '🔵Prospecto';

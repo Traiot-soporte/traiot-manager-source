@@ -281,6 +281,8 @@ describe('CRUD de Apps Script', () => {
     const record: Record<string, unknown> = {
       ID: 'GC-0007',
       Nombre: 'Hector',
+      'Segundo Nombre': 'Manuel',
+      Apellido: 'Ramos',
       'Compañía': '2RP SOLUTIONS',
       'Tipo de Contacto': 'Prospecto',
       Móvil: '5589266665',
@@ -301,7 +303,7 @@ describe('CRUD de Apps Script', () => {
       Id_CRM: 'GC-0007',
       Fecha_contacto: '2026-08-25',
       Nombre_empresa: '2RP SOLUTIONS',
-      Contacto: 'Hector',
+      Contacto: 'Hector Manuel Ramos',
       Telefono: '5589266665',
       Email: 'h.ramos@2rp.mx',
       Notas: 'Primer contacto',
