@@ -78,26 +78,31 @@ export const supplierPreviewColumnNames = [
 export const crmContactColumnNames = [
   'ID',
   'Nombre',
-  'Apellido',
-  'Segundo Nombre',
   'Cargo',
   'Compañía',
   'Tipo de Contacto',
   'Responsable',
   'Teléfono del trabajo',
   'Móvil',
-  'Otro número de teléfono',
   'Sitio web Corporativo',
   'E-mail del trabajo',
   'Última actualización en',
   'Origen',
   'Información de origen',
-  'Incluido en la exportación',
   'Creado por',
   'Creado',
   'Modificado por',
   'Modificado',
   'Comentarios',
+] as const
+
+export const crmContactPreviewColumnNames = [
+  'ID',
+  'Compañía',
+  'Nombre',
+  'Teléfono del trabajo',
+  'Móvil',
+  'Responsable',
 ] as const
 
 export function getTableViewColumns(table: TableDef) {
@@ -110,7 +115,7 @@ export function getTableViewColumns(table: TableDef) {
   }
 
   if (table.name === 'Gestion Clientes') {
-    return getDisplayColumns(table)
+    return getNamedListColumns(table, crmContactPreviewColumnNames)
   }
 
   return getListColumns(table, 7)

@@ -355,7 +355,7 @@ function migrarCicloCrm() {
   return ensureCrmLifecycleStorage_(openConfiguredSpreadsheet_(), true);
 }
 
-var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V2';
+var TRAIOT_CRM_CONTACT_PROPERTY = 'TRAIOT_CRM_CONTACT_STORAGE_V3';
 var TRAIOT_CRM_CONTACT_HEADERS = Object.freeze([
   'ID',
   'Nombre',

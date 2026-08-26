@@ -12,7 +12,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
   const deletion = useClientDeletion(table.name)
   const communicationsAvailable = table.name === 'CLIENTES' || table.name === 'Gestion Clientes'
   const tableClassName = table.name === 'Gestion Clientes'
-    ? 'w-full min-w-[3400px] border-separate border-spacing-0 text-left'
+    ? 'w-full min-w-[1180px] border-separate border-spacing-0 text-left'
     : communicationsAvailable
     ? 'w-full min-w-[920px] table-fixed border-separate border-spacing-0 text-left'
     : table.name === 'ALMACEN'

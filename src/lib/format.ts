@@ -17,6 +17,16 @@ const dateFormatter = new Intl.DateTimeFormat('es-MX', {
   timeZone: 'America/Mexico_City',
 })
 
+const dateTimeFormatter = new Intl.DateTimeFormat('es-MX', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+  timeZone: 'America/Mexico_City',
+})
+
 export function formatCell(value: CellValue | undefined, type: ColumnType): string {
   if (value === undefined || value === null || value === '') {
     return '—'
@@ -39,7 +49,8 @@ export function formatCell(value: CellValue | undefined, type: ColumnType): stri
     const date = type === 'Date' && datePart
       ? new Date(datePart + 'T12:00:00-06:00')
       : new Date(value)
-    return Number.isNaN(date.getTime()) ? value : dateFormatter.format(date)
+    if (Number.isNaN(date.getTime())) return value
+    return type === 'DateTime' ? dateTimeFormatter.format(date) : dateFormatter.format(date)
   }
 
   if (typeof value === 'boolean') {

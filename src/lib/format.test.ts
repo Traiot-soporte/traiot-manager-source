@@ -10,4 +10,12 @@ describe('formato de fechas', () => {
     expect(formatted).not.toContain('T06:00')
     expect(formatted).not.toContain('Z')
   })
+
+  it('muestra fecha y hora de auditoría en horario de Ciudad de México', () => {
+    const formatted = formatCell('2026-08-25T23:30:00.000Z', 'DateTime')
+
+    expect(formatted).toContain('2026')
+    expect(formatted).toContain('5:30')
+    expect(formatted).not.toContain('11:30')
+  })
 })

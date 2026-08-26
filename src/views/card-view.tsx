@@ -6,6 +6,7 @@ import { useRepository } from '@/data/use-repository'
 import { useNearViewport } from '@/lib/use-near-viewport'
 import type { CellValue } from '@/schema'
 import { CellDisplay } from '@/views/cell-display'
+import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import type { CollectionViewProps } from '@/views/types'
 import { useClientDeletion } from '@/views/use-client-deletion'
 import { safeExternalUrl } from '@/views/url-utils'
@@ -13,6 +14,7 @@ import {
   getListColumns,
   getNamedListColumns,
   getRowTitle,
+  crmContactPreviewColumnNames,
   supplierPreviewColumnNames,
   warehouseCardColumnNames,
 } from '@/views/view-utils'
@@ -26,6 +28,9 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
     ? getNamedListColumns(table, warehouseCardColumnNames)
     : table.name === 'PROVEEDORES'
       ? getNamedListColumns(table, supplierPreviewColumnNames)
+      : table.name === 'Gestion Clientes'
+        ? getNamedListColumns(table, crmContactPreviewColumnNames)
+          .filter((column) => column.name !== table.label)
       : getListColumns(table, coverColumn ? 5 : 4)
         .filter((column) => !coverColumn || column.name !== table.label)
         .slice(0, 4)
@@ -58,6 +63,7 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
               <div className="flex items-start justify-between gap-4 border-b border-black/5 pb-4">
                 <h2 className="text-lg font-black text-ink-950">{getRowTitle(table, row)}</h2>
                 <div className="flex shrink-0 gap-2">
+                  {table.name === 'Gestion Clientes' && <RowCommunicationScheduler row={row} table={table} />}
                   {deletion.available && (
                     <button
                       aria-label={'Eliminar ' + getRowTitle(table, row)}

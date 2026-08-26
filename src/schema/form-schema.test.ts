@@ -66,6 +66,11 @@ describe('schema Zod derivado de metadata', () => {
 
     expect(fields).not.toContain('Id_CRM')
     expect(fields).not.toContain('ID')
+    expect(fields).not.toContain('Apellido')
+    expect(fields).not.toContain('Segundo Nombre')
+    expect(fields).not.toContain('Otro número de teléfono')
+    expect(fields).not.toContain('Incluido en la exportación')
+    expect(fields).toContain('Comentarios')
     expect(gestionClientesTable.columns.find((column) => column.name === 'Id_CRM')).toMatchObject({
       readOnly: true,
       required: true,

@@ -11,6 +11,7 @@ import {
   getNamedListColumns,
   getRowTitle,
   getTableViewColumns,
+  crmContactPreviewColumnNames,
   supplierPreviewColumnNames,
   warehouseCardColumnNames,
   warehouseDeckColumnNames,
@@ -93,27 +94,25 @@ describe('utilidades de vistas genéricas', () => {
     expect(getDisplayColumns(gestionClientesTable).map((column) => column.name)).toEqual([
       'ID',
       'Nombre',
-      'Apellido',
-      'Segundo Nombre',
       'Cargo',
       'Compañía',
       'Tipo de Contacto',
       'Responsable',
       'Teléfono del trabajo',
       'Móvil',
-      'Otro número de teléfono',
       'Sitio web Corporativo',
       'E-mail del trabajo',
       'Última actualización en',
       'Origen',
       'Información de origen',
-      'Incluido en la exportación',
       'Creado por',
       'Creado',
       'Modificado por',
       'Modificado',
       'Comentarios',
     ])
+    expect(getTableViewColumns(gestionClientesTable).map((column) => column.name))
+      .toEqual(crmContactPreviewColumnNames)
   })
 
   it('muestra los campos auditables del Kardex y oculta sus identificadores internos', () => {
