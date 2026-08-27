@@ -4,8 +4,13 @@ import { useRepository } from '@/data/use-repository'
 import { FieldShell, inputClassName } from '@/fields/field-shell'
 import type { FieldComponentProps } from '@/fields/types'
 import { getTableDefinition } from '@/schema'
+import type { RowData } from '@/schema'
 
-export function RefField({ column, disabled, error, onChange, value }: FieldComponentProps) {
+interface RefFieldProps extends FieldComponentProps {
+  readonly row: RowData
+}
+
+export function RefField({ column, disabled, error, onChange, row: currentRow, value }: RefFieldProps) {
   const inputId = 'field-' + encodeURIComponent(column.name)
   const repository = useRepository()
   const refTable = column.ref ? getTableDefinition(column.ref.table) : undefined
@@ -14,9 +19,13 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
     queryFn: () => repository.list(column.ref?.table ?? ''),
     enabled: Boolean(refTable),
   })
-  const stringValue = typeof value === 'string' ? value : ''
+  const syncedValue = column.syncTo ? currentRow[column.syncTo] : undefined
+  const stringValue = typeof syncedValue === 'string'
+    ? syncedValue
+    : typeof value === 'string' ? value : ''
   const selectedRow = rows.data?.find((row) => String(row._uuid ?? '') === stringValue)
   const isProductReference = column.ref?.table === 'ALMACEN'
+  const isClientReference = column.ref?.table === 'CLIENTES'
 
   return (
     <FieldShell column={column} error={error} inputId={inputId}>
@@ -34,7 +43,9 @@ export function RefField({ column, disabled, error, onChange, value }: FieldComp
           const baseLabel = row[refTable?.label ?? ''] ?? row[refTable?.legacyBusinessKey ?? ''] ?? uuid
           const optionLabel = isProductReference
             ? [baseLabel, row.CATEGORIA, row.NOMBRE].filter(Boolean).join(' · ')
-            : baseLabel
+            : isClientReference
+              ? row['RAZON SOCIAL'] ?? baseLabel
+              : baseLabel
           return (
             <option key={uuid} value={uuid}>
               {String(optionLabel)}

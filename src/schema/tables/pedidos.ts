@@ -97,6 +97,7 @@ export const pedidosTable = defineTable({
     { name: 'TIPO CLIENTE', type: 'Enum', values: orderCustomerTypes },
     {
       name: 'RAZON SOCIAL',
+      label: 'EMPRESA',
       type: 'Ref',
       ref: { table: 'CLIENTES', keyColumn: '_uuid' },
       syncTo: 'cliente_uuid',

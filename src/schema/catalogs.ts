@@ -18,13 +18,22 @@ export const permissionSections = [
 
 export const purchaseStatuses = ['RECIBIDA', 'EN CAMINO', 'CANCELADA'] as const
 
-export const orderTypes = ['VENTA EQUIPO', 'INSTALACION', 'REVISION'] as const
+export const orderTypes = [
+  'VENTA EQUIPO',
+  'INSTALACION',
+  'REVISION',
+  'PRUEBAS ESCRITORIO/CAMPO',
+  'PRÉSTAMO',
+  'DEMO',
+  'PROSPECTO DEMO',
+] as const
 export const orderCustomerTypes = [
   'TRAIOT PLUS',
   'HABITUAL',
   'OCASIONAL',
   'PROSPECTO PLUS',
   'PROSPECTO',
+  'INTERNO',
 ] as const
 export const orderStatuses = ['APROBADO', 'NO APROBADO', 'PENDIENTE APROBACION'] as const
 

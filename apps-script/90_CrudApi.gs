@@ -525,7 +525,9 @@ function applyApiReference_(
     throw new Error('No existe el registro relacionado de ' + column.refTable + '.');
   }
 
-  var visibleColumn = targetSchema.legacyBusinessKey || targetSchema.labelColumn;
+  var visibleColumn = column.refTable === 'CLIENTES' && column.name === 'RAZON SOCIAL'
+    ? 'RAZON SOCIAL'
+    : targetSchema.legacyBusinessKey || targetSchema.labelColumn;
   record[column.name] = targetRow[visibleColumn] || targetRow[targetSchema.labelColumn] || normalizedValue;
   record[column.syncTo] = normalizedValue.toLowerCase();
 }
@@ -655,6 +657,7 @@ function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
     var orderedClient = lookupApiReference_(spreadsheet, 'CLIENTES', record.cliente_uuid);
     copyApiFields_(orderedClient, record, [
       'ID CLIENTE',
+      'RAZON SOCIAL',
       'DIRECCION',
       'TELEFONO',
       'EMAIL',

@@ -349,11 +349,34 @@ function readVisibleApiRows_(spreadsheet, schemaTable, user) {
   }
 
   var rows = readApiRows_(spreadsheet, schemaTable);
+  if (schemaTable.name === 'PEDIDOS') {
+    rows = enrichOrderClientCompanyRows_(spreadsheet, rows);
+  }
   if (schemaTable.name === 'Gestion Clientes') {
     rows = enrichCrmLifecycleRows_(spreadsheet, rows);
     return rows.filter(function (row) { return isCrmCalendarRowVisible_(row, user); });
   }
   return rows;
+}
+
+function enrichOrderClientCompanyRows_(spreadsheet, rows) {
+  var clientRows = readApiRows_(spreadsheet, requireApiTable_('CLIENTES'));
+  var companiesByUuid = {};
+
+  clientRows.forEach(function (client) {
+    var uuid = normalizeCell_(client._uuid).toLowerCase();
+    if (!uuid) return;
+    companiesByUuid[uuid] = normalizeCell_(client['RAZON SOCIAL']) ||
+      normalizeCell_(client['ID CLIENTE']);
+  });
+
+  return rows.map(function (row) {
+    var clientUuid = normalizeCell_(row.cliente_uuid).toLowerCase();
+    if (clientUuid && companiesByUuid[clientUuid]) {
+      row['RAZON SOCIAL'] = companiesByUuid[clientUuid];
+    }
+    return row;
+  });
 }
 
 function isCrmCalendarRowVisible_(row, user) {

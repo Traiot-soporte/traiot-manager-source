@@ -1257,7 +1257,11 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
         "values": [
           "VENTA EQUIPO",
           "INSTALACION",
-          "REVISION"
+          "REVISION",
+          "PRUEBAS ESCRITORIO/CAMPO",
+          "PRÉSTAMO",
+          "DEMO",
+          "PROSPECTO DEMO"
         ],
         "syncTo": "",
         "refTable": ""
@@ -1437,7 +1441,8 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
           "HABITUAL",
           "OCASIONAL",
           "PROSPECTO PLUS",
-          "PROSPECTO"
+          "PROSPECTO",
+          "INTERNO"
         ],
         "syncTo": "",
         "refTable": ""

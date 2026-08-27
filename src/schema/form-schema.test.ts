@@ -51,6 +51,21 @@ describe('schema Zod derivado de metadata', () => {
     expect(result.success).toBe(true)
   })
 
+  it('incluye los nuevos tipos de salida y el cliente interno', () => {
+    const orderType = pedidosTable.columns.find((column) => column.name === 'TIPO DE PEDIDO')
+    const customerType = pedidosTable.columns.find((column) => column.name === 'TIPO CLIENTE')
+    const company = pedidosTable.columns.find((column) => column.name === 'RAZON SOCIAL')
+
+    expect(orderType?.values).toEqual(expect.arrayContaining([
+      'PRUEBAS ESCRITORIO/CAMPO',
+      'PRÉSTAMO',
+      'DEMO',
+      'PROSPECTO DEMO',
+    ]))
+    expect(customerType?.values).toContain('INTERNO')
+    expect(company).toMatchObject({ label: 'EMPRESA', syncTo: 'cliente_uuid' })
+  })
+
   it('no solicita el folio de Salidas porque se genera en el servidor', () => {
     const fields = Object.keys(buildFormSchema(pedidosTable).shape)
 

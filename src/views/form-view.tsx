@@ -171,7 +171,12 @@ export function FormView({
                           context={context}
                           disabled={Boolean(column.editableIf && !column.editableIf(currentRow, context))}
                           error={fieldState.error?.message}
-                          onChange={(value: CellValue | undefined) => field.onChange(value)}
+                          onChange={(value: CellValue | undefined) => {
+                            field.onChange(value)
+                            if (column.syncTo) {
+                              form.setValue(column.syncTo, value, { shouldDirty: true })
+                            }
+                          }}
                           row={currentRow}
                           value={field.value}
                         />

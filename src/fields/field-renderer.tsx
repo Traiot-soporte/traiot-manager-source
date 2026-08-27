@@ -42,7 +42,7 @@ export function FieldRenderer({ column, context, row, ...props }: FieldRendererP
     case 'EnumList':
       return <EnumListField column={column} {...props} />
     case 'Ref':
-      return <RefField column={column} {...props} />
+      return <RefField column={column} row={row} {...props} />
     case 'Image':
       return <ImageField column={column} {...props} />
     case 'Signature':
