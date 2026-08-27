@@ -112,6 +112,8 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
     throw new Error('El identificador del registro no es valido.');
   }
 
+  var crmCommentOnly = isApiCrmCommentOnlyMutation_(schemaTable, submittedChanges);
+
   return runIdempotentApiMutation_(mutationId, function () {
     var spreadsheet = openConfiguredSpreadsheet_();
     var sheet = requireApiSheet_(spreadsheet, schemaTable);
@@ -137,7 +139,9 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
     nextRecord._uuid = rowUuid.toLowerCase();
     nextRecord._updatedAt = now;
     nextRecord._deleted = false;
-    validateApiRecord_(schemaTable, nextRecord);
+    if (!crmCommentOnly) {
+      validateApiRecord_(schemaTable, nextRecord);
+    }
     assertUniqueApiBusinessKey_(sheet, schemaTable, nextRecord);
     assertUniqueApiUserEmail_(sheet, schemaTable, nextRecord);
     persistApiMediaFields_(
@@ -180,6 +184,17 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
 
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid);
   });
+}
+
+function isApiCrmCommentOnlyMutation_(schemaTable, submittedChanges) {
+  if (schemaTable.name !== 'Gestion Clientes' ||
+      !submittedChanges || typeof submittedChanges !== 'object') {
+    return false;
+  }
+
+  var keys = Object.keys(submittedChanges);
+  return keys.length === 1 && keys[0] === 'Comentarios' &&
+    Boolean(normalizeCell_(submittedChanges.Comentarios));
 }
 
 function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
@@ -797,7 +812,7 @@ function writeApiRecordCells_(sheet, rowNumber, headers, schemaTable, record, co
       return;
     }
 
-    var columnIndex = headers.indexOf(column.sourceHeader || column.name);
+    var columnIndex = findApiHeaderIndex_(headers, column.sourceHeader || column.name);
 
     if (columnIndex >= 0) {
       sheet.getRange(rowNumber, columnIndex + 1).setValue(
@@ -872,8 +887,9 @@ function findApiColumnByName_(schemaTable, columnName) {
 }
 
 function findApiColumnByHeader_(schemaTable, header) {
+  var headerKey = normalizeApiHeaderKey_(header);
   return schemaTable.columns.filter(function (column) {
-    return (column.sourceHeader || column.name) === header;
+    return normalizeApiHeaderKey_(column.sourceHeader || column.name) === headerKey;
   })[0] || null;
 }
 

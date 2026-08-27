@@ -96,6 +96,10 @@ interface CrudSandbox {
     now: string,
     userLabel: string,
   ) => string
+  readonly isApiCrmCommentOnlyMutation_: (
+    table: CrudTable,
+    changes: Readonly<Record<string, unknown>>,
+  ) => boolean
   readonly repairCrmContactCreatedFields_: (
     row: unknown[],
     headers: string[],
@@ -344,7 +348,7 @@ describe('CRUD de Apps Script', () => {
   })
 
   it('anexa comentarios auditados sin borrar el historial del CRM', () => {
-    const { appendCrmCommentHistory_ } = loadCrudSandbox()
+    const { appendCrmCommentHistory_, isApiCrmCommentOnlyMutation_ } = loadCrudSandbox()
 
     expect(appendCrmCommentHistory_(
       'Comentario importado',
@@ -360,6 +364,14 @@ describe('CRUD de Apps Script', () => {
       '2026-08-25T18:30:00.000Z',
       'Manuel Soto',
     )).toBe('Comentario importado')
+    expect(isApiCrmCommentOnlyMutation_(
+      { name: 'Gestion Clientes', columns: [] },
+      { Comentarios: 'Seguimiento nuevo' },
+    )).toBe(true)
+    expect(isApiCrmCommentOnlyMutation_(
+      { name: 'Gestion Clientes', columns: [] },
+      { Comentarios: 'Seguimiento nuevo', Nombre: 'Cambio adicional' },
+    )).toBe(false)
   })
 
   it('recupera el nombre desplazado a Creado y restaura la fecha de creación', () => {

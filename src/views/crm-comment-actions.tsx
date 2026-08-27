@@ -102,7 +102,7 @@ export function RowCrmCommentButton({ labelled = false, row }: RowCrmCommentButt
             placeholder="Escribe el seguimiento realizado…"
             value={comment}
           />
-          {mutation.isError && <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-800" role="alert">No fue posible guardar el comentario. Intenta nuevamente.</p>}
+          {mutation.isError && <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-800" role="alert">{mutation.error instanceof Error ? mutation.error.message : 'No fue posible guardar el comentario. Intenta nuevamente.'}</p>}
           <div className="mt-5 flex flex-wrap justify-end gap-2">
             <button className="min-h-11 rounded-xl border border-black/10 bg-white px-5 text-sm font-black text-ink-800 hover:bg-black/5" disabled={mutation.isPending} onClick={close} type="button">Cancelar</button>
             <button

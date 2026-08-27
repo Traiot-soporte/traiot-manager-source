@@ -482,7 +482,7 @@ function mapApiRecordFromRow_(schemaTable, headers, row, preferTechnicalReferenc
   schemaTable.columns.filter(function (column) {
     return !column.virtual && !column.sensitive;
   }).forEach(function (column) {
-    var columnIndex = headers.indexOf(column.sourceHeader || column.name);
+    var columnIndex = findApiHeaderIndex_(headers, column.sourceHeader || column.name);
 
     if (columnIndex >= 0) {
       record[column.name] = serializeApiCell_(row[columnIndex], column);
@@ -502,6 +502,25 @@ function mapApiRecordFromRow_(schemaTable, headers, row, preferTechnicalReferenc
   }
 
   return record;
+}
+
+function findApiHeaderIndex_(headers, expectedHeader) {
+  var exactIndex = headers.indexOf(expectedHeader);
+  if (exactIndex >= 0) return exactIndex;
+
+  var expectedKey = normalizeApiHeaderKey_(expectedHeader);
+  for (var index = 0; index < headers.length; index += 1) {
+    if (normalizeApiHeaderKey_(headers[index]) === expectedKey) return index;
+  }
+  return -1;
+}
+
+function normalizeApiHeaderKey_(value) {
+  return String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase();
 }
 
 function isApiBusinessRow_(row, headers, schemaTable) {
