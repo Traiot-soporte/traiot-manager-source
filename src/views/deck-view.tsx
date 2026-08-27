@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CellDisplay } from '@/views/cell-display'
+import { RowCrmCommentButton } from '@/views/crm-comment-actions'
 import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import {
   crmContactPreviewColumnNames,
@@ -43,6 +44,7 @@ export function DeckView({ basePath, rows, table }: CollectionViewProps) {
           </span>
           <span className="flex shrink-0 items-center gap-1">
             {table.name === 'Gestion Clientes' && <RowCommunicationScheduler row={row} table={table} />}
+            {table.name === 'Gestion Clientes' && <RowCrmCommentButton row={row} />}
             <Link
               aria-label={'Abrir ' + getRowTitle(table, row)}
               className="grid min-h-11 min-w-11 place-items-center rounded-xl text-brand-600 transition hover:bg-brand-100"

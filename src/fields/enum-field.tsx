@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRepository } from '@/data/use-repository'
 import { FieldShell, inputClassName } from '@/fields/field-shell'
 import type { FieldComponentProps } from '@/fields/types'
+import { uniqueEnumOptions } from '@/lib/enum-options'
 
 export function EnumField({ column, disabled, error, onChange, value }: FieldComponentProps) {
   const repository = useRepository()
@@ -15,10 +16,10 @@ export function EnumField({ column, disabled, error, onChange, value }: FieldCom
     queryFn: () => repository.list('ALMACEN'),
     enabled: column.allowOther === true && column.name === 'CATEGORIA',
   })
-  const options = [...new Set([
+  const options = uniqueEnumOptions([
     ...(column.values ?? []),
     ...(dynamicCategories.data ?? []).map((row) => String(row.CATEGORIA ?? '').trim()),
-  ].filter(Boolean))]
+  ])
 
   if (column.allowOther) {
     return (

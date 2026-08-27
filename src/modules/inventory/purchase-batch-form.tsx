@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 
 import { inputClassName } from '@/fields/field-shell'
+import { useUnsavedChangesPrompt } from '@/lib/use-unsaved-changes-prompt'
 import type { RowData } from '@/schema'
 
 interface PurchaseBatchFormProps {
@@ -30,7 +31,8 @@ export function PurchaseBatchForm({
   products,
   productsLoading,
 }: PurchaseBatchFormProps) {
-  const [date, setDate] = useState(todayInMexicoCity)
+  const [initialDate] = useState(todayInMexicoCity)
+  const [date, setDate] = useState(initialDate)
   const [comments, setComments] = useState('')
   const [lines, setLines] = useState<readonly PurchaseLine[]>([emptyLine()])
   const [saving, setSaving] = useState(false)
@@ -39,6 +41,9 @@ export function PurchaseBatchForm({
     .filter((product) => !isDeleted(product) && product._uuid)
     .sort((left, right) => productLabel(left).localeCompare(productLabel(right), 'es'))
   const totalUnits = lines.reduce((total, line) => total + positiveInteger(line.quantity), 0)
+  const dirty = date !== initialDate || comments !== '' || lines.length > 1 ||
+    lines.some((line) => line.productUuid !== '' || line.quantity !== '')
+  const navigationPrompt = useUnsavedChangesPrompt(dirty)
 
   const updateLine = (key: number, changes: Partial<PurchaseLine>) => {
     setLines((current) => current.map((line) => line.key === key ? { ...line, ...changes } : line))
@@ -87,9 +92,11 @@ export function PurchaseBatchForm({
     }
 
     setSaving(true)
+    navigationPrompt.allowNavigation()
     try {
       await onSubmit(rows)
     } catch (error) {
+      navigationPrompt.protectNavigation()
       setSubmitError(error instanceof Error ? error.message : 'No fue posible registrar la compra.')
     } finally {
       setSaving(false)

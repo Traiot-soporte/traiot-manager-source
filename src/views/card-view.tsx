@@ -6,6 +6,7 @@ import { useRepository } from '@/data/use-repository'
 import { useNearViewport } from '@/lib/use-near-viewport'
 import type { CellValue } from '@/schema'
 import { CellDisplay } from '@/views/cell-display'
+import { RowCrmCommentButton } from '@/views/crm-comment-actions'
 import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import type { CollectionViewProps } from '@/views/types'
 import { useClientDeletion } from '@/views/use-client-deletion'
@@ -64,6 +65,7 @@ export function CardView({ basePath, rows, table }: CollectionViewProps) {
                 <h2 className="text-lg font-black text-ink-950">{getRowTitle(table, row)}</h2>
                 <div className="flex shrink-0 gap-2">
                   {table.name === 'Gestion Clientes' && <RowCommunicationScheduler row={row} table={table} />}
+                  {table.name === 'Gestion Clientes' && <RowCrmCommentButton row={row} />}
                   {deletion.available && (
                     <button
                       aria-label={'Eliminar ' + getRowTitle(table, row)}

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 
 import type { CollectionViewProps } from '@/views/types'
 import { CellDisplay } from '@/views/cell-display'
+import { RowCrmCommentButton } from '@/views/crm-comment-actions'
 import { RowCommunicationScheduler } from '@/views/row-communication-scheduler'
 import { useClientDeletion } from '@/views/use-client-deletion'
 import { getRowTitle, getTableViewColumns } from '@/views/view-utils'
@@ -11,6 +12,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
   const columns = getTableViewColumns(table)
   const deletion = useClientDeletion(table.name)
   const communicationsAvailable = table.name === 'CLIENTES' || table.name === 'Gestion Clientes'
+  const crmCommentsAvailable = table.name === 'Gestion Clientes'
   const isWarehouse = table.name === 'ALMACEN'
   const tableClassName = table.name === 'Gestion Clientes'
     ? 'w-full min-w-[1180px] border-separate border-spacing-0 text-left'
@@ -41,7 +43,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
                   {column.label ?? column.name}
                 </th>
               ))}
-              <th className={(deletion.available ? 'w-36' : communicationsAvailable ? 'w-24' : 'w-14') + ' sticky right-0 z-40 bg-ink-950'}>
+              <th className={(deletion.available || crmCommentsAvailable ? 'w-40' : communicationsAvailable ? 'w-24' : 'w-14') + ' sticky right-0 z-40 bg-ink-950'}>
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>
@@ -57,6 +59,7 @@ export function TableView({ basePath, rows, table }: CollectionViewProps) {
                 <td className="sticky right-0 z-20 bg-white px-2 py-2 shadow-[-8px_0_16px_-16px_rgba(0,0,0,0.45)]">
                   <div className="flex items-center justify-end gap-1">
                     {communicationsAvailable && <RowCommunicationScheduler row={row} table={table} />}
+                    {crmCommentsAvailable && <RowCrmCommentButton row={row} />}
                     {deletion.available && (
                       <button
                         aria-label={'Eliminar ' + getRowTitle(table, row)}

@@ -9,6 +9,7 @@ import { buildFormSchema } from '@/schema/form-schema'
 import type { CellValue, FormulaContext, RowData, TableDef, UserContext } from '@/schema'
 import { CrmCommentHistory } from '@/views/crm-comment-history'
 import { getDisplayColumns } from '@/views/view-utils'
+import { useUnsavedChangesPrompt } from '@/lib/use-unsaved-changes-prompt'
 
 interface FormViewProps {
   readonly table: TableDef
@@ -87,6 +88,7 @@ export function FormView({
     resolver: zodResolver(schema) as Resolver<RowData>,
     mode: 'onBlur',
   })
+  const navigationPrompt = useUnsavedChangesPrompt(form.formState.isDirty)
   const currentRow = useWatch({ control: form.control })
   const columns = editableColumns(table).filter(
     (column) => !column.showIf || column.showIf(currentRow, context),
@@ -96,9 +98,11 @@ export function FormView({
 
   const submit = form.handleSubmit(async (values) => {
     setSubmitError(undefined)
+    navigationPrompt.allowNavigation()
     try {
       await onSubmit(withSyncedReferences(table, values))
     } catch (error) {
+      navigationPrompt.protectNavigation()
       setSubmitError(error instanceof Error ? error.message : 'No fue posible guardar el registro.')
     }
   })

@@ -3,13 +3,16 @@ import { Clock3, MessageSquareText } from 'lucide-react'
 import { parseCrmCommentHistory } from '@/lib/crm-comments'
 
 interface CrmCommentHistoryProps {
+  readonly emptyText?: string
   readonly value: unknown
 }
 
-export function CrmCommentHistory({ value }: CrmCommentHistoryProps) {
+export function CrmCommentHistory({ emptyText = 'Aún no hay comentarios.', value }: CrmCommentHistoryProps) {
   const entries = parseCrmCommentHistory(value)
 
-  if (entries.length === 0) return <>—</>
+  if (entries.length === 0) {
+    return <p className="rounded-2xl border border-dashed border-black/10 bg-white/45 p-4 text-sm font-semibold text-ink-800/45">{emptyText}</p>
+  }
 
   return (
     <ol className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">

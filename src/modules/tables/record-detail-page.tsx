@@ -10,8 +10,9 @@ import { isAdministratorRole } from '@/modules/auth/auth-permissions'
 import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
 import { getAdjacentRecords } from '@/modules/tables/record-navigation'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
-import { DetailView } from '@/views/detail-view'
 import { CommunicationPanel } from '@/views/communication-panel'
+import { CrmCommentPanel } from '@/views/crm-comment-actions'
+import { DetailView } from '@/views/detail-view'
 import { getRowTitle } from '@/views/view-utils'
 
 export function RecordDetailPage() {
@@ -89,6 +90,7 @@ export function RecordDetailPage() {
       />
       {remove.isError && <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">No fue posible eliminar el registro.</p>}
       <DetailView row={row} table={table} />
+      {table.name === 'Gestion Clientes' && <CrmCommentPanel row={row} />}
       {(table.name === 'CLIENTES' || table.name === 'Gestion Clientes') && (
         <CommunicationPanel row={row} table={table} />
       )}

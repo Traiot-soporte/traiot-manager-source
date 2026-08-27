@@ -9,6 +9,7 @@ interface DetailViewProps {
 
 export function DetailView({ row, table }: DetailViewProps) {
   const columns = getDisplayColumns(table)
+    .filter((column) => table.name !== 'Gestion Clientes' || column.name !== 'Comentarios')
   const sections = [...new Set(columns.map((column) => column.section ?? 'Información general'))]
 
   return (
