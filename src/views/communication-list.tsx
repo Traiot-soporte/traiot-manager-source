@@ -87,9 +87,9 @@ function CommunicationItem({ communication, compact, referenceTime }: {
                 href={href}
                 onClick={() => updateStatus.mutate('ABIERTO')}
                 rel="noopener noreferrer"
-                target="_blank"
+                target={communication.channel === 'WHATSAPP' ? '_blank' : undefined}
               >
-                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : 'ABRIR CORREO'}
+                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : 'PREPARAR CORREO'}
               </a>
             )}
             <button

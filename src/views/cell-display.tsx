@@ -147,7 +147,7 @@ export function CellDisplay({ column, table, value }: CellDisplayProps) {
     const href = emailHref(value)
     if (!href) return <>{formatCell(value, column.type)}</>
     return (
-      <a className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-lg px-2 font-bold text-brand-600 transition hover:bg-brand-50" href={href} rel="noopener noreferrer" target="_blank" title="Abrir correo en Gmail">
+      <a className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-lg px-2 font-bold text-brand-600 transition hover:bg-brand-50" href={href} title="Enviar correo">
         <Mail className="size-4 shrink-0" /> <span className="min-w-0 break-all">{formatCell(value, column.type)}</span>
       </a>
     )
