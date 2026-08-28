@@ -20,7 +20,8 @@ var TRAIOT_COMMUNICATION_HEADERS = Object.freeze([
   'OpenedAt',
   'SentAt',
   'CancelledAt',
-  'UpdatedAt'
+  'UpdatedAt',
+  'RecipientName'
 ]);
 
 function listScheduledCommunications_(user) {
@@ -33,11 +34,13 @@ function listScheduledCommunications_(user) {
   }
 
   var headers = values[0].map(String);
-  return values.slice(1).map(function (row, index) {
+  var records = values.slice(1).map(function (row, index) {
     return mapCommunicationRecord_(headers, row, index + 2);
   }).filter(function (record) {
     return record.communicationUuid && isCommunicationOwnedBy_(record, user);
-  }).sort(function (left, right) {
+  });
+  enrichCommunicationRecipientNames_(spreadsheet, records);
+  return records.sort(function (left, right) {
     return String(left.scheduledAt).localeCompare(String(right.scheduledAt));
   }).map(serializeCommunicationRecord_);
 }
@@ -96,6 +99,7 @@ function createScheduledCommunication_(user, submitted, mutationId) {
       EntityTitle: normalizeCell_(input.entityTitle) || communicationEntityTitle_(schemaTable, entity),
       Channel: channel,
       Recipient: recipient,
+      RecipientName: normalizeCell_(input.recipientName).slice(0, 160),
       Subject: channel === 'EMAIL' ? subject : '',
       Message: message,
       ScheduledAt: scheduledDate.toISOString(),
@@ -204,6 +208,7 @@ function mapCommunicationRecord_(headers, row, rowNumber) {
   record.entityTitle = normalizeCell_(record.EntityTitle);
   record.channel = normalizeCell_(record.Channel);
   record.recipient = normalizeCell_(record.Recipient);
+  record.recipientName = normalizeCell_(record.RecipientName);
   record.subject = normalizeCell_(record.Subject);
   record.message = normalizeCell_(record.Message);
   record.scheduledAt = normalizeCell_(record.ScheduledAt);
@@ -225,6 +230,7 @@ function serializeCommunicationRecord_(record) {
     entityTitle: normalizeCell_(record.entityTitle || record.EntityTitle),
     channel: normalizeCell_(record.channel || record.Channel),
     recipient: normalizeCell_(record.recipient || record.Recipient),
+    recipientName: normalizeCell_(record.recipientName || record.RecipientName),
     subject: normalizeCell_(record.subject || record.Subject),
     message: normalizeCell_(record.message || record.Message),
     scheduledAt: normalizeCell_(record.scheduledAt || record.ScheduledAt),
@@ -234,6 +240,37 @@ function serializeCommunicationRecord_(record) {
     sentAt: normalizeCell_(record.sentAt || record.SentAt),
     cancelledAt: normalizeCell_(record.cancelledAt || record.CancelledAt)
   };
+}
+
+function enrichCommunicationRecipientNames_(spreadsheet, records) {
+  var meetingSheet = spreadsheet.getSheetByName(TRAIOT_MEETINGS_SHEET);
+  if (!meetingSheet || meetingSheet.getLastRow() < 2) return records;
+
+  var meetingValues = meetingSheet.getDataRange().getValues();
+  var meetingHeaders = meetingValues[0].map(String);
+  var namesByMeetingAndPhone = {};
+
+  meetingValues.slice(1).forEach(function (row) {
+    var meeting = serializeMeetingRecord_(mapMeetingRecord_(meetingHeaders, row));
+    if (!meeting.meetingUuid) return;
+    var namesByPhone = {};
+    meeting.participants.forEach(function (participant) {
+      var phone = normalizeMeetingWhatsAppPhone_(participant.phone);
+      var name = normalizeCell_(participant.name);
+      if (phone && name) namesByPhone[phone] = name;
+    });
+    namesByMeetingAndPhone[meeting.meetingUuid] = namesByPhone;
+  });
+
+  records.forEach(function (record) {
+    if (record.recipientName || record.channel !== 'WHATSAPP' || record.entityTable !== 'Reuniones') {
+      return;
+    }
+    var namesByPhone = namesByMeetingAndPhone[record.entityUuid] || {};
+    var phone = normalizeMeetingWhatsAppPhone_(record.recipient);
+    record.recipientName = namesByPhone[phone] || '';
+  });
+  return records;
 }
 
 function isCommunicationOwnedBy_(record, user) {

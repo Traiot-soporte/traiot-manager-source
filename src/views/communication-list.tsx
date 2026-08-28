@@ -50,6 +50,10 @@ function CommunicationItem({ communication, compact, referenceTime }: {
       body: communication.message,
     })
   const ChannelIcon = communication.channel === 'WHATSAPP' ? WhatsAppIcon : Mail
+  const hasWhatsAppName = communication.channel === 'WHATSAPP' && Boolean(communication.recipientName)
+  const displayTitle = hasWhatsAppName
+    ? communication.recipientName
+    : communication.entityTitle || communication.recipient
 
   return (
     <article className={compact ? 'rounded-2xl border border-black/5 bg-white p-4' : 'rounded-3xl border border-black/5 bg-white p-5 shadow-sm'}>
@@ -61,9 +65,12 @@ function CommunicationItem({ communication, compact, referenceTime }: {
               : 'grid size-9 place-items-center rounded-xl bg-brand-50 text-brand-600'}>
               <ChannelIcon className="size-5" />
             </span>
-            <span className="text-sm font-black text-ink-950">{communication.entityTitle || communication.recipient}</span>
+            <span className="text-sm font-black text-ink-950">{displayTitle}</span>
             <StatusBadge due={due} status={communication.status} />
           </div>
+          {hasWhatsAppName && communication.entityTitle && (
+            <p className="mt-1 truncate text-xs font-bold text-ink-800/65">{communication.entityTitle}</p>
+          )}
           <p className="mt-2 truncate text-xs font-bold text-ink-800/55">{communication.recipient}</p>
           <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-ink-800/55">
             <CalendarClock className="size-3.5" /> {formatScheduledAt(communication.scheduledAt)}
@@ -80,9 +87,9 @@ function CommunicationItem({ communication, compact, referenceTime }: {
                 href={href}
                 onClick={() => updateStatus.mutate('ABIERTO')}
                 rel="noopener noreferrer"
-                target={communication.channel === 'WHATSAPP' ? '_blank' : undefined}
+                target="_blank"
               >
-                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : 'PREPARAR CORREO'}
+                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : 'ABRIR CORREO'}
               </a>
             )}
             <button

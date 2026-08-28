@@ -7,6 +7,10 @@ interface MeetingSandbox {
   readonly normalizeMeetingUrl_: (value: unknown) => string
   readonly meetingEmailRecipient_: (participants: readonly Readonly<Record<string, unknown>>[]) => string
   readonly normalizeMeetingWhatsAppPhone_: (value: unknown) => string
+  readonly meetingWhatsAppRecipients_: (
+    participants: readonly Readonly<Record<string, unknown>>[],
+    requestedUuids: readonly string[],
+  ) => readonly Readonly<Record<string, unknown>>[]
   readonly uniqueMeetingValues_: (values: readonly unknown[]) => readonly string[]
   readonly serializeMeetingRecord_: (record: Readonly<Record<string, unknown>>) => Readonly<Record<string, unknown>>
 }
@@ -61,5 +65,9 @@ describe('reuniones empresariales', () => {
     ])).toBe('manuel@traiot.com.mx, oscar@traiot.com.mx')
     expect(api.normalizeMeetingWhatsAppPhone_('81 1234 5678')).toBe('528112345678')
     expect(api.normalizeMeetingWhatsAppPhone_('Sin número')).toBe('')
+    expect(api.meetingWhatsAppRecipients_([
+      { userUuid: 'u1', name: 'Manuel Soto', phone: '81 1234 5678' },
+      { userUuid: 'u2', name: 'Oscar Malagón', phone: '55 9876 5432' },
+    ], ['u2'])).toEqual([{ phone: '525598765432', name: 'Oscar Malagón' }])
   })
 })

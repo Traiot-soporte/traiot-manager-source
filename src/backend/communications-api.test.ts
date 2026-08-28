@@ -51,6 +51,7 @@ describe('agenda privada de comunicaciones', () => {
       EntityTitle: 'Cliente Demo',
       Channel: 'EMAIL',
       Recipient: 'cliente@example.com',
+      RecipientName: 'Cliente Demo',
       Subject: 'Seguimiento',
       Message: 'Hola',
       ScheduledAt: '2026-08-24T18:00:00.000Z',
@@ -68,5 +69,6 @@ describe('agenda privada de comunicaciones', () => {
       email: 'otra@traiot.com.mx',
     })).toBe(false)
     expect(api.serializeCommunicationRecord_(record)).not.toHaveProperty('CreatedByEmail')
+    expect(api.serializeCommunicationRecord_(record)).toMatchObject({ recipientName: 'Cliente Demo' })
   })
 })

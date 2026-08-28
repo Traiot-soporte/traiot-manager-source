@@ -156,7 +156,9 @@ function ReminderItem({ communication, referenceTime }: {
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-xs font-black text-ink-950">{communication.entityTitle || communication.recipient}</p>
+          <p className="truncate text-xs font-black text-ink-950">{communication.channel === 'WHATSAPP' && communication.recipientName
+            ? communication.recipientName
+            : communication.entityTitle || communication.recipient}</p>
           <span className={due
             ? 'shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[8px] font-black text-amber-800'
             : 'shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[8px] font-black text-sky-800'}>

@@ -11,11 +11,14 @@ export function emailHref(value: CellValue | undefined, options: EmailHrefOption
     .map((email) => email.trim())
     .filter(Boolean))]
   if (emails.length === 0 || emails.some((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return undefined
-  const parameters: string[] = []
-  if (options.subject) parameters.push('subject=' + encodeURIComponent(options.subject))
+  const parameters = [
+    'view=cm',
+    'fs=1',
+    'to=' + encodeURIComponent(emails.join(',')),
+  ]
+  if (options.subject) parameters.push('su=' + encodeURIComponent(options.subject))
   if (options.body) parameters.push('body=' + encodeURIComponent(options.body))
-  const query = parameters.join('&')
-  return 'mailto:' + emails.join(',') + (query ? '?' + query : '')
+  return 'https://mail.google.com/mail/?' + parameters.join('&')
 }
 
 export function normalizeWhatsAppPhone(value: CellValue | undefined): string | undefined {

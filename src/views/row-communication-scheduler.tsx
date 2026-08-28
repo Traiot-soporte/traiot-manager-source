@@ -88,6 +88,7 @@ export function RowCommunicationScheduler({ row, table }: {
               await queryClient.invalidateQueries({ queryKey: ['communications'] })
             }}
             phone={target.phone}
+            recipientName={target.contactName || target.title}
           />
         </section>
       </div>,

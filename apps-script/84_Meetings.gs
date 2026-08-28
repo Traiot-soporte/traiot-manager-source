@@ -89,11 +89,7 @@ function createCompanyMeeting_(user, submitted, mutationId) {
   if (participants.length === 0) {
     throw new Error('Selecciona al menos un colaborador activo.');
   }
-  var whatsappRecipients = uniqueMeetingValues_(participants.filter(function (participant) {
-    return requestedWhatsappUuids.indexOf(participant.userUuid) >= 0;
-  }).map(function (participant) {
-    return normalizeMeetingWhatsAppPhone_(participant.phone);
-  })).filter(Boolean);
+  var whatsappRecipients = meetingWhatsAppRecipients_(participants, requestedWhatsappUuids);
 
   return runIdempotentApiMutation_(mutationId, function () {
     var spreadsheet = openConfiguredSpreadsheet_();
@@ -141,9 +137,10 @@ function createCompanyMeeting_(user, submitted, mutationId) {
         user,
         serialized,
         'WHATSAPP',
-        recipient,
+        recipient.phone,
         invitationText,
-        now
+        now,
+        recipient.name
       ));
     });
     if (communicationRecords.length > 0) {
@@ -191,6 +188,22 @@ function normalizeMeetingWhatsAppPhone_(value) {
   if (digits.length < 10) return '';
   if (raw.charAt(0) === '+') return digits;
   return digits.length === 10 ? '52' + digits : digits;
+}
+
+function meetingWhatsAppRecipients_(participants, requestedUuids) {
+  var seen = {};
+  return (participants || []).filter(function (participant) {
+    return requestedUuids.indexOf(normalizeCell_(participant.userUuid).toLowerCase()) >= 0;
+  }).map(function (participant) {
+    return {
+      phone: normalizeMeetingWhatsAppPhone_(participant.phone),
+      name: normalizeCell_(participant.name) || normalizeApiEmail_(participant.email)
+    };
+  }).filter(function (recipient) {
+    if (!recipient.phone || seen[recipient.phone]) return false;
+    seen[recipient.phone] = true;
+    return true;
+  });
 }
 
 function ensureMeetingsSheet_(spreadsheet) {
@@ -251,7 +264,7 @@ function parseMeetingParticipants_(value) {
   }
 }
 
-function buildMeetingCommunicationRecord_(user, meeting, channel, recipient, message, now) {
+function buildMeetingCommunicationRecord_(user, meeting, channel, recipient, message, now, recipientName) {
   return {
     CommunicationUuid: Utilities.getUuid().toLowerCase(),
     EntityTable: 'Reuniones',
@@ -259,6 +272,7 @@ function buildMeetingCommunicationRecord_(user, meeting, channel, recipient, mes
     EntityTitle: 'Reunion · ' + meeting.title,
     Channel: channel,
     Recipient: recipient,
+    RecipientName: normalizeCell_(recipientName),
     Subject: channel === 'EMAIL' ? 'Invitacion a reunion · ' + meeting.title : '',
     Message: message,
     ScheduledAt: now,

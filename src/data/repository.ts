@@ -83,6 +83,7 @@ export interface ScheduledCommunication {
   readonly entityTitle: string
   readonly channel: CommunicationChannel
   readonly recipient: string
+  readonly recipientName?: string
   readonly subject: string
   readonly message: string
   readonly scheduledAt: string
@@ -99,6 +100,7 @@ export interface CreateCommunicationInput {
   readonly entityTitle: string
   readonly channel: CommunicationChannel
   readonly recipient: string
+  readonly recipientName?: string
   readonly subject: string
   readonly message: string
   readonly scheduledAt: string

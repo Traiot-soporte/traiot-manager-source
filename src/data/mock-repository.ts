@@ -185,12 +185,11 @@ export class MockRepository implements Repository {
         now,
       )
     }
-    const whatsappRecipients = [...new Set(selected
-      .filter((participant) => input.whatsappParticipantUuids.includes(participant.userUuid))
-      .map((participant) => participant.phone)
-      .filter(Boolean))]
+    const whatsappRecipients = selected
+      .filter((participant) => input.whatsappParticipantUuids.includes(participant.userUuid) && participant.phone)
+      .filter((participant, index, all) => all.findIndex((candidate) => candidate.phone === participant.phone) === index)
     for (const recipient of whatsappRecipients) {
-      await this.createMeetingCommunication(meeting, 'WHATSAPP', recipient, invitation, now)
+      await this.createMeetingCommunication(meeting, 'WHATSAPP', recipient.phone, invitation, now, recipient.name)
     }
     return {
       meeting: { ...meeting },
@@ -244,6 +243,7 @@ export class MockRepository implements Repository {
     recipient: string,
     message: string,
     scheduledAt: string,
+    recipientName?: string,
   ): Promise<void> {
     const communicationUuid = this.#createUuid()
     this.#communications.set(communicationUuid, {
@@ -253,6 +253,7 @@ export class MockRepository implements Repository {
       entityTitle: 'Reunión · ' + meeting.title,
       channel,
       recipient,
+      ...(recipientName ? { recipientName } : {}),
       subject: channel === 'EMAIL' ? 'Invitación a reunión · ' + meeting.title : '',
       message,
       scheduledAt,

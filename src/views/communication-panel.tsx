@@ -56,7 +56,7 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
         </div>
         <div className="flex flex-wrap gap-2">
           {quickWhatsApp && <a className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#128c4a] px-4 text-sm font-black text-white transition hover:bg-[#0f773f]" href={quickWhatsApp} rel="noopener noreferrer" target="_blank"><WhatsAppIcon className="size-5" /> WHATSAPP</a>}
-          {quickEmail && <a className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-black text-brand-700 transition hover:bg-brand-100" href={quickEmail}><Mail className="size-5" /> CORREO</a>}
+          {quickEmail && <a className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 text-sm font-black text-brand-700 transition hover:bg-brand-100" href={quickEmail} rel="noopener noreferrer" target="_blank"><Mail className="size-5" /> CORREO</a>}
           <button className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-ink-950 px-4 text-sm font-black text-white hover:bg-ink-900" onClick={() => setFormOpen((current) => !current)} type="button"><CalendarClock className="size-5" /> PROGRAMAR</button>
         </div>
       </div>
@@ -74,6 +74,7 @@ export function CommunicationPanel({ row, table }: { readonly row: RowData; read
             await queryClient.invalidateQueries({ queryKey: ['communications'] })
           }}
           phone={target.phone}
+          recipientName={target.contactName || target.title}
         />
       )}
 
@@ -96,6 +97,7 @@ export function CommunicationForm({
   initialSubject,
   onCreated,
   phone,
+  recipientName,
 }: {
   readonly email: string
   readonly entityTable: 'CLIENTES' | 'Gestion Clientes'
@@ -105,6 +107,7 @@ export function CommunicationForm({
   readonly initialSubject: string
   readonly onCreated: () => Promise<void>
   readonly phone: string
+  readonly recipientName: string
 }) {
   const repository = useRepository()
   const [channel, setChannel] = useState<CommunicationChannel>(whatsappHref(phone) ? 'WHATSAPP' : 'EMAIL')
@@ -126,6 +129,7 @@ export function CommunicationForm({
       entityTitle,
       channel,
       recipient,
+      recipientName,
       subject: channel === 'EMAIL' ? subject : '',
       message,
       scheduledAt: new Date(scheduledAt).toISOString(),

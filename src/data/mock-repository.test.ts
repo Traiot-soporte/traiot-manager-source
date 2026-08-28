@@ -96,5 +96,6 @@ describe('MockRepository', () => {
     expect(email[0]!.recipient).toContain('manuel@traiot.mx')
     expect(email[0]!.recipient).toContain('ian@traiot.mx')
     expect(whatsapp).toHaveLength(1)
+    expect(whatsapp[0]!.recipientName).toBe(participants[0]!.name)
   })
 })
