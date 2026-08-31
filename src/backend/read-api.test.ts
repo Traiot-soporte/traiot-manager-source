@@ -133,6 +133,32 @@ describe('API privada de lectura', () => {
     expect(rows[0]?.Responsable).toEqual(['Luis Baca', 'Manuel Soto'])
   })
 
+  it('conserva opciones EnumList que contienen comas internas', () => {
+    const { mapApiRowsFromValues_ } = loadReadApiSandbox()
+    const option = 'Revisión visual para detectar humedad, corrosión o componentes quemados.'
+    const laboratoryTable: ApiTable = {
+      name: 'Laboratorio',
+      sourceHeaders: ['FOLIO', 'PRUEBAS REALIZADAS'],
+      columns: [
+        { name: '_uuid', sourceHeader: '_uuid', type: 'Text' },
+        { name: '_deleted', sourceHeader: '_deleted', type: 'Bool' },
+        { name: 'FOLIO', sourceHeader: 'FOLIO', type: 'Text' },
+        {
+          name: 'PRUEBAS REALIZADAS',
+          sourceHeader: 'PRUEBAS REALIZADAS',
+          type: 'EnumList',
+          values: [option, 'Prueba de alimentación.'],
+        },
+      ],
+    }
+    const rows = mapApiRowsFromValues_(laboratoryTable, [
+      ['FOLIO', 'PRUEBAS REALIZADAS', '_uuid', '_deleted'],
+      ['LAB-1', `${option}, Prueba de alimentación.`, '11111111-1111-4111-8111-111111111111', false],
+    ])
+
+    expect(rows[0]?.['PRUEBAS REALIZADAS']).toEqual([option, 'Prueba de alimentación.'])
+  })
+
   it('aplica la matriz de secciones a los cinco roles', () => {
     const { apiSectionsForRole_ } = loadReadApiSandbox()
 

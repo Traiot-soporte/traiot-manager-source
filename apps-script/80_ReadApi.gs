@@ -601,8 +601,50 @@ function splitApiList_(value) {
   });
 }
 
+function splitApiListByCatalog_(value, column) {
+  var rawValue = normalizeCell_(value);
+
+  if (!rawValue || !column || !column.values || column.values.length === 0) {
+    return splitApiList_(value);
+  }
+
+  var normalizedValue = normalizeLookupValue_(rawValue);
+  var matches = column.values.map(function (option) {
+    var normalizedOption = normalizeLookupValue_(option);
+    return {
+      option: option,
+      normalized: normalizedOption,
+      position: normalizedValue.indexOf(normalizedOption)
+    };
+  }).filter(function (match) {
+    return match.position >= 0;
+  });
+
+  if (matches.length === 0) {
+    return splitApiList_(value);
+  }
+
+  var remainder = normalizedValue;
+  matches.slice().sort(function (left, right) {
+    return right.normalized.length - left.normalized.length;
+  }).forEach(function (match) {
+    remainder = remainder.replace(match.normalized, '');
+  });
+  remainder = remainder.replace(/[\s,;|/]+/g, '');
+
+  if (remainder !== '') {
+    return splitApiList_(value);
+  }
+
+  return matches.sort(function (left, right) {
+    return left.position - right.position;
+  }).map(function (match) {
+    return match.option;
+  });
+}
+
 function serializeApiListCell_(value, column) {
-  var values = Array.isArray(value) ? value.slice() : splitApiList_(value);
+  var values = Array.isArray(value) ? value.slice() : splitApiListByCatalog_(value, column);
 
   if (column.name === 'Responsable') {
     values = values.reduce(function (result, item) {

@@ -1,4 +1,5 @@
 import type { RowData, UserContext } from '@/schema'
+import { laboratoryTests } from '@/schema/catalogs'
 
 export const laboratoryImageColumns = Array.from(
   { length: 5 },
@@ -31,7 +32,7 @@ export function buildLaboratoryDiagnosticHtml({
   const folio = cleanText(row.FOLIO) || 'SIN FOLIO'
   const status = cleanText(row.ESTATUS) || 'Sin estatus'
   const semaphore = cleanText(row.SEMAFORO) || 'Sin semáforo'
-  const tests = normalizeList(row['PRUEBAS REALIZADAS'])
+  const tests = normalizeLaboratoryTests(row['PRUEBAS REALIZADAS'])
   const evidence = laboratoryImageColumns.map((column, index) => ({
     number: index + 1,
     sourceValue: cleanText(row[column]),
@@ -199,6 +200,22 @@ function normalizeList(value: unknown): readonly string[] {
   const text = cleanText(value)
   if (!text) return []
   return text.split(/\s*(?:,|\n|;|\|)\s*/).filter(Boolean)
+}
+
+function normalizeLaboratoryTests(value: unknown): readonly string[] {
+  const fragments = normalizeList(value)
+  if (fragments.length === 0) return []
+  const serialized = normalizeComparable(fragments.join(', '))
+  const catalogMatches = laboratoryTests
+    .map((option) => ({ option, position: serialized.indexOf(normalizeComparable(option)) }))
+    .filter((match) => match.position >= 0)
+    .sort((left, right) => left.position - right.position)
+    .map((match) => match.option)
+  return catalogMatches.length > 0 ? catalogMatches : fragments
+}
+
+function normalizeComparable(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase()
 }
 
 function cleanText(value: unknown): string {

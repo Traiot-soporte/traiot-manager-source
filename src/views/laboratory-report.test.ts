@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { laboratoryTests } from '@/schema/catalogs'
 import { buildLaboratoryDiagnosticHtml } from '@/views/laboratory-report'
 
 describe('laboratory diagnostic report', () => {
@@ -56,5 +57,25 @@ describe('laboratory diagnostic report', () => {
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
     expect(html).toContain('&lt;b&gt;observación&lt;/b&gt;')
     expect(html).toContain('no fue posible cargar el archivo')
+  })
+
+  it('reconstructs catalog tests that the legacy comma parser fragmented', () => {
+    const visualInspection = laboratoryTests.find((test) => test.includes('humedad')) ?? ''
+    const analogInputs = laboratoryTests.find((test) => test.includes('cuando aplica')) ?? ''
+    const html = buildLaboratoryDiagnosticHtml({
+      row: {
+        FOLIO: 'LAB-0043',
+        'PRUEBAS REALIZADAS': [
+          ...visualInspection.split(/\s*,\s*/),
+          ...analogInputs.split(/\s*,\s*/),
+        ],
+      },
+      imageData: {},
+    })
+
+    expect(html).toContain(visualInspection)
+    expect(html).toContain(analogInputs)
+    expect(html).not.toMatch(/<span>humedad<\/span>/i)
+    expect(html).not.toMatch(/<span>cuando aplica\.<\/span>/i)
   })
 })

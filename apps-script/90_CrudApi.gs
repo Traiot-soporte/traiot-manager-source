@@ -754,7 +754,7 @@ function coerceApiInput_(value, column) {
   }
 
   if (column.type === 'EnumList' || column.type === 'List') {
-    return Array.isArray(value) ? value.map(String) : splitApiList_(value);
+    return Array.isArray(value) ? value.map(String) : splitApiListByCatalog_(value, column);
   }
 
   return String(value).trim();
