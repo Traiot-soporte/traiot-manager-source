@@ -1,5 +1,6 @@
 import type { RowData, UserContext } from '@/schema'
 import { laboratoryTests } from '@/schema/catalogs'
+import { EXO_2_FONT_FACE_CSS, EXO_2_FONT_FAMILY } from '@/lib/exo2-font'
 
 export const laboratoryImageColumns = Array.from(
   { length: 5 },
@@ -70,7 +71,8 @@ export function buildLaboratoryDiagnosticHtml({
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(buildLaboratoryPdfFilename(row).replace(/\.pdf$/i, ''))}</title>
   <style>
-    #traiot-laboratory-pdf{color-scheme:light;--ink:#181818;--muted:#716864;--line:#e7ded9;--paper:#fff;--soft:#fff4ef;--brand:#ee7d61;--brand-dark:#bd4638;--green:#13795b;--amber:#a86000;--red:#b42318;--blue:#175cd3;box-sizing:border-box;width:210mm;min-height:297mm;margin:0;background:var(--paper);color:var(--ink);padding:10mm 11mm 12mm;font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    ${EXO_2_FONT_FACE_CSS}
+    #traiot-laboratory-pdf{color-scheme:light;--ink:#181818;--muted:#716864;--line:#e7ded9;--paper:#fff;--soft:#fff4ef;--brand:#ee7d61;--brand-dark:#bd4638;--green:#13795b;--amber:#a86000;--red:#b42318;--blue:#175cd3;box-sizing:border-box;width:210mm;min-height:297mm;margin:0;background:var(--paper);color:var(--ink);padding:10mm 11mm 12mm;font-family:${EXO_2_FONT_FAMILY};font-size:10.5pt;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     #traiot-laboratory-pdf *{box-sizing:border-box}
     #traiot-laboratory-pdf .header{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:4px solid var(--brand);padding:0 0 14px}
     #traiot-laboratory-pdf .brand{display:flex;align-items:center;gap:13px;min-width:0}

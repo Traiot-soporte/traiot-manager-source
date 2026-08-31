@@ -1,4 +1,5 @@
 import type { ColumnDef, RowData, TableDef } from '@/schema'
+import { EXO_2_FONT_FACE_CSS, EXO_2_FONT_FAMILY } from '@/lib/exo2-font'
 
 export interface ExportDataset {
   readonly columns: readonly ColumnDef[]
@@ -124,7 +125,7 @@ export function buildPrintableHtml(title: string, dataset: ExportDataset): strin
   const header = dataset.columns.map((column) => '<th>' + escapeHtml(column.label ?? column.name) + '</th>').join('')
   const body = dataset.rows.map((row) => '<tr>' + row.map((value) => '<td>' + escapeHtml(value) + '</td>').join('') + '</tr>').join('')
   return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>' + escapeHtml(title) + '</title>' +
-    '<style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;color:#191919}h1{font-size:18px;margin:0 0 4px}.meta{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:9px}th{background:#191919;color:#fff;text-align:left}th,td{padding:6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even){background:#faf7f5}</style>' +
+    '<style>' + EXO_2_FONT_FACE_CSS + '@page{size:landscape;margin:10mm}body{font-family:' + EXO_2_FONT_FAMILY + ';color:#191919}h1{font-size:18px;margin:0 0 4px}.meta{font-size:11px;color:#666;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:9px}th{background:#191919;color:#fff;text-align:left}th,td{padding:6px;border:1px solid #ddd;vertical-align:top}tr:nth-child(even){background:#faf7f5}</style>' +
     '</head><body><h1>' + escapeHtml(title) + '</h1><p class="meta">' + dataset.rows.length +
     ' registros · Generado ' + escapeHtml(new Date().toLocaleString('es-MX')) +
     '</p><table><thead><tr>' + header + '</tr></thead><tbody>' + body + '</tbody></table></body></html>'
@@ -178,7 +179,7 @@ function columnLetters(index: number): string {
 function buildXlsxStyles(): string {
   return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
     '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+    '<fonts count="2"><font><sz val="11"/><name val="Exo 2"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Exo 2"/></font></fonts>' +
     '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF191919"/><bgColor indexed="64"/></patternFill></fill></fills>' +
     '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
     '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +

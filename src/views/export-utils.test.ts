@@ -25,6 +25,7 @@ describe('exportaciones operativas', () => {
     expect([...excel.slice(0, 4)]).toEqual([0x50, 0x4b, 0x03, 0x04])
     expect(new TextDecoder().decode(excel)).toContain('xl/worksheets/sheet1.xml')
     expect(pdf).toContain('<table>')
+    expect(pdf).toContain('font-family:"Exo 2"')
     expect(pdf).toContain('Equipo &amp; sensor')
   })
 

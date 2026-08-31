@@ -102,6 +102,7 @@ async function downloadPdfDocument(html: string, filename: string): Promise<void
   document.body.appendChild(host)
   try {
     await waitForImages(report)
+    await document.fonts.ready
     const { default: html2pdf } = await import('html2pdf.js')
     await html2pdf().set({
       margin: 0,

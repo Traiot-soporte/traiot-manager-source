@@ -57,6 +57,7 @@ describe('laboratory diagnostic report', () => {
     expect(html).toContain('id="traiot-laboratory-pdf"')
     expect(html).toContain('#traiot-laboratory-pdf .header')
     expect(html).toContain('#traiot-laboratory-pdf .evidence-card')
+    expect(html).toContain('font-family:"Exo 2"')
     expect(html).not.toContain('html,body{')
     expect(html).not.toContain('\n    *{box-sizing:border-box}')
   })

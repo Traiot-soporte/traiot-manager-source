@@ -56,7 +56,7 @@ export function ExportActions({ rows, table }: { readonly rows: readonly RowData
     try {
       const dataset = await prepare()
       const baseName = buildExportBaseName(table.name)
-      printHtml(buildPrintableHtml(baseName, dataset))
+      await printHtml(buildPrintableHtml(baseName, dataset))
     } catch {
       setError('No fue posible preparar el PDF.')
     } finally {
@@ -88,7 +88,7 @@ function downloadBlob(blob: Blob, filename: string) {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
 }
 
-function printHtml(html: string) {
+async function printHtml(html: string): Promise<void> {
   const frame = document.createElement('iframe')
   frame.setAttribute('aria-hidden', 'true')
   frame.style.position = 'fixed'
@@ -103,9 +103,8 @@ function printHtml(html: string) {
   documentToPrint.open()
   documentToPrint.write(html)
   documentToPrint.close()
-  window.setTimeout(() => {
-    frame.contentWindow?.focus()
-    frame.contentWindow?.print()
-    window.setTimeout(() => frame.remove(), 1000)
-  }, 100)
+  await documentToPrint.fonts.ready
+  frame.contentWindow.focus()
+  frame.contentWindow.print()
+  window.setTimeout(() => frame.remove(), 1000)
 }
