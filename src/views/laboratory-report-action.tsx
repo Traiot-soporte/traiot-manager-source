@@ -79,27 +79,29 @@ async function loadAsDataUrl(source: string): Promise<string | undefined> {
 }
 
 async function downloadPdfDocument(html: string, filename: string): Promise<void> {
-  const frame = document.createElement('iframe')
-  frame.setAttribute('aria-hidden', 'true')
-  frame.style.position = 'fixed'
-  frame.style.left = '-10000px'
-  frame.style.top = '0'
-  frame.style.width = '794px'
-  frame.style.height = '1123px'
-  frame.style.border = '0'
-  frame.style.opacity = '0'
-  frame.style.pointerEvents = 'none'
-  document.body.appendChild(frame)
-  const pdfDocument = frame.contentDocument
-  if (!pdfDocument) {
-    frame.remove()
-    throw new Error('PDF frame unavailable')
-  }
-  pdfDocument.open()
-  pdfDocument.write(html)
-  pdfDocument.close()
+  const parsedDocument = new DOMParser().parseFromString(html, 'text/html')
+  const reportSource = parsedDocument.querySelector<HTMLElement>('#traiot-laboratory-pdf')
+  const reportStyles = parsedDocument.querySelector('style')?.textContent
+  if (!reportSource || !reportStyles) throw new Error('PDF document unavailable')
+
+  const style = document.createElement('style')
+  style.dataset.traiotLaboratoryPdf = 'true'
+  style.textContent = reportStyles
+  document.head.appendChild(style)
+
+  const host = document.createElement('div')
+  host.setAttribute('aria-hidden', 'true')
+  host.style.position = 'fixed'
+  host.style.left = '-10000px'
+  host.style.top = '0'
+  host.style.width = '210mm'
+  host.style.background = '#ffffff'
+  host.style.pointerEvents = 'none'
+  const report = document.importNode(reportSource, true)
+  host.appendChild(report)
+  document.body.appendChild(host)
   try {
-    await waitForImages(pdfDocument)
+    await waitForImages(report)
     const { default: html2pdf } = await import('html2pdf.js')
     await html2pdf().set({
       margin: 0,
@@ -114,14 +116,15 @@ async function downloadPdfDocument(html: string, filename: string): Promise<void
         windowWidth: 794,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    }).from(pdfDocument.body).save()
+    }).from(report).save()
   } finally {
-    frame.remove()
+    host.remove()
+    style.remove()
   }
 }
 
-async function waitForImages(documentToPrint: Document): Promise<void> {
-  const images = Array.from(documentToPrint.images)
+async function waitForImages(root: ParentNode): Promise<void> {
+  const images = Array.from(root.querySelectorAll('img'))
   await Promise.all(images.map(async (image) => {
     if (image.complete) return
     await new Promise<void>((resolve) => {

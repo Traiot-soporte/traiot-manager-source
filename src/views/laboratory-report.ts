@@ -70,70 +70,60 @@ export function buildLaboratoryDiagnosticHtml({
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(buildLaboratoryPdfFilename(row).replace(/\.pdf$/i, ''))}</title>
   <style>
-    :root{color-scheme:light;--ink:#181818;--muted:#716864;--line:#e7ded9;--paper:#fff;--soft:#fff4ef;--brand:#ee7d61;--brand-dark:#bd4638;--green:#13795b;--amber:#a86000;--red:#b42318;--blue:#175cd3}
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:#fff;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    body{counter-reset:page}
-    .document{max-width:190mm;margin:0 auto;background:var(--paper)}
-    .header{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:4px solid var(--brand);padding:0 0 14px}
-    .brand{display:flex;align-items:center;gap:13px;min-width:0}
-    .logo{width:58px;height:58px;border-radius:14px;object-fit:cover;background:#181818}
-    .brand-name{margin:0;font-size:18pt;font-weight:900;letter-spacing:.13em}
-    .brand-sub{margin:1px 0 0;color:var(--muted);font-size:8.5pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-    .document-type{text-align:right}
-    .document-type p{margin:0;color:var(--brand-dark);font-size:8pt;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
-    .document-type h1{margin:2px 0 0;font-size:19pt;line-height:1.05}
-    .hero{display:grid;grid-template-columns:1.55fr .8fr;gap:14px;margin:16px 0}
-    .hero-main{border-radius:16px;background:var(--ink);color:#fff;padding:19px 21px}
-    .hero-main .eyebrow{color:#ff9d84}
-    .hero-main h2{margin:5px 0 8px;font-size:23pt;line-height:1.08}
-    .hero-main p{margin:0;color:#ddd2cd}
-    .status-box{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);border-radius:16px;background:var(--soft);padding:16px}
-    .eyebrow{margin:0;color:var(--brand-dark);font-size:7.5pt;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
-    .status{margin:7px 0 2px;font-size:13pt;font-weight:900}
-    .semaphore{margin:0;color:var(--muted);font-weight:700}
-    .section{margin-top:16px;break-inside:avoid-page}
-    .section-title{display:flex;align-items:center;gap:9px;margin:0 0 8px;font-size:12.5pt;font-weight:900}
-    .section-title::before{content:"";display:block;width:6px;height:22px;border-radius:99px;background:var(--brand)}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;border:1px solid var(--line);border-radius:13px}
-    .field{min-height:62px;padding:11px 13px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-    .field:nth-child(3n){border-right:0}
-    .field:nth-last-child(-n+3){border-bottom:0}
-    .field-label{margin:0 0 5px;color:var(--muted);font-size:7.4pt;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-    .field-value{margin:0;font-weight:700;overflow-wrap:anywhere;white-space:pre-wrap}
-    .diagnosis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .diagnosis-card{min-height:106px;border:1px solid var(--line);border-radius:13px;padding:13px;break-inside:avoid}
-    .diagnosis-card p:last-child{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
-    .checks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0;padding:0;list-style:none}
-    .check{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-weight:700;break-inside:avoid}
-    .check-mark{display:grid;width:18px;height:18px;flex:0 0 18px;place-items:center;border-radius:5px;background:#e8f7f1;color:var(--green);font-size:9pt;font-weight:900}
-    .empty{border:1px dashed var(--line);border-radius:12px;color:var(--muted);padding:15px;text-align:center}
-    .evidence{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .evidence-card{overflow:hidden;border:1px solid var(--line);border-radius:14px;break-inside:avoid-page;background:#fff}
-    .evidence-head{display:flex;justify-content:space-between;gap:8px;background:var(--ink);color:#fff;padding:9px 12px;font-size:8pt;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-    .evidence-image{display:flex;min-height:86mm;align-items:center;justify-content:center;background:#f7f4f2;padding:7px}
-    .evidence-image img{display:block;max-width:100%;max-height:105mm;object-fit:contain}
-    .missing-image{color:var(--muted);font-size:9pt;font-weight:700;text-align:center}
-    .evidence-notes{min-height:50px;padding:11px 12px}
-    .evidence-notes p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
-    .control{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:17px;border-top:2px solid var(--ink);padding-top:12px}
-    .control-item{font-size:8.5pt}
-    .control-item strong{display:block;margin-bottom:2px;font-size:7pt;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-    .signatures{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px;break-inside:avoid}
-    .signature{border-top:1px solid #777;padding-top:6px;text-align:center;color:var(--muted);font-size:8pt;font-weight:700}
-    .footer{margin-top:18px;border-top:1px solid var(--line);padding-top:8px;color:var(--muted);font-size:7.5pt;text-align:center}
-    .page-break{break-before:page;page-break-before:always}
-    @media print{
-      @page{size:A4 portrait;margin:10mm 11mm 12mm}
-      .document{max-width:none}
-      .evidence{display:block}
-      .evidence-card{margin-bottom:12px}
-      .evidence-image{min-height:80mm}
-    }
+    #traiot-laboratory-pdf{color-scheme:light;--ink:#181818;--muted:#716864;--line:#e7ded9;--paper:#fff;--soft:#fff4ef;--brand:#ee7d61;--brand-dark:#bd4638;--green:#13795b;--amber:#a86000;--red:#b42318;--blue:#175cd3;box-sizing:border-box;width:210mm;min-height:297mm;margin:0;background:var(--paper);color:var(--ink);padding:10mm 11mm 12mm;font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    #traiot-laboratory-pdf *{box-sizing:border-box}
+    #traiot-laboratory-pdf .header{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:4px solid var(--brand);padding:0 0 14px}
+    #traiot-laboratory-pdf .brand{display:flex;align-items:center;gap:13px;min-width:0}
+    #traiot-laboratory-pdf .logo{width:58px;height:58px;border-radius:14px;object-fit:cover;background:#181818}
+    #traiot-laboratory-pdf .brand-name{margin:0;font-size:18pt;font-weight:900;letter-spacing:.13em}
+    #traiot-laboratory-pdf .brand-sub{margin:1px 0 0;color:var(--muted);font-size:8.5pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+    #traiot-laboratory-pdf .document-type{text-align:right}
+    #traiot-laboratory-pdf .document-type p{margin:0;color:var(--brand-dark);font-size:8pt;font-weight:900;letter-spacing:.16em;text-transform:uppercase}
+    #traiot-laboratory-pdf .document-type h1{margin:2px 0 0;font-size:19pt;line-height:1.05}
+    #traiot-laboratory-pdf .hero{display:grid;grid-template-columns:1.55fr .8fr;gap:14px;margin:16px 0}
+    #traiot-laboratory-pdf .hero-main{border-radius:16px;background:var(--ink);color:#fff;padding:19px 21px}
+    #traiot-laboratory-pdf .hero-main .eyebrow{color:#ff9d84}
+    #traiot-laboratory-pdf .hero-main h2{margin:5px 0 8px;font-size:23pt;line-height:1.08}
+    #traiot-laboratory-pdf .hero-main p{margin:0;color:#ddd2cd}
+    #traiot-laboratory-pdf .status-box{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);border-radius:16px;background:var(--soft);padding:16px}
+    #traiot-laboratory-pdf .eyebrow{margin:0;color:var(--brand-dark);font-size:7.5pt;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
+    #traiot-laboratory-pdf .status{margin:7px 0 2px;font-size:13pt;font-weight:900}
+    #traiot-laboratory-pdf .semaphore{margin:0;color:var(--muted);font-weight:700}
+    #traiot-laboratory-pdf .section{margin-top:16px;break-inside:avoid-page;page-break-inside:avoid}
+    #traiot-laboratory-pdf .section-title{display:flex;align-items:center;gap:9px;margin:0 0 8px;font-size:12.5pt;font-weight:900}
+    #traiot-laboratory-pdf .section-title::before{content:"";display:block;width:6px;height:22px;border-radius:99px;background:var(--brand)}
+    #traiot-laboratory-pdf .grid{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;border:1px solid var(--line);border-radius:13px}
+    #traiot-laboratory-pdf .field{min-height:62px;padding:11px 13px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    #traiot-laboratory-pdf .field:nth-child(3n){border-right:0}
+    #traiot-laboratory-pdf .field:nth-last-child(-n+3){border-bottom:0}
+    #traiot-laboratory-pdf .field-label{margin:0 0 5px;color:var(--muted);font-size:7.4pt;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    #traiot-laboratory-pdf .field-value{margin:0;font-weight:700;overflow-wrap:anywhere;white-space:pre-wrap}
+    #traiot-laboratory-pdf .diagnosis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    #traiot-laboratory-pdf .diagnosis-card{min-height:106px;border:1px solid var(--line);border-radius:13px;padding:13px;break-inside:avoid;page-break-inside:avoid}
+    #traiot-laboratory-pdf .diagnosis-card p:last-child{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+    #traiot-laboratory-pdf .checks{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0;padding:0;list-style:none}
+    #traiot-laboratory-pdf .check{display:flex;align-items:flex-start;gap:8px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-weight:700;break-inside:avoid;page-break-inside:avoid}
+    #traiot-laboratory-pdf .check-mark{display:grid;width:18px;height:18px;flex:0 0 18px;place-items:center;border-radius:5px;background:#e8f7f1;color:var(--green);font-size:9pt;font-weight:900}
+    #traiot-laboratory-pdf .empty{border:1px dashed var(--line);border-radius:12px;color:var(--muted);padding:15px;text-align:center}
+    #traiot-laboratory-pdf .evidence{display:block}
+    #traiot-laboratory-pdf .evidence-card{overflow:hidden;border:1px solid var(--line);border-radius:14px;break-inside:avoid-page;page-break-inside:avoid;background:#fff;margin-bottom:12px}
+    #traiot-laboratory-pdf .evidence-head{display:flex;justify-content:space-between;gap:8px;background:var(--ink);color:#fff;padding:9px 12px;font-size:8pt;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    #traiot-laboratory-pdf .evidence-image{display:flex;min-height:80mm;align-items:center;justify-content:center;background:#f7f4f2;padding:7px}
+    #traiot-laboratory-pdf .evidence-image img{display:block;max-width:100%;max-height:105mm;object-fit:contain}
+    #traiot-laboratory-pdf .missing-image{color:var(--muted);font-size:9pt;font-weight:700;text-align:center}
+    #traiot-laboratory-pdf .evidence-notes{min-height:50px;padding:11px 12px}
+    #traiot-laboratory-pdf .evidence-notes p{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+    #traiot-laboratory-pdf .control{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:17px;border-top:2px solid var(--ink);padding-top:12px;break-inside:avoid;page-break-inside:avoid}
+    #traiot-laboratory-pdf .control-item{font-size:8.5pt}
+    #traiot-laboratory-pdf .control-item strong{display:block;margin-bottom:2px;font-size:7pt;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+    #traiot-laboratory-pdf .signatures{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px;break-inside:avoid;page-break-inside:avoid}
+    #traiot-laboratory-pdf .signature{border-top:1px solid #777;padding-top:6px;text-align:center;color:var(--muted);font-size:8pt;font-weight:700}
+    #traiot-laboratory-pdf .footer{margin-top:18px;border-top:1px solid var(--line);padding-top:8px;color:var(--muted);font-size:7.5pt;text-align:center}
+    #traiot-laboratory-pdf .page-break{break-before:page;page-break-before:always}
   </style>
 </head>
 <body>
-  <main class="document">
+  <main class="document" id="traiot-laboratory-pdf">
     <header class="header">
       <div class="brand">
         ${logoData ? `<img class="logo" src="${escapeAttribute(logoData)}" alt="Logotipo TRAIOT">` : '<div class="logo"></div>'}

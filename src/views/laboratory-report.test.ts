@@ -48,6 +48,19 @@ describe('laboratory diagnostic report', () => {
     expect(html).toContain('Manuel Soto')
   })
 
+  it('scopes the professional PDF layout so the downloader preserves its styles', () => {
+    const html = buildLaboratoryDiagnosticHtml({
+      row: { FOLIO: 'LAB-0042', IMEI: '123456789012345' },
+      imageData: {},
+    })
+
+    expect(html).toContain('id="traiot-laboratory-pdf"')
+    expect(html).toContain('#traiot-laboratory-pdf .header')
+    expect(html).toContain('#traiot-laboratory-pdf .evidence-card')
+    expect(html).not.toContain('html,body{')
+    expect(html).not.toContain('\n    *{box-sizing:border-box}')
+  })
+
   it('escapes unsafe record content and reports unavailable evidence', () => {
     const html = buildLaboratoryDiagnosticHtml({
       row: {
