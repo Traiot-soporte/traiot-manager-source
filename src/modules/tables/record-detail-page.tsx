@@ -13,6 +13,7 @@ import { getTableDefinition, getTableDisplayName } from '@/schema'
 import { CommunicationPanel } from '@/views/communication-panel'
 import { CrmCommentPanel } from '@/views/crm-comment-actions'
 import { DetailView } from '@/views/detail-view'
+import { LaboratoryReportAction } from '@/views/laboratory-report-action'
 import { getRowTitle } from '@/views/view-utils'
 
 export function RecordDetailPage() {
@@ -79,6 +80,7 @@ export function RecordDetailPage() {
             rowUuid={nextUuid}
             to={nextUuid ? recordPath(nextUuid) : undefined}
           />
+          {table.name === 'Laboratorio' && <LaboratoryReportAction row={row} />}
           {repository.writable && !table.readOnly && <>
             <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white/10 px-5 text-sm font-black hover:bg-white/15" to={basePath + '/' + encodeURIComponent(rowUuid) + '/editar'}><Pencil className="size-4" />Editar</Link>
             <button className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-red-300/30 px-5 text-sm font-black text-red-200 hover:bg-red-500/15 disabled:opacity-50" disabled={remove.isPending} onClick={askToRemove} type="button"><Trash2 className="size-4" />{remove.isPending ? 'Eliminando…' : 'Eliminar'}</button>
