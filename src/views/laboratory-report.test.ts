@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
 import { laboratoryTests } from '@/schema/catalogs'
-import { buildLaboratoryDiagnosticHtml } from '@/views/laboratory-report'
+import { buildLaboratoryDiagnosticHtml, buildLaboratoryPdfFilename } from '@/views/laboratory-report'
 
 describe('laboratory diagnostic report', () => {
+  it('uses folio and IMEI as the downloaded PDF filename', () => {
+    expect(buildLaboratoryPdfFilename({ FOLIO: 'LAB/0042', IMEI: '123456789012345' }))
+      .toBe('LAB-0042-123456789012345.pdf')
+  })
+
   it('includes the complete technical diagnosis, evidence and TRAIOT identity', () => {
     const html = buildLaboratoryDiagnosticHtml({
       row: {

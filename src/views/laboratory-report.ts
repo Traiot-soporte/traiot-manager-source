@@ -6,6 +6,12 @@ export const laboratoryImageColumns = Array.from(
   (_, index) => `IMAGEN ${String(index + 1)}`,
 )
 
+export function buildLaboratoryPdfFilename(row: RowData): string {
+  const folio = sanitizeFilenamePart(cleanText(row.FOLIO)) || 'SIN-FOLIO'
+  const imei = sanitizeFilenamePart(cleanText(row.IMEI)) || 'SIN-IMEI'
+  return `${folio}-${imei}.pdf`
+}
+
 interface LaboratoryReportInput {
   readonly row: RowData
   readonly imageData: Readonly<Record<string, string | undefined>>
@@ -62,7 +68,7 @@ export function buildLaboratoryDiagnosticHtml({
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${escapeHtml(`DIAGNOSTICO_${folio}`)}</title>
+  <title>${escapeHtml(buildLaboratoryPdfFilename(row).replace(/\.pdf$/i, ''))}</title>
   <style>
     :root{color-scheme:light;--ink:#181818;--muted:#716864;--line:#e7ded9;--paper:#fff;--soft:#fff4ef;--brand:#ee7d61;--brand-dark:#bd4638;--green:#13795b;--amber:#a86000;--red:#b42318;--blue:#175cd3}
     *{box-sizing:border-box}
@@ -116,10 +122,10 @@ export function buildLaboratoryDiagnosticHtml({
     .signatures{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px;break-inside:avoid}
     .signature{border-top:1px solid #777;padding-top:6px;text-align:center;color:var(--muted);font-size:8pt;font-weight:700}
     .footer{margin-top:18px;border-top:1px solid var(--line);padding-top:8px;color:var(--muted);font-size:7.5pt;text-align:center}
+    .page-break{break-before:page;page-break-before:always}
     @media print{
       @page{size:A4 portrait;margin:10mm 11mm 12mm}
       .document{max-width:none}
-      .page-break{break-before:page}
       .evidence{display:block}
       .evidence-card{margin-bottom:12px}
       .evidence-image{min-height:80mm}
@@ -257,4 +263,14 @@ function escapeHtml(value: string): string {
 
 function escapeAttribute(value: string): string {
   return escapeHtml(value).replace(/\r|\n/g, '')
+}
+
+function sanitizeFilenamePart(value: string): string {
+  return [...value]
+    .filter((character) => character.charCodeAt(0) >= 32)
+    .join('')
+    .replace(/[<>:"/\\|?*]+/g, '-')
+    .replace(/\s+/g, ' ')
+    .replace(/-+/g, '-')
+    .replace(/^[.\s-]+|[.\s-]+$/g, '')
 }

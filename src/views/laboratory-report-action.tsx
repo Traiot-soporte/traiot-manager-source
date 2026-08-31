@@ -4,7 +4,11 @@ import { useState } from 'react'
 import logoUrl from '../../logo.jpeg'
 import { useRepository } from '@/data/use-repository'
 import type { RowData } from '@/schema'
-import { buildLaboratoryDiagnosticHtml, laboratoryImageColumns } from '@/views/laboratory-report'
+import {
+  buildLaboratoryDiagnosticHtml,
+  buildLaboratoryPdfFilename,
+  laboratoryImageColumns,
+} from '@/views/laboratory-report'
 
 export function LaboratoryReportAction({ row }: { readonly row: RowData }) {
   const repository = useRepository()
@@ -37,7 +41,7 @@ export function LaboratoryReportAction({ row }: { readonly row: RowData }) {
         clientName,
         generatedBy,
       })
-      await printHtmlDocument(html)
+      await downloadPdfDocument(html, buildLaboratoryPdfFilename(row))
     } catch {
       setError('No fue posible preparar el diagnóstico. Intenta nuevamente.')
     } finally {
@@ -74,29 +78,46 @@ async function loadAsDataUrl(source: string): Promise<string | undefined> {
   })
 }
 
-async function printHtmlDocument(html: string): Promise<void> {
+async function downloadPdfDocument(html: string, filename: string): Promise<void> {
   const frame = document.createElement('iframe')
   frame.setAttribute('aria-hidden', 'true')
   frame.style.position = 'fixed'
-  frame.style.right = '0'
-  frame.style.bottom = '0'
-  frame.style.width = '0'
-  frame.style.height = '0'
+  frame.style.left = '-10000px'
+  frame.style.top = '0'
+  frame.style.width = '794px'
+  frame.style.height = '1123px'
   frame.style.border = '0'
+  frame.style.opacity = '0'
+  frame.style.pointerEvents = 'none'
   document.body.appendChild(frame)
-  const printDocument = frame.contentDocument
-  const printWindow = frame.contentWindow
-  if (!printDocument || !printWindow) {
+  const pdfDocument = frame.contentDocument
+  if (!pdfDocument) {
     frame.remove()
-    throw new Error('Print frame unavailable')
+    throw new Error('PDF frame unavailable')
   }
-  printDocument.open()
-  printDocument.write(html)
-  printDocument.close()
-  await waitForImages(printDocument)
-  printWindow.focus()
-  printWindow.print()
-  window.setTimeout(() => frame.remove(), 1500)
+  pdfDocument.open()
+  pdfDocument.write(html)
+  pdfDocument.close()
+  try {
+    await waitForImages(pdfDocument)
+    const { default: html2pdf } = await import('html2pdf.js')
+    await html2pdf().set({
+      margin: 0,
+      filename,
+      enableLinks: true,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 794,
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }).from(pdfDocument.body).save()
+  } finally {
+    frame.remove()
+  }
 }
 
 async function waitForImages(documentToPrint: Document): Promise<void> {
