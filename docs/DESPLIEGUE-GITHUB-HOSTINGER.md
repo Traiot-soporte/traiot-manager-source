@@ -26,6 +26,20 @@ Si el frontend actual se abre directamente desde GitHub Pages o un hosting conve
 no encuentra `google.script.run` y selecciona el repositorio de demostración. Por eso no
 debe publicarse como producción externa hasta incorporar el cliente HTTP y el gateway.
 
+## Demostración en GitHub Pages
+
+El workflow `.github/workflows/pages.yml` publica automáticamente una demostración en:
+
+`https://traiot-soporte.github.io/traiot-manager-source/`
+
+La URL permite revisar el diseño, la navegación y los datos simulados. No utiliza la hoja
+real, no valida las cuentas productivas y los cambios hechos allí no son persistentes. La
+aplicación productiva continúa siendo el Web App de Apps Script hasta que exista el gateway
+HTTPS descrito más adelante.
+
+Para habilitar el primer despliegue, un administrador del repositorio debe abrir
+`Settings > Pages` y seleccionar `GitHub Actions` en `Build and deployment > Source`.
+
 ## Repositorio fuente en GitHub
 
 Se recomienda crear un repositorio privado llamado `traiot-manager-source`.
