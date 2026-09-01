@@ -1,5 +1,6 @@
 import type { RowData, TableDef } from '@/schema'
 import { CellDisplay } from '@/views/cell-display'
+import { DeviceSalesDetail } from '@/views/device-sales-detail'
 import { getDisplayColumns } from '@/views/view-utils'
 
 interface DetailViewProps {
@@ -8,6 +9,10 @@ interface DetailViewProps {
 }
 
 export function DetailView({ row, table }: DetailViewProps) {
+  if (table.name === 'MATRIZ DISPOSITIVOS') {
+    return <DeviceSalesDetail row={row} table={table} />
+  }
+
   const columns = getDisplayColumns(table)
     .filter((column) => table.name !== 'Gestion Clientes' || column.name !== 'Comentarios')
   const sections = [...new Set(columns.map((column) => column.section ?? 'Información general'))]
