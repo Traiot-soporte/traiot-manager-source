@@ -34,9 +34,9 @@ const repository = isAppsScriptRuntime()
     ? new AppsScriptRepository(createExternalAppsScriptCaller(externalBridgeUrl))
     : import.meta.env.DEV
       ? mockRepository
-      : new AppsScriptRepository(async () => {
-          throw new Error('El servidor real no está configurado para esta publicación.')
-        })
+      : new AppsScriptRepository(() => Promise.reject(
+          new Error('El servidor real no está configurado para esta publicación.'),
+        ))
 
 createRoot(rootElement).render(
   <StrictMode>
