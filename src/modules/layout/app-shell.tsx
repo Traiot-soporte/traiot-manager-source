@@ -73,6 +73,7 @@ const navigationSections: readonly NavigationSection[] = [
     items: [
       { kind: 'table', label: 'Clientes', table: 'CLIENTES' },
       { kind: 'table', label: 'Seguimiento Clientes', table: 'Gestion Clientes' },
+      { kind: 'table', label: 'Matriz Dispositivos', table: 'MATRIZ DISPOSITIVOS' },
       { kind: 'route', label: 'Comunicaciones', to: '/comunicaciones', icon: MessagesSquare },
     ],
   },
@@ -83,7 +84,6 @@ const navigationSections: readonly NavigationSection[] = [
     items: [
       { kind: 'table', label: 'Ticket Soporte', table: 'Ticket Soporte' },
       { kind: 'table', label: 'Laboratorio', table: 'Laboratorio' },
-      { kind: 'table', label: 'Matriz Dispositivos', table: 'MATRIZ DISPOSITIVOS' },
     ],
   },
   {

@@ -259,6 +259,7 @@ describe('registro de metadata', () => {
 
   it('configura Matriz Dispositivos sin calendario y con ficha técnica enlazable', () => {
     const devices = tableDefinitions.find((table) => table.name === 'MATRIZ DISPOSITIVOS')
+    expect(devices?.module).toBe('CRM')
     const removedColumns = [
       'Red',
       'BLE',

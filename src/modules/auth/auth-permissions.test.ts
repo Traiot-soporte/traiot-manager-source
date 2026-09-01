@@ -35,6 +35,7 @@ describe('matriz de roles y permisos', () => {
     expect(canRoleAccessTable('Soporte', 'Laboratorio')).toBe(true)
     expect(canRoleAccessTable('Soporte', 'Usuarios')).toBe(false)
     expect(canRoleAccessTable('Soporte', 'MATRIZ DISPOSITIVOS')).toBe(true)
+    expect(canRoleAccessTable('Ventas', 'MATRIZ DISPOSITIVOS')).toBe(true)
     expect(canRoleAccessTable('Tecnico', 'MATRIZ DISPOSITIVOS')).toBe(false)
     expect(canRoleAccessSection('Gerencia', 'seguridad')).toBe(false)
     expect(canRoleAccessTable('Rol desconocido', 'CLIENTES')).toBe(false)

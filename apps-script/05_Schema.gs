@@ -5747,7 +5747,7 @@ var TRAIOT_SCHEMA_TABLES = Object.freeze([
   {
     "name": "MATRIZ DISPOSITIVOS",
     "sheet": "MATRIZ DISPOSITIVOS",
-    "module": "Catálogo técnico",
+    "module": "CRM",
     "description": "Fichas técnicas y comparador de dispositivos GPS.",
     "icon": "Cpu",
     "permissionView": "Matriz Dispositivos",

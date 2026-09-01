@@ -6,7 +6,7 @@ export const matrizDispositivosTable = defineTable({
   label: 'Modelo',
   legacyBusinessKey: 'Modelo',
   permissionView: 'Matriz Dispositivos',
-  module: 'Catálogo técnico',
+  module: 'CRM',
   icon: 'Cpu',
   description: 'Fichas técnicas y comparador de dispositivos GPS.',
   defaultView: 'card',
