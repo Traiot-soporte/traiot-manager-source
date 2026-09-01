@@ -1,0 +1,43 @@
+name: Validar TRAIOT Manager
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    name: Pruebas y compilacion
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias verificadas
+        run: npm ci
+
+      - name: Ejecutar pruebas
+        run: npm test
+
+      - name: Revisar calidad del código
+        run: npm run lint
+
+      - name: Compilar frontend
+        run: npm run build

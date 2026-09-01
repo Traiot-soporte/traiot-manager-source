@@ -87,3 +87,4 @@ Las pruebas verifican las 313 columnas originales de negocio, excluyendo _RowNum
 - docs/appsheet-schema.md: fuente de verdad extraída de AppSheet.
 - docs/ARQUITECTURA.md: arquitectura, API, sincronización y decisiones.
 - docs/DIFERENCIAS-CON-APPSHEET.md: correcciones y cambios deliberados.
+- docs/DESPLIEGUE-GITHUB-HOSTINGER.md: publicación segura del código y ruta hacia hosting externo.

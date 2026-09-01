@@ -10,9 +10,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    exclude: ['BACKUP/**', 'node_modules/**', 'dist/**'],
     coverage: {
       reporter: ['text', 'html'],
     },
   },
 })
-
