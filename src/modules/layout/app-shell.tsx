@@ -345,7 +345,7 @@ export function AppShell() {
           <NavLink
             className={({ isActive }) =>
               cn(
-                'mb-2 flex min-h-11 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[13px] font-bold text-white/70',
+                'mb-2 flex min-h-10 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[12px] font-bold tracking-[0.02em] text-white/70',
                 sidebarCollapsed && 'lg:justify-center lg:px-0',
                 isActive &&
                   'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
@@ -373,7 +373,7 @@ export function AppShell() {
                     aria-controls={'sidebar-section-' + section.id}
                     aria-expanded={expanded}
                     className={cn(
-                      'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-xl px-2 text-left text-[11px] font-black tracking-[0.04em] text-white/45 transition hover:bg-white/5 hover:text-white/80',
+                      'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-xl px-2 text-left text-[12px] font-black tracking-[0.02em] text-white/45 transition hover:bg-white/5 hover:text-white/80',
                       sidebarCollapsed && 'lg:justify-center lg:px-0',
                       sectionActive && 'text-brand-300',
                     )}
@@ -528,7 +528,7 @@ function SidebarNavigationItem({
   readonly onNavigate: () => void
 }) {
   const sharedClassName = cn(
-    'flex min-h-10 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[12px] font-semibold transition',
+    'flex min-h-9 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[11px] font-semibold tracking-[0.01em] transition',
     collapsed && 'lg:justify-center lg:px-0',
   )
 
@@ -539,7 +539,7 @@ function SidebarNavigationItem({
         className={cn(sharedClassName, 'cursor-not-allowed text-white/30')}
         title={item.label.toLocaleUpperCase('es-MX') + ' · PENDIENTE'}
       >
-        <Construction className="size-5 shrink-0" />
+        <Construction className="size-[18px] shrink-0" />
         <span className={cn('min-w-0 flex-1 whitespace-nowrap', collapsed && 'lg:hidden')}>
           {item.label.toLocaleUpperCase('es-MX')}
         </span>
@@ -571,13 +571,13 @@ function SidebarNavigationItem({
       to={to}
     >
       {item.kind === 'route'
-        ? RouteIcon && <RouteIcon className="size-5 shrink-0" strokeWidth={2} />
+        ? RouteIcon && <RouteIcon className="size-[18px] shrink-0" strokeWidth={2} />
         : item.table === 'Perfiles'
-          ? <IdCard className="size-5 shrink-0" strokeWidth={2} />
-          : <TableIcon className="shrink-0" name={table?.icon ?? 'LayoutGrid'} />}
+          ? <IdCard className="size-[18px] shrink-0" strokeWidth={2} />
+          : <TableIcon className="size-[18px] shrink-0" name={table?.icon ?? 'LayoutGrid'} />}
       <span className={cn(
         'min-w-0 flex-1 whitespace-nowrap',
-        item.label.length >= 18 && 'text-[11px]',
+        item.label.length >= 18 && 'text-[10px]',
         collapsed && 'lg:hidden',
       )}>
         {item.label.toLocaleUpperCase('es-MX')}
