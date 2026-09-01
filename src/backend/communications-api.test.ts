@@ -59,6 +59,11 @@ describe('agenda privada de comunicaciones', () => {
       CreatedByUuid: '33333333-3333-4333-8333-333333333333',
       CreatedByEmail: 'ventas@traiot.com.mx',
       CreatedAt: '2026-08-24T17:00:00.000Z',
+      CancelledAt: '2026-08-24T18:30:00.000Z',
+      CancellationReason: 'El cliente solicitó reprogramar la llamada.',
+      CancelledByUuid: '33333333-3333-4333-8333-333333333333',
+      CancelledByEmail: 'ventas@traiot.com.mx',
+      CancelledByName: 'Manuel Soto',
     }
     expect(api.isCommunicationOwnedBy_(record, {
       userUuid: '33333333-3333-4333-8333-333333333333',
@@ -69,6 +74,12 @@ describe('agenda privada de comunicaciones', () => {
       email: 'otra@traiot.com.mx',
     })).toBe(false)
     expect(api.serializeCommunicationRecord_(record)).not.toHaveProperty('CreatedByEmail')
-    expect(api.serializeCommunicationRecord_(record)).toMatchObject({ recipientName: 'Cliente Demo' })
+    expect(api.serializeCommunicationRecord_(record)).not.toHaveProperty('CancelledByUuid')
+    expect(api.serializeCommunicationRecord_(record)).toMatchObject({
+      recipientName: 'Cliente Demo',
+      cancellationReason: 'El cliente solicitó reprogramar la llamada.',
+      cancelledByEmail: 'ventas@traiot.com.mx',
+      cancelledByName: 'Manuel Soto',
+    })
   })
 })

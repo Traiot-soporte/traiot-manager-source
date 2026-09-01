@@ -92,6 +92,9 @@ export interface ScheduledCommunication {
   readonly openedAt: string
   readonly sentAt: string
   readonly cancelledAt: string
+  readonly cancellationReason?: string
+  readonly cancelledByName?: string
+  readonly cancelledByEmail?: string
 }
 
 export interface CreateCommunicationInput {
@@ -170,6 +173,7 @@ export interface Repository {
   updateCommunicationStatus(
     communicationUuid: string,
     status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+    cancellationReason?: string,
   ): Promise<ScheduledCommunication>
   getCurrentUser(): Promise<UserContext>
   getSummaries(): Promise<readonly TableSummary[]>

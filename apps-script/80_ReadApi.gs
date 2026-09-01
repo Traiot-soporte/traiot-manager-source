@@ -153,6 +153,7 @@ function apiRequest(request) {
       user,
       safeRequest.communicationUuid,
       safeRequest.status,
+      safeRequest.cancellationReason,
       safeRequest.mutationId
     );
   }

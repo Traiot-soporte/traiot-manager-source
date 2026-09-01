@@ -21,7 +21,11 @@ var TRAIOT_COMMUNICATION_HEADERS = Object.freeze([
   'SentAt',
   'CancelledAt',
   'UpdatedAt',
-  'RecipientName'
+  'RecipientName',
+  'CancellationReason',
+  'CancelledByUuid',
+  'CancelledByEmail',
+  'CancelledByName'
 ]);
 
 function listScheduledCommunications_(user) {
@@ -110,7 +114,11 @@ function createScheduledCommunication_(user, submitted, mutationId) {
       OpenedAt: '',
       SentAt: '',
       CancelledAt: '',
-      UpdatedAt: now
+      UpdatedAt: now,
+      CancellationReason: '',
+      CancelledByUuid: '',
+      CancelledByEmail: '',
+      CancelledByName: ''
     };
     sheet.appendRow(TRAIOT_COMMUNICATION_HEADERS.map(function (header) {
       return record[header] || '';
@@ -120,15 +128,19 @@ function createScheduledCommunication_(user, submitted, mutationId) {
   });
 }
 
-function updateScheduledCommunicationStatus_(user, communicationUuid, requestedStatus, mutationId) {
+function updateScheduledCommunicationStatus_(user, communicationUuid, requestedStatus, cancellationReason, mutationId) {
   var normalizedUuid = normalizeCell_(communicationUuid).toLowerCase();
   var status = normalizeLookupValue_(requestedStatus);
+  var normalizedCancellationReason = normalizeCell_(cancellationReason).slice(0, 1000);
 
   if (!isUuid_(normalizedUuid)) {
     throw new Error('La comunicacion programada no es valida.');
   }
   if (['ABIERTO', 'ENVIADO', 'CANCELADO'].indexOf(status) < 0) {
     throw new Error('El estado solicitado no es valido.');
+  }
+  if (status === 'CANCELADO' && !normalizedCancellationReason) {
+    throw new Error('Captura el motivo de la cancelacion.');
   }
 
   return runIdempotentApiMutation_(mutationId, function () {
@@ -158,7 +170,13 @@ function updateScheduledCommunicationStatus_(user, communicationUuid, requestedS
     writeCommunicationField_(sheet, match.rowNumber, headers, 'UpdatedAt', now);
     if (status === 'ABIERTO') writeCommunicationField_(sheet, match.rowNumber, headers, 'OpenedAt', now);
     if (status === 'ENVIADO') writeCommunicationField_(sheet, match.rowNumber, headers, 'SentAt', now);
-    if (status === 'CANCELADO') writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledAt', now);
+    if (status === 'CANCELADO') {
+      writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledAt', now);
+      writeCommunicationField_(sheet, match.rowNumber, headers, 'CancellationReason', normalizedCancellationReason);
+      writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledByUuid', normalizeCell_(user.userUuid).toLowerCase());
+      writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledByEmail', normalizeApiEmail_(user.email));
+      writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledByName', normalizeCell_(user.name));
+    }
     SpreadsheetApp.flush();
 
     var refreshed = sheet.getRange(match.rowNumber, 1, 1, headers.length).getValues()[0];
@@ -219,6 +237,9 @@ function mapCommunicationRecord_(headers, row, rowNumber) {
   record.openedAt = normalizeCell_(record.OpenedAt);
   record.sentAt = normalizeCell_(record.SentAt);
   record.cancelledAt = normalizeCell_(record.CancelledAt);
+  record.cancellationReason = normalizeCell_(record.CancellationReason);
+  record.cancelledByName = normalizeCell_(record.CancelledByName);
+  record.cancelledByEmail = normalizeApiEmail_(record.CancelledByEmail);
   return record;
 }
 
@@ -238,7 +259,10 @@ function serializeCommunicationRecord_(record) {
     createdAt: normalizeCell_(record.createdAt || record.CreatedAt),
     openedAt: normalizeCell_(record.openedAt || record.OpenedAt),
     sentAt: normalizeCell_(record.sentAt || record.SentAt),
-    cancelledAt: normalizeCell_(record.cancelledAt || record.CancelledAt)
+    cancelledAt: normalizeCell_(record.cancelledAt || record.CancelledAt),
+    cancellationReason: normalizeCell_(record.cancellationReason || record.CancellationReason),
+    cancelledByName: normalizeCell_(record.cancelledByName || record.CancelledByName),
+    cancelledByEmail: normalizeApiEmail_(record.cancelledByEmail || record.CancelledByEmail)
   };
 }
 

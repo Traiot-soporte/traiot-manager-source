@@ -214,6 +214,9 @@ export class MockRepository implements Repository {
       openedAt: '',
       sentAt: '',
       cancelledAt: '',
+      cancellationReason: '',
+      cancelledByName: '',
+      cancelledByEmail: '',
     }
     this.#communications.set(communicationUuid, record)
     return { ...record }
@@ -222,9 +225,14 @@ export class MockRepository implements Repository {
   async updateCommunicationStatus(
     communicationUuid: string,
     status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+    cancellationReason?: string,
   ): Promise<ScheduledCommunication> {
     const current = this.#communications.get(communicationUuid)
     if (!current) throw new Error('No se encontrÃ³ la comunicaciÃ³n programada.')
+    const normalizedReason = cancellationReason?.trim() ?? ''
+    if (status === 'CANCELADO' && !normalizedReason) {
+      throw new Error('Captura el motivo de la cancelaciÃ³n.')
+    }
     const timestamp = this.#now().toISOString()
     const next: ScheduledCommunication = {
       ...current,
@@ -232,6 +240,9 @@ export class MockRepository implements Repository {
       openedAt: status === 'ABIERTO' ? timestamp : current.openedAt,
       sentAt: status === 'ENVIADO' ? timestamp : current.sentAt,
       cancelledAt: status === 'CANCELADO' ? timestamp : current.cancelledAt,
+      cancellationReason: status === 'CANCELADO' ? normalizedReason : current.cancellationReason ?? '',
+      cancelledByName: status === 'CANCELADO' ? mockUser.name ?? mockUser.email : current.cancelledByName ?? '',
+      cancelledByEmail: status === 'CANCELADO' ? mockUser.email : current.cancelledByEmail ?? '',
     }
     this.#communications.set(communicationUuid, next)
     return { ...next }
