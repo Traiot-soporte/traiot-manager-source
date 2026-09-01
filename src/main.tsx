@@ -25,12 +25,18 @@ const queryClient = new QueryClient({
     },
   },
 })
-const externalBridgeUrl = import.meta.env.VITE_APPS_SCRIPT_BRIDGE_URL?.trim()
+const productionBridgeUrl = 'https://script.google.com/macros/s/AKfycbyFE42Z8NgTXNAsp9Ngk8S8lMRt43q0hvhFmgZtwwipZq_hfOK29wDeCnSum0V4z42_/exec'
+const configuredBridgeUrl = import.meta.env.VITE_APPS_SCRIPT_BRIDGE_URL?.trim()
+const externalBridgeUrl = configuredBridgeUrl || (import.meta.env.PROD ? productionBridgeUrl : '')
 const repository = isAppsScriptRuntime()
   ? appsScriptRepository
   : externalBridgeUrl
     ? new AppsScriptRepository(createExternalAppsScriptCaller(externalBridgeUrl))
-    : mockRepository
+    : import.meta.env.DEV
+      ? mockRepository
+      : new AppsScriptRepository(async () => {
+          throw new Error('El servidor real no está configurado para esta publicación.')
+        })
 
 createRoot(rootElement).render(
   <StrictMode>
