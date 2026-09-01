@@ -528,7 +528,7 @@ function SidebarNavigationItem({
   readonly onNavigate: () => void
 }) {
   const sharedClassName = cn(
-    'flex min-h-9 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[11px] font-semibold tracking-[0.01em] transition',
+    'flex min-h-9 min-w-0 items-center gap-2.5 rounded-xl px-2.5 text-[10px] font-semibold tracking-[0.01em] transition',
     collapsed && 'lg:justify-center lg:px-0',
   )
 
@@ -577,7 +577,6 @@ function SidebarNavigationItem({
           : <TableIcon className="size-[18px] shrink-0" name={table?.icon ?? 'LayoutGrid'} />}
       <span className={cn(
         'min-w-0 flex-1 whitespace-nowrap',
-        item.label.length >= 18 && 'text-[10px]',
         collapsed && 'lg:hidden',
       )}>
         {item.label.toLocaleUpperCase('es-MX')}
