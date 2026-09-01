@@ -27,6 +27,15 @@ interface ReadApiSandbox {
     row: Readonly<Record<string, unknown>>,
     user: Readonly<Record<string, unknown>>,
   ) => boolean
+  readonly isApiCrmRowAssignedToUser_: (
+    row: Readonly<Record<string, unknown>>,
+    user: Readonly<Record<string, unknown>>,
+  ) => boolean
+  readonly filterApiCrmClientRowsByContacts_: (
+    clients: readonly Readonly<Record<string, unknown>>[],
+    contacts: readonly Readonly<Record<string, unknown>>[],
+    user: Readonly<Record<string, unknown>>,
+  ) => readonly Readonly<Record<string, unknown>>[]
   readonly apiSectionsForRole_: (role: string) => readonly string[]
   readonly canApiViewTable_: (
     user: Readonly<Record<string, unknown>>,
@@ -105,6 +114,40 @@ describe('API privada de lectura', () => {
     expect(isCrmCalendarRowVisible_(personal, anotherUser)).toBe(false)
     expect(isCrmCalendarRowVisible_({ Calendario: 'Empresarial' }, anotherUser)).toBe(true)
     expect(isCrmCalendarRowVisible_({ Calendario: '' }, anotherUser)).toBe(true)
+    expect(isCrmCalendarRowVisible_(personal, { ...anotherUser, role: 'Gerencia' })).toBe(true)
+  })
+
+  it('limita seguimientos por responsable salvo para gerencia y administracion', () => {
+    const { isApiCrmRowAssignedToUser_ } = loadReadApiSandbox()
+    const row = { Responsable: ['Luis Baca', 'Oscar Malagón'] }
+
+    expect(isApiCrmRowAssignedToUser_(row, { name: 'Oscar Malagon', role: 'Ventas' })).toBe(true)
+    expect(isApiCrmRowAssignedToUser_(row, { name: 'Manuel Soto', role: 'Soporte' })).toBe(false)
+    expect(isApiCrmRowAssignedToUser_(row, { name: 'Manuel Soto', role: 'Gerencia' })).toBe(true)
+    expect(isApiCrmRowAssignedToUser_(row, { name: 'Manuel Soto', role: 'Administrador' })).toBe(true)
+  })
+
+  it('entrega solo empresas vinculadas a seguimientos del responsable', () => {
+    const { filterApiCrmClientRowsByContacts_ } = loadReadApiSandbox()
+    const clients = [
+      { _uuid: 'client-1', 'RAZON SOCIAL': 'Empresa Uno' },
+      { _uuid: 'client-2', 'RAZON SOCIAL': 'Empresa Dos' },
+      { _uuid: 'client-3', 'RAZON SOCIAL': 'Empresa Tres' },
+    ]
+    const contacts = [
+      { cliente_uuid: 'client-1', NOMBRE_EMPRESA: 'Empresa Uno', Responsable: ['Luis Baca'] },
+      { NOMBRE_EMPRESA: 'Empresa Dos', Responsable: ['Manuel Soto'] },
+    ]
+
+    expect(filterApiCrmClientRowsByContacts_(clients, contacts, {
+      name: 'Luis Baca', role: 'Ventas',
+    })).toEqual([clients[0]])
+    expect(filterApiCrmClientRowsByContacts_(clients, contacts, {
+      name: 'Manuel Soto', role: 'Soporte',
+    })).toEqual([clients[1]])
+    expect(filterApiCrmClientRowsByContacts_(clients, contacts, {
+      name: 'Gerente', role: 'Gerencia',
+    })).toEqual(clients)
   })
 
   it('normaliza responsables historicos combinados al catalogo vigente', () => {

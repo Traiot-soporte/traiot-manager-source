@@ -7,6 +7,7 @@ import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
 import { upsertMutationResult } from '@/modules/tables/mutation-cache'
 import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
+import { canManageAllCrmRecords } from '@/modules/tables/crm-access'
 import { PurchaseBatchForm } from '@/modules/inventory/purchase-batch-form'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
@@ -38,6 +39,9 @@ export function RecordFormPage() {
   const editing = Boolean(rowUuid)
   if (user.isPending || (editing && row.isPending)) return <FormMessage text="Preparando formulario…" to={basePath} />
   if (user.isError || !user.data) return <FormMessage text="No fue posible cargar el usuario." to={basePath} />
+  if (table.name === 'CLIENTES' && !editing && !canManageAllCrmRecords(user.data.role)) {
+    return <FormMessage text="Registra el cliente desde Seguimiento Clientes para asignarlo al responsable correcto." to={basePath} />
+  }
   if (editing && (row.isError || !row.data)) return <FormMessage text="Registro no encontrado" to={basePath} />
 
   const save = async (values: RowData) => {

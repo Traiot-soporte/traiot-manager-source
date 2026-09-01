@@ -104,6 +104,12 @@ interface CrudSandbox {
     record: Readonly<Record<string, unknown>>,
     expectedUpdatedAt: unknown,
   ) => void
+  readonly assertApiCrmRecordMutationAccess_: (
+    user: Readonly<Record<string, unknown>>,
+    table: CrudTable,
+    record: Readonly<Record<string, unknown>>,
+    spreadsheet: unknown,
+  ) => void
   readonly repairCrmContactCreatedFields_: (
     row: unknown[],
     headers: string[],
@@ -195,6 +201,25 @@ describe('CRUD de Apps Script', () => {
       .not.toThrow()
     expect(() => assertApiRecordVersion_(current, '2026-09-01T17:59:59.000Z'))
       .toThrow('modificado por otro usuario')
+  })
+
+  it('protege mutaciones del CRM por responsable y libera gerencia', () => {
+    const { assertApiCrmRecordMutationAccess_ } = loadCrudSandbox()
+    const table = { name: 'Gestion Clientes', columns: [] }
+    const record = { Responsable: ['Luis Baca'] }
+
+    expect(() => assertApiCrmRecordMutationAccess_(
+      { name: 'Luis Baca', role: 'Ventas' }, table, record, null,
+    )).not.toThrow()
+    expect(() => assertApiCrmRecordMutationAccess_(
+      { name: 'Manuel Soto', role: 'Soporte' }, table, record, null,
+    )).toThrow('asignados')
+    expect(() => assertApiCrmRecordMutationAccess_(
+      { name: 'Gerente', role: 'Gerencia' }, table, record, null,
+    )).not.toThrow()
+    expect(() => assertApiCrmRecordMutationAccess_(
+      { name: 'Administrador', role: 'Administrador' }, table, record, null,
+    )).not.toThrow()
   })
 
   it('reserva la administracion de usuarios y perfiles para administradores', () => {

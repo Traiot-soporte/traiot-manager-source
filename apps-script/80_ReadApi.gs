@@ -276,8 +276,11 @@ function findAuthorizedSheetUser_(email) {
   }
 
   return {
+    userUuid: normalizeCell_(userRow._uuid).toLowerCase(),
     email: email,
+    name: normalizeCell_(userRow.UserName) || normalizeCell_(userRow.UserID),
     role: role,
+    mustChangePassword: false,
     permissions: buildApiRolePermissions_(role)
   };
 }
@@ -305,7 +308,7 @@ function buildApiSummaries_(user) {
       module: schemaTable.module,
       description: schemaTable.description,
       icon: schemaTable.icon,
-      rowCount: schemaTable.name === 'Gestion Clientes'
+      rowCount: schemaTable.name === 'CLIENTES' || schemaTable.name === 'Gestion Clientes'
         ? readVisibleApiRows_(spreadsheet, schemaTable, user).length
         : countApiRows_(spreadsheet, schemaTable)
     };
@@ -547,9 +550,70 @@ function readVisibleApiRows_(spreadsheet, schemaTable, user) {
   }
   if (schemaTable.name === 'Gestion Clientes') {
     rows = enrichCrmLifecycleRows_(spreadsheet, rows);
-    return rows.filter(function (row) { return isCrmCalendarRowVisible_(row, user); });
+    return rows.filter(function (row) {
+      return isCrmCalendarRowVisible_(row, user) && isApiCrmRowAssignedToUser_(row, user);
+    });
+  }
+  if (schemaTable.name === 'CLIENTES') {
+    return filterApiCrmClientRowsForUser_(spreadsheet, rows, user);
   }
   return rows;
+}
+
+function isApiCrmSupervisor_(user) {
+  var role = apiRoleKey_(user && user.role);
+  return role === 'ADMINISTRADOR' || role === 'GERENCIA';
+}
+
+function apiCrmResponsibleValues_(value) {
+  var values = Array.isArray(value) ? value.slice() : normalizeCell_(value).split(/\s*[,;|/]\s*/);
+  return values.map(function (item) {
+    return normalizeLookupValue_(item);
+  }).filter(Boolean);
+}
+
+function isApiCrmRowAssignedToUser_(row, user) {
+  if (isApiCrmSupervisor_(user)) return true;
+
+  var identities = [user && user.name, user && user.email].map(function (value) {
+    return normalizeLookupValue_(value);
+  }).filter(Boolean);
+  var responsibleValues = apiCrmResponsibleValues_(row && row.Responsable);
+
+  return identities.some(function (identity) {
+    return responsibleValues.indexOf(identity) >= 0;
+  });
+}
+
+function filterApiCrmClientRowsByContacts_(clientRows, contactRows, user) {
+  if (isApiCrmSupervisor_(user)) return clientRows.slice();
+
+  var assignedUuids = {};
+  var assignedNames = {};
+
+  contactRows.filter(function (row) {
+    return isCrmCalendarRowVisible_(row, user) && isApiCrmRowAssignedToUser_(row, user);
+  }).forEach(function (row) {
+    var clientUuid = normalizeCell_(row && row.cliente_uuid).toLowerCase();
+    var companyName = normalizeLookupValue_(row && row.NOMBRE_EMPRESA);
+    if (clientUuid) assignedUuids[clientUuid] = true;
+    if (companyName) assignedNames[companyName] = true;
+  });
+
+  return clientRows.filter(function (client) {
+    var clientUuid = normalizeCell_(client && client._uuid).toLowerCase();
+    var companyName = normalizeLookupValue_(client && client['RAZON SOCIAL']);
+    return Boolean(
+      (clientUuid && assignedUuids[clientUuid]) ||
+      (companyName && assignedNames[companyName])
+    );
+  });
+}
+
+function filterApiCrmClientRowsForUser_(spreadsheet, clientRows, user) {
+  if (isApiCrmSupervisor_(user)) return clientRows;
+  var contactRows = readApiRows_(spreadsheet, requireApiTable_('Gestion Clientes'));
+  return filterApiCrmClientRowsByContacts_(clientRows, contactRows, user);
 }
 
 function enrichOrderClientCompanyRows_(spreadsheet, rows) {
@@ -573,6 +637,10 @@ function enrichOrderClientCompanyRows_(spreadsheet, rows) {
 }
 
 function isCrmCalendarRowVisible_(row, user) {
+  if (isApiCrmSupervisor_(user)) {
+    return true;
+  }
+
   if (normalizeCrmCalendarScope_(row && row.Calendario) !== 'Personal') {
     return true;
   }

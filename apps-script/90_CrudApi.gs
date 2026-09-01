@@ -46,6 +46,7 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
     record._uuid = rowUuid;
     record._updatedAt = now;
     record._deleted = false;
+    assertApiCrmRecordMutationAccess_(user, schemaTable, record, spreadsheet);
     validateApiRecord_(schemaTable, record);
     assertUniqueApiBusinessKey_(sheet, schemaTable, record);
     assertUniqueApiUserEmail_(sheet, schemaTable, record);
@@ -130,6 +131,7 @@ function updateApiRow_(
       throw new Error('El registro solicitado no existe o fue eliminado.');
     }
 
+    assertApiCrmRecordMutationAccess_(user, schemaTable, snapshot.record, spreadsheet);
     assertApiRecordVersion_(snapshot.record, expectedUpdatedAt);
     assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
 
@@ -147,6 +149,7 @@ function updateApiRow_(
     nextRecord._uuid = rowUuid.toLowerCase();
     nextRecord._updatedAt = now;
     nextRecord._deleted = false;
+    assertApiCrmRecordMutationAccess_(user, schemaTable, nextRecord, spreadsheet);
     if (!crmCommentOnly) {
       validateApiRecord_(schemaTable, nextRecord);
     }
@@ -250,6 +253,7 @@ function deleteApiRow_(user, schemaTable, rowUuid, mutationId) {
       throw new Error('El registro solicitado no existe o ya fue eliminado.');
     }
 
+    assertApiCrmRecordMutationAccess_(user, schemaTable, snapshot.record, spreadsheet);
     assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
     if (schemaTable.name === 'ALMACEN') {
       assertInventoryProductDeletionAllowed_(snapshot.record);
@@ -520,6 +524,22 @@ function assertCrmCalendarMutationAccess_(user, schemaTable, record) {
 
   if (!ownerUuid || !userUuid || ownerUuid !== userUuid) {
     throw new Error('Este evento pertenece al calendario personal de otro usuario.');
+  }
+}
+
+function assertApiCrmRecordMutationAccess_(user, schemaTable, record, spreadsheet) {
+  if (isApiCrmSupervisor_(user)) return;
+
+  if (schemaTable.name === 'Gestion Clientes') {
+    if (!isApiCrmRowAssignedToUser_(record, user)) {
+      throw new Error('Solo puedes consultar o modificar clientes asignados a tu usuario.');
+    }
+    return;
+  }
+
+  if (schemaTable.name === 'CLIENTES' &&
+      filterApiCrmClientRowsForUser_(spreadsheet, [record], user).length === 0) {
+    throw new Error('Solo puedes consultar o modificar clientes asignados a tu usuario.');
   }
 }
 

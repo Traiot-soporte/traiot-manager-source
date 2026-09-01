@@ -6,6 +6,7 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { ModuleHeader } from '@/components/module-header'
 import { TableIcon } from '@/components/table-icon'
 import { useRepository } from '@/data/use-repository'
+import { canManageAllCrmRecords } from '@/modules/tables/crm-access'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
 import { CalendarView } from '@/views/calendar-view'
@@ -33,6 +34,11 @@ export function TablePage() {
     queryFn: () => repository.list(tableName),
     enabled: Boolean(table),
   })
+  const currentUser = useQuery({
+    queryKey: ['current-user'],
+    queryFn: () => repository.getCurrentUser(),
+    enabled: table?.name === 'CLIENTES',
+  })
   const requestedView = searchParams.get('vista')
   const availableViews = table ? getAvailableCollectionViews(table) : []
   const view = table ? resolveCollectionView(table, requestedView) : 'table'
@@ -52,6 +58,7 @@ export function TablePage() {
       : table.name === 'PEDIDOS'
         ? 'Nueva salida'
         : table.name === 'Gestion Clientes' ? 'Nuevo contacto' : 'Nuevo registro'
+  const canCreateRecord = table.name !== 'CLIENTES' || canManageAllCrmRecords(currentUser.data?.role)
 
   const changeView = (nextView: CollectionViewKind) => {
     const next = new URLSearchParams(searchParams)
@@ -65,15 +72,15 @@ export function TablePage() {
         <ModuleHeader
           action={<div className="flex flex-wrap items-center justify-end gap-2">
             <ExportActions rows={rows.data ?? []} table={table} />
-            {repository.writable && !table.readOnly ? (
+            {repository.writable && !table.readOnly && canCreateRecord ? (
                 <Link className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 text-sm font-black text-[#191919] transition hover:bg-brand-400" to={basePath + '/nuevo'}>
                   <Plus className="size-5" /> {createLabel}
                 </Link>
-              ) : (
+              ) : table.readOnly ? (
                 <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 px-5 text-sm font-black text-brand-700">
-                  {table.readOnly ? 'Actualización automática' : 'Solo lectura'}
+                  Actualización automática
                 </span>
-              )}
+              ) : null}
           </div>}
           compact
           description={table.description}
