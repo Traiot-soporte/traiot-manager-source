@@ -147,6 +147,51 @@ export interface CreateCompanyMeetingResult {
   readonly whatsappInvitations: number
 }
 
+export type DashboardSection = 'inventory' | 'crm' | 'engineering' | 'technical'
+
+export interface DashboardOverview {
+  readonly generatedAt: string
+  readonly availableSections: readonly DashboardSection[]
+  readonly inventory: {
+    readonly products: number
+    readonly units: number
+    readonly outOfStock: number
+    readonly reorder: number
+    readonly overstock: number
+    readonly adequate: number
+    readonly purchases30Days: number
+    readonly purchasedUnits30Days: number
+    readonly exits30Days: number
+    readonly exitedUnits30Days: number
+    readonly netUnits30Days: number
+  }
+  readonly crm: {
+    readonly clients: number
+    readonly prospects: number
+    readonly contacts: number
+    readonly contactsUpdated30Days: number
+    readonly contactsWithoutChannel: number
+    readonly contactsWithoutResponsible: number
+  }
+  readonly engineering: {
+    readonly openTickets: number
+    readonly ticketsInFollowUp: number
+    readonly laboratoryOpen: number
+    readonly laboratoryUrgent: number
+    readonly laboratoryDueSoon: number
+    readonly laboratoryDamaged: number
+  }
+  readonly technical: {
+    readonly services: number
+    readonly services30Days: number
+    readonly openServices: number
+  }
+  readonly communications: {
+    readonly pending: number
+    readonly due: number
+  }
+}
+
 export interface Repository {
   readonly source: 'mock' | 'apps-script'
   readonly sourceLabel: string
@@ -176,6 +221,7 @@ export interface Repository {
     cancellationReason?: string,
   ): Promise<ScheduledCommunication>
   getCurrentUser(): Promise<UserContext>
+  getDashboardOverview(): Promise<DashboardOverview>
   getSummaries(): Promise<readonly TableSummary[]>
   list(table: string): Promise<readonly RowData[]>
   get(table: string, rowUuid: string): Promise<RowData | undefined>

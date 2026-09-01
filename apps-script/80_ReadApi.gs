@@ -162,6 +162,10 @@ function apiRequest(request) {
     return buildApiSummaries_(user);
   }
 
+  if (action === 'dashboard-overview') {
+    return buildDashboardOverview_(user);
+  }
+
   if (action === 'list') {
     var listTable = requireApiTable_(safeRequest.table);
     assertApiTableAccess_(user, listTable);
@@ -305,6 +309,193 @@ function buildApiSummaries_(user) {
         : countApiRows_(spreadsheet, schemaTable)
     };
   });
+}
+
+function buildDashboardOverview_(user) {
+  var spreadsheet = openConfiguredSpreadsheet_();
+  var now = new Date();
+  var recentThreshold = now.getTime() - (30 * 24 * 60 * 60 * 1000);
+  var sections = [];
+  var inventoryRows = [];
+  var purchaseRows = [];
+  var exitRows = [];
+  var clientRows = [];
+  var contactRows = [];
+  var ticketRows = [];
+  var laboratoryRows = [];
+  var serviceRows = [];
+
+  if (canApiRoleAccessSection_(user.role, 'administracion-comercial')) {
+    sections.push('inventory');
+    inventoryRows = readVisibleApiRows_(spreadsheet, requireApiTable_('ALMACEN'), user);
+    purchaseRows = readVisibleApiRows_(spreadsheet, requireApiTable_('COMPRAS'), user);
+    exitRows = readVisibleApiRows_(spreadsheet, requireApiTable_('PEDIDOS'), user);
+  }
+
+  if (canApiRoleAccessSection_(user.role, 'crm')) {
+    sections.push('crm');
+    clientRows = readVisibleApiRows_(spreadsheet, requireApiTable_('CLIENTES'), user);
+    contactRows = readVisibleApiRows_(spreadsheet, requireApiTable_('Gestion Clientes'), user);
+  }
+
+  if (canApiRoleAccessSection_(user.role, 'ingenieria')) {
+    sections.push('engineering');
+    ticketRows = readVisibleApiRows_(spreadsheet, requireApiTable_('Ticket Soporte'), user);
+    laboratoryRows = readVisibleApiRows_(spreadsheet, requireApiTable_('Laboratorio'), user);
+  }
+
+  if (canApiRoleAccessSection_(user.role, 'tecnico')) {
+    sections.push('technical');
+    serviceRows = readVisibleApiRows_(spreadsheet, requireApiTable_('INSTALACIONES'), user);
+  }
+
+  var stock = inventoryRows.map(function (row) {
+    return {
+      current: dashboardNumber_(row.STOCK),
+      minimum: dashboardNumber_(row['STOCK MINIMO']),
+      maximum: dashboardNumber_(row['STOCK MAXIMO'])
+    };
+  });
+  var recentPurchases = purchaseRows.filter(function (row) {
+    return dashboardDateValue_(row['FECHA COMPRA']) >= recentThreshold;
+  });
+  var recentExits = exitRows.filter(function (row) {
+    return dashboardDateValue_(row.FECHA) >= recentThreshold;
+  });
+  var openLaboratory = laboratoryRows.filter(function (row) {
+    return !dashboardLaboratoryClosed_(row.ESTATUS);
+  });
+  var pendingCommunications = listScheduledCommunications_(user).filter(function (item) {
+    return item.status === 'PROGRAMADO' || item.status === 'ABIERTO';
+  });
+  var purchasedUnits = dashboardSum_(recentPurchases, 'CANTIDAD');
+  var exitedUnits = dashboardSum_(recentExits, 'EQUIPOS A VENDER');
+
+  return {
+    generatedAt: now.toISOString(),
+    availableSections: sections,
+    inventory: {
+      products: inventoryRows.length,
+      units: dashboardSum_(inventoryRows, 'STOCK'),
+      outOfStock: stock.filter(function (item) { return item.current <= 0; }).length,
+      reorder: stock.filter(function (item) {
+        return item.current > 0 && item.minimum > 0 && item.current <= item.minimum;
+      }).length,
+      overstock: stock.filter(function (item) {
+        return item.maximum > 0 && item.current > item.maximum;
+      }).length,
+      adequate: stock.filter(function (item) {
+        return item.current > item.minimum && (item.maximum <= 0 || item.current <= item.maximum);
+      }).length,
+      purchases30Days: recentPurchases.length,
+      purchasedUnits30Days: purchasedUnits,
+      exits30Days: recentExits.length,
+      exitedUnits30Days: exitedUnits,
+      netUnits30Days: purchasedUnits - exitedUnits
+    },
+    crm: {
+      clients: clientRows.filter(function (row) {
+        return dashboardText_(row.Etapa_CRM).indexOf('CLIENTE') >= 0;
+      }).length,
+      prospects: clientRows.filter(function (row) {
+        return dashboardText_(row.Etapa_CRM).indexOf('PROSPECTO') >= 0;
+      }).length,
+      contacts: contactRows.length,
+      contactsUpdated30Days: contactRows.filter(function (row) {
+        return dashboardDateValue_(row.Modificado || row._updatedAt || row['Última actualización en']) >= recentThreshold;
+      }).length,
+      contactsWithoutChannel: contactRows.filter(function (row) {
+        return !dashboardContactHasChannel_(row);
+      }).length,
+      contactsWithoutResponsible: contactRows.filter(function (row) {
+        return normalizeCell_(row.Responsable) === '';
+      }).length
+    },
+    engineering: {
+      openTickets: ticketRows.filter(function (row) {
+        return dashboardTicketStatus_(row).indexOf('SOLUCIONADO') < 0;
+      }).length,
+      ticketsInFollowUp: ticketRows.filter(function (row) {
+        return /SEGUIMIENTO|ESPERA/.test(dashboardTicketStatus_(row));
+      }).length,
+      laboratoryOpen: openLaboratory.length,
+      laboratoryUrgent: openLaboratory.filter(function (row) {
+        return dashboardAgeDays_(row['FECHA ENTRADA'], now) > 6;
+      }).length,
+      laboratoryDueSoon: openLaboratory.filter(function (row) {
+        var days = dashboardAgeDays_(row['FECHA ENTRADA'], now);
+        return days >= 4 && days <= 6;
+      }).length,
+      laboratoryDamaged: laboratoryRows.filter(function (row) {
+        return dashboardText_(row.ESTATUS).indexOf('DANADO') >= 0;
+      }).length
+    },
+    technical: {
+      services: serviceRows.length,
+      services30Days: serviceRows.filter(function (row) {
+        return dashboardDateValue_(row.FECHA) >= recentThreshold;
+      }).length,
+      openServices: serviceRows.filter(function (row) {
+        return !/COMPLETADO|FINALIZADO|CERRADO/.test(dashboardText_(row.ESTATUS));
+      }).length
+    },
+    communications: {
+      pending: pendingCommunications.length,
+      due: pendingCommunications.filter(function (item) {
+        return dashboardDateValue_(item.scheduledAt) <= now.getTime();
+      }).length
+    }
+  };
+}
+
+function dashboardNumber_(value) {
+  var parsed = Number(String(value || 0).replace(/,/g, ''));
+  return isFinite(parsed) ? parsed : 0;
+}
+
+function dashboardText_(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+}
+
+function dashboardDateValue_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]') {
+    return value.getTime();
+  }
+  var text = String(value || '').trim();
+  var match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(text);
+  var date = match
+    ? new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]))
+    : new Date(text);
+  var timestamp = date.getTime();
+  return isFinite(timestamp) ? timestamp : 0;
+}
+
+function dashboardSum_(rows, column) {
+  return rows.reduce(function (total, row) {
+    return total + dashboardNumber_(row[column]);
+  }, 0);
+}
+
+function dashboardContactHasChannel_(row) {
+  return ['Móvil', 'Teléfono del trabajo', 'Otro número de teléfono', 'E-mail del trabajo'].some(function (column) {
+    return normalizeCell_(row[column]) !== '';
+  });
+}
+
+function dashboardTicketStatus_(row) {
+  var key = Object.keys(row).filter(function (candidate) {
+    return dashboardText_(candidate).indexOf('ESTATUS') >= 0;
+  })[0];
+  return dashboardText_(key ? row[key] : '');
+}
+
+function dashboardLaboratoryClosed_(value) {
+  return /DANADO|ENVIADO A MATRIZ|ENTREGADO|FUNCIONAL/.test(dashboardText_(value));
+}
+
+function dashboardAgeDays_(value, now) {
+  var timestamp = dashboardDateValue_(value);
+  return timestamp ? Math.max(0, Math.floor((now.getTime() - timestamp) / 86400000)) : 0;
 }
 
 function listApiRows_(schemaTable, user) {

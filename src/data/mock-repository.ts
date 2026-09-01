@@ -12,6 +12,7 @@ import type {
   CreateCompanyMeetingResult,
   CommunicationStatus,
   CreateCommunicationInput,
+  DashboardOverview,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
@@ -286,6 +287,76 @@ export class MockRepository implements Repository {
     }))
   }
 
+  async getDashboardOverview(): Promise<DashboardOverview> {
+    const now = this.#now()
+    const recentThreshold = now.getTime() - 30 * 24 * 60 * 60 * 1000
+    const warehouse = this.#activeRows('ALMACEN')
+    const purchases = this.#activeRows('COMPRAS')
+    const exits = this.#activeRows('PEDIDOS')
+    const contacts = this.#activeRows('Gestion Clientes')
+    const clients = this.#activeRows('CLIENTES')
+    const tickets = this.#activeRows('Ticket Soporte')
+    const laboratory = this.#activeRows('Laboratorio')
+    const services = this.#activeRows('INSTALACIONES')
+    const stock = warehouse.map((row) => ({
+      current: dashboardNumber(row.STOCK),
+      minimum: dashboardNumber(row['STOCK MINIMO']),
+      maximum: dashboardNumber(row['STOCK MAXIMO']),
+    }))
+    const recentPurchases = purchases.filter((row) => dashboardDate(row['FECHA COMPRA']) >= recentThreshold)
+    const recentExits = exits.filter((row) => dashboardDate(row.FECHA) >= recentThreshold)
+    const pendingCommunications = [...this.#communications.values()].filter(
+      (item) => item.status === 'PROGRAMADO' || item.status === 'ABIERTO',
+    )
+    const openLaboratory = laboratory.filter((row) => !dashboardIsClosedLaboratory(row.ESTATUS))
+
+    return {
+      generatedAt: now.toISOString(),
+      availableSections: ['inventory', 'crm', 'engineering', 'technical'],
+      inventory: {
+        products: warehouse.length,
+        units: stock.reduce((total, item) => total + item.current, 0),
+        outOfStock: stock.filter((item) => item.current <= 0).length,
+        reorder: stock.filter((item) => item.current > 0 && item.minimum > 0 && item.current <= item.minimum).length,
+        overstock: stock.filter((item) => item.maximum > 0 && item.current > item.maximum).length,
+        adequate: stock.filter((item) => item.current > item.minimum && (item.maximum <= 0 || item.current <= item.maximum)).length,
+        purchases30Days: recentPurchases.length,
+        purchasedUnits30Days: dashboardSum(recentPurchases, 'CANTIDAD'),
+        exits30Days: recentExits.length,
+        exitedUnits30Days: dashboardSum(recentExits, 'EQUIPOS A VENDER'),
+        netUnits30Days: dashboardSum(recentPurchases, 'CANTIDAD') - dashboardSum(recentExits, 'EQUIPOS A VENDER'),
+      },
+      crm: {
+        clients: clients.filter((row) => dashboardText(row.Etapa_CRM).includes('CLIENTE')).length,
+        prospects: clients.filter((row) => dashboardText(row.Etapa_CRM).includes('PROSPECTO')).length,
+        contacts: contacts.length,
+        contactsUpdated30Days: contacts.filter((row) => dashboardDate(row.Modificado ?? row._updatedAt) >= recentThreshold).length,
+        contactsWithoutChannel: contacts.filter((row) => !dashboardContactChannel(row)).length,
+        contactsWithoutResponsible: contacts.filter((row) => !String(row.Responsable ?? '').trim()).length,
+      },
+      engineering: {
+        openTickets: tickets.filter((row) => !dashboardTicketStatus(row).includes('SOLUCIONADO')).length,
+        ticketsInFollowUp: tickets.filter((row) => /SEGUIMIENTO|ESPERA/.test(dashboardTicketStatus(row))).length,
+        laboratoryOpen: openLaboratory.length,
+        laboratoryUrgent: openLaboratory.filter((row) => dashboardAgeDays(row['FECHA ENTRADA'], now) > 6).length,
+        laboratoryDueSoon: openLaboratory.filter((row) => {
+          const days = dashboardAgeDays(row['FECHA ENTRADA'], now)
+          return days >= 4 && days <= 6
+        }).length,
+        laboratoryDamaged: laboratory.filter((row) => dashboardText(row.ESTATUS).includes('DANADO')).length,
+      },
+      technical: {
+        services: services.length,
+        services30Days: services.filter((row) => dashboardDate(row.FECHA) >= recentThreshold).length,
+        openServices: services.filter((row) => !/COMPLETADO|FINALIZADO|CERRADO/.test(dashboardText(row.ESTATUS))).length,
+      },
+      communications: {
+        pending: pendingCommunications.length,
+        due: pendingCommunications.filter((item) => dashboardDate(item.scheduledAt) <= now.getTime()).length,
+      },
+    }
+  }
+
   async list(table: string): Promise<readonly RowData[]> {
     this.#assertTable(table)
     return this.#activeRows(table).map(copyRow)
@@ -434,4 +505,56 @@ function meetingInvitationText(meeting: CompanyMeeting): string {
     'Google Meet: ' + meeting.meetUrl,
     meeting.description,
   ].filter(Boolean).join('\n\n')
+}
+
+function dashboardNumber(value: unknown): number {
+  const parsed = Number(dashboardScalar(value).replace(/,/g, '') || 0)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function dashboardText(value: unknown): string {
+  return dashboardScalar(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleUpperCase('es-MX')
+}
+
+function dashboardDate(value: unknown): number {
+  if (value instanceof Date) return value.getTime()
+  const text = dashboardScalar(value).trim()
+  const localMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(text)
+  const date = localMatch
+    ? new Date(Number(localMatch[3]), Number(localMatch[2]) - 1, Number(localMatch[1]))
+    : new Date(text)
+  const timestamp = date.getTime()
+  return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+function dashboardScalar(value: unknown): string {
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ? String(value)
+    : ''
+}
+
+function dashboardSum(rows: readonly RowData[], column: string): number {
+  return rows.reduce((total, row) => total + dashboardNumber(row[column]), 0)
+}
+
+function dashboardContactChannel(row: RowData): boolean {
+  return ['Móvil', 'Teléfono del trabajo', 'Otro número de teléfono', 'E-mail del trabajo']
+    .some((column) => String(row[column] ?? '').trim())
+}
+
+function dashboardTicketStatus(row: RowData): string {
+  const key = Object.keys(row).find((candidate) => dashboardText(candidate).includes('ESTATUS'))
+  return dashboardText(key ? row[key] : '')
+}
+
+function dashboardIsClosedLaboratory(value: unknown): boolean {
+  return /DANADO|ENVIADO A MATRIZ|ENTREGADO|FUNCIONAL/.test(dashboardText(value))
+}
+
+function dashboardAgeDays(value: unknown, now: Date): number {
+  const timestamp = dashboardDate(value)
+  return timestamp ? Math.max(0, Math.floor((now.getTime() - timestamp) / 86_400_000)) : 0
 }

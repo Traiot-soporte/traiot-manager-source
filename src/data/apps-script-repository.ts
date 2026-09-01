@@ -14,6 +14,7 @@ import type {
   CreateCompanyMeetingInput,
   CreateCompanyMeetingResult,
   CreateCommunicationInput,
+  DashboardOverview,
   CreateRowInput,
   DeleteRowInput,
   LoginInput,
@@ -211,6 +212,10 @@ export class AppsScriptRepository implements Repository {
   async getCurrentUser(): Promise<UserContext> {
     const user = await this.#authenticatedCall({ action: 'current-user' }) as ApiUser
     return mapApiUser(user)
+  }
+
+  async getDashboardOverview(): Promise<DashboardOverview> {
+    return await this.#authenticatedCall({ action: 'dashboard-overview' }) as DashboardOverview
   }
 
   async getSummaries(): Promise<readonly TableSummary[]> {
