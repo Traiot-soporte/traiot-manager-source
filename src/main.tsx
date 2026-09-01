@@ -5,7 +5,8 @@ import { HashRouter } from 'react-router'
 
 import { App } from '@/App'
 import { isAppsScriptRuntime } from '@/data/apps-script-bridge'
-import { appsScriptRepository } from '@/data/apps-script-repository'
+import { AppsScriptRepository, appsScriptRepository } from '@/data/apps-script-repository'
+import { createExternalAppsScriptCaller } from '@/data/external-apps-script-bridge'
 import { mockRepository } from '@/data/mock-repository'
 import { RepositoryProvider } from '@/data/repository-provider'
 import '@/styles.css'
@@ -24,7 +25,12 @@ const queryClient = new QueryClient({
     },
   },
 })
-const repository = isAppsScriptRuntime() ? appsScriptRepository : mockRepository
+const externalBridgeUrl = import.meta.env.VITE_APPS_SCRIPT_BRIDGE_URL?.trim()
+const repository = isAppsScriptRuntime()
+  ? appsScriptRepository
+  : externalBridgeUrl
+    ? new AppsScriptRepository(createExternalAppsScriptCaller(externalBridgeUrl))
+    : mockRepository
 
 createRoot(rootElement).render(
   <StrictMode>

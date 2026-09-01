@@ -45,6 +45,7 @@ jobs:
       - name: Compilar demostracion
         env:
           VITE_BASE_PATH: /traiot-manager-source/
+          VITE_APPS_SCRIPT_BRIDGE_URL: ${{ vars.TRAIOT_APPS_SCRIPT_BRIDGE_URL }}
         run: npm run build
 
       - name: Subir sitio compilado

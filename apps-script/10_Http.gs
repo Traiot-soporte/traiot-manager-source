@@ -5,15 +5,42 @@
  */
 function doGet(event) {
   var query = event && event.parameter ? event.parameter : {};
+  var action = String(query.action || 'app').toLowerCase();
 
-  if (!query.action || String(query.action).toLowerCase() === 'app') {
+  if (action === 'app') {
     return HtmlService
       .createHtmlOutputFromFile('Index')
       .setTitle('TRAIOT MANAGER')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
 
+  if (action === 'bridge') {
+    var template = HtmlService.createTemplateFromFile('Bridge');
+    template.allowedOriginsJson = JSON.stringify(getAllowedFrontendOrigins_());
+    return template
+      .evaluate()
+      .setTitle('TRAIOT Manager — conexión segura')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
   return handleHttpRequest_(event, null);
+}
+
+function getAllowedFrontendOrigins_() {
+  var defaults = ['https://traiot-soporte.github.io'];
+  var configured = PropertiesService
+    .getScriptProperties()
+    .getProperty('TRAIOT_ALLOWED_FRONTEND_ORIGINS');
+  var candidates = defaults.concat(String(configured || '').split(','));
+  var origins = [];
+
+  candidates.forEach(function(candidate) {
+    var origin = String(candidate || '').trim().replace(/\/$/, '');
+    if (!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(origin)) return;
+    if (origins.indexOf(origin) === -1) origins.push(origin);
+  });
+
+  return origins;
 }
 
 function doPost(event) {

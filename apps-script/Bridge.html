@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <title>TRAIOT Manager — conexión segura</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        'use strict';
+
+        var namespace = 'traiot-apps-script-bridge-v1';
+        var allowedOrigins = <?!= allowedOriginsJson ?>;
+
+        function isAllowedOrigin(origin) {
+          return allowedOrigins.indexOf(origin) !== -1;
+        }
+
+        function respond(target, origin, requestId, ok, result, error) {
+          target.postMessage({
+            namespace: namespace,
+            type: 'response',
+            requestId: requestId,
+            ok: ok,
+            result: result,
+            error: error
+          }, origin);
+        }
+
+        window.addEventListener('message', function (event) {
+          var message = event.data || {};
+          if (!isAllowedOrigin(event.origin) || message.namespace !== namespace) return;
+          if (message.type !== 'request' || !message.requestId || !message.request) return;
+
+          google.script.run
+            .withSuccessHandler(function (result) {
+              respond(event.source, event.origin, message.requestId, true, result, '');
+            })
+            .withFailureHandler(function (failure) {
+              var errorMessage = failure && failure.message
+                ? String(failure.message)
+                : 'El servidor no pudo completar la solicitud.';
+              respond(event.source, event.origin, message.requestId, false, null, errorMessage);
+            })
+            .apiRequest(message.request);
+        });
+
+        window.top.postMessage({
+          namespace: namespace,
+          type: 'ready'
+        }, '*');
+      }());
+    </script>
+  </body>
+</html>

@@ -5,8 +5,8 @@ Sheets/Drive. No existe un servidor backend local.
 
 ## Estado actual
 
-- Web App en preparación: acceso exclusivo de la cuenta propietaria hasta que
-  todos los usuarios tengan una contraseña temporal.
+- Web App publicado como contenedor del puente; los registros continúan protegidos por
+  correo, contraseña, sesión, rol y permisos de `apiRequest`.
 - La ruta principal entrega la interfaz React empaquetada y utiliza
   `google.script.run` para consultar Sheets sin CORS ni credenciales en el
   navegador.
@@ -19,8 +19,9 @@ Sheets/Drive. No existe un servidor backend local.
 - Permisos: acceso a Google Drive y Google Sheets. El servicio
   `SpreadsheetApp.openById()` exige el alcance completo de Sheets; las acciones
   de preparación requieren además crear un respaldo en Drive.
-- La única acción HTTP disponible es `health`. Datos, archivos y mutaciones se
-  atienden exclusivamente mediante `google.script.run` y una sesión válida.
+- La única acción HTTP de datos disponible es `health`. GitHub Pages usa `Bridge.html`
+  mediante `postMessage`; el puente acepta únicamente orígenes autorizados y atiende datos,
+  archivos y mutaciones mediante `google.script.run` y una sesión válida.
 - Carpeta configurada mediante `TRAIOT_FOLDER_ID` en Script Properties, con un
   valor inicial seguro incluido en `00_Config.gs`.
 - Las mutaciones solo están disponibles mediante el puente privado de la

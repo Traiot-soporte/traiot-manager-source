@@ -11,31 +11,28 @@ Subir el código a GitHub no sustituye por sí mismo el Web App de Google Apps S
 
 ## Arquitectura actual
 
-La interfaz productiva se sirve desde Google Apps Script y llama al backend mediante
-`google.script.run`. Esa API solamente existe dentro de páginas de HTML Service.
+La interfaz se publica en GitHub Pages. Un puente HTML de Apps Script, limitado a los
+orígenes autorizados, recibe solicitudes mediante `postMessage` e invoca
+`google.script.run`. El backend conserva la validación de sesión, rol y permisos.
 
 ~~~text
-Navegador
-  -> Web App de Apps Script
+GitHub Pages
+  -> puente HTML de Apps Script
       -> google.script.run
-          -> Apps Script
+          -> apiRequest
               -> Google Sheets / Drive
 ~~~
 
-Si el frontend actual se abre directamente desde GitHub Pages o un hosting convencional,
-no encuentra `google.script.run` y selecciona el repositorio de demostración. Por eso no
-debe publicarse como producción externa hasta incorporar el cliente HTTP y el gateway.
-
-## Demostración en GitHub Pages
+## GitHub Pages con datos reales
 
 El workflow `.github/workflows/pages.yml` publica automáticamente una demostración en:
 
 `https://traiot-soporte.github.io/traiot-manager-source/`
 
-La URL permite revisar el diseño, la navegación y los datos simulados. No utiliza la hoja
-real, no valida las cuentas productivas y los cambios hechos allí no son persistentes. La
-aplicación productiva continúa siendo el Web App de Apps Script hasta que exista el gateway
-HTTPS descrito más adelante.
+La URL utiliza la autenticación y los datos reales del backend. Publicar el contenedor del
+puente no concede acceso a los registros: cada operación continúa exigiendo una sesión
+válida y los permisos del usuario. La variable de Actions
+`TRAIOT_APPS_SCRIPT_BRIDGE_URL` contiene solamente la URL pública del puente.
 
 Para habilitar el primer despliegue, un administrador del repositorio debe abrir
 `Settings > Pages` y seleccionar `GitHub Actions` en `Build and deployment > Source`.
@@ -74,33 +71,18 @@ El workflow `.github/workflows/ci.yml` ejecuta en cada cambio de `main`:
 La compilación se usa para validar el código, pero la carpeta `dist/` no se guarda en el
 repositorio fuente.
 
-## Trabajo requerido antes de Hostinger o GitHub Pages
+## Controles antes del corte productivo
 
-Antes de publicar la aplicación fuera de Apps Script se debe implementar:
-
-1. un cliente HTTP de producción que reemplace `google.script.run` fuera de Apps Script;
-2. un endpoint HTTPS que enrute todas las operaciones actuales hacia `apiRequest`;
-3. CORS limitado al dominio real de la aplicación;
-4. autenticación y permisos comprobados por el backend en cada solicitud;
-5. rate limiting para inicio de sesión y operaciones sensibles;
-6. secretos guardados exclusivamente en el servidor, nunca en variables `VITE_*`;
-7. configuración mediante `VITE_API_URL` que contenga solamente la URL pública de la API;
-8. pruebas integrales de login, CRUD, archivos, imágenes, PDFs, comunicaciones e inventario.
-
-Arquitectura objetivo:
-
-~~~text
-GitHub Pages o Hostinger
-  -> API HTTPS / gateway
-      -> Apps Script o backend futuro
-          -> Google Sheets / Drive
-~~~
+La demostración pública no sustituye una revisión productiva. Antes del corte se deben
+completar pruebas integrales de login, CRUD, imágenes, PDFs, comunicaciones e inventario;
+revisar cuotas y bloqueo de intentos; y registrar exclusivamente el dominio definitivo en
+`TRAIOT_ALLOWED_FRONTEND_ORIGINS`.
 
 ## Publicación posterior en Hostinger
 
-Cuando el cliente HTTP esté terminado:
+Para publicar el mismo frontend en Hostinger:
 
-1. crear `.env.production` localmente con la URL pública de la API;
+1. crear `.env.production` localmente con `VITE_APPS_SCRIPT_BRIDGE_URL`;
 2. ejecutar `npm ci` y `npm run build`;
 3. subir **el contenido** de `dist/` a `public_html/`;
 4. configurar una regla SPA para enviar rutas desconocidas a `index.html` si se cambia de
