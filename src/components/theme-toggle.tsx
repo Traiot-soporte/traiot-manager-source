@@ -24,6 +24,7 @@ export function ThemeToggle({ className, compact = false, onToggle, theme }: The
         className,
       )}
       onClick={onToggle}
+      style={{ fontSize: '12px' }}
       title={label}
       type="button"
     >

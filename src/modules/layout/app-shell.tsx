@@ -353,7 +353,7 @@ export function AppShell() {
             }
             end
             onClick={() => setMenuOpen(false)}
-            style={{ fontSize: '11px' }}
+            style={{ fontSize: '14px' }}
             title="RESUMEN"
             to="/"
           >
@@ -379,7 +379,7 @@ export function AppShell() {
                       sectionActive && 'text-brand-300',
                     )}
                     onClick={() => toggleSection(section.id)}
-                    style={{ fontSize: '11px' }}
+                    style={{ fontSize: '14px' }}
                     title={section.label.toLocaleUpperCase('es-MX')}
                     type="button"
                   >
@@ -539,7 +539,7 @@ function SidebarNavigationItem({
       <div
         aria-disabled="true"
         className={cn(sharedClassName, 'cursor-not-allowed text-white/30')}
-        style={{ fontSize: '9px' }}
+        style={{ fontSize: '12px' }}
         title={item.label.toLocaleUpperCase('es-MX') + ' · PENDIENTE'}
       >
         <Construction className="size-[18px] shrink-0" />
@@ -570,7 +570,7 @@ function SidebarNavigationItem({
         isActive && 'bg-brand-400 text-[#191919] hover:bg-brand-400 hover:text-[#191919]',
       )}
       onClick={onNavigate}
-      style={{ fontSize: '9px' }}
+      style={{ fontSize: '12px' }}
       title={item.label.toLocaleUpperCase('es-MX')}
       to={to}
     >
