@@ -67,11 +67,35 @@ describe('MockRepository', () => {
       table: 'Gestion Clientes',
       rowUuid: 'crm-contact',
       changes: { Comentarios: 'Nueva nota' },
+      expectedUpdatedAt: null,
     })
 
     expect(contact.Comentarios).toBe(
       'Comentario importado\n\n[21/08/2026 18:00 · manuel@traiot.mx]\nNueva nota',
     )
+  })
+
+  it('rechaza una edicion basada en una version anterior del registro', async () => {
+    const repository = new MockRepository({
+      ALMACEN: [{
+        _uuid: 'product-1',
+        _updatedAt: '2026-08-21T10:00:00.000Z',
+        'ID PRODUCTO': 'PIONEERX100',
+        NOMBRE: 'Nombre vigente',
+      }],
+    }, fixedNow)
+
+    await expect(repository.update({
+      table: 'ALMACEN',
+      rowUuid: 'product-1',
+      changes: { NOMBRE: 'Cambio atrasado' },
+      expectedUpdatedAt: '2026-08-20T10:00:00.000Z',
+    })).rejects.toThrow('modificado por otro usuario')
+
+    await expect(repository.get('ALMACEN', 'product-1')).resolves.toMatchObject({
+      NOMBRE: 'Nombre vigente',
+      _updatedAt: '2026-08-21T10:00:00.000Z',
+    })
   })
 
   it('prepara un solo correo grupal y WhatsApp solo para colaboradores seleccionados', async () => {

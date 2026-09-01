@@ -9,6 +9,7 @@ export interface UpdateRowInput {
   readonly table: string
   readonly rowUuid: string
   readonly changes: RowData
+  readonly expectedUpdatedAt: string | null
 }
 
 export interface DeleteRowInput {

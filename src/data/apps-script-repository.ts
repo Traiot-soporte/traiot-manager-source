@@ -251,6 +251,7 @@ export class AppsScriptRepository implements Repository {
       table: input.table,
       rowUuid: input.rowUuid,
       changes: input.changes,
+      expectedUpdatedAt: input.expectedUpdatedAt,
       mutationId: this.#createMutationId(),
     }) as RowData
   }

@@ -411,6 +411,11 @@ export class MockRepository implements Repository {
     if (!current || current._deleted === true) {
       throw new Error('No se encontró la fila solicitada.')
     }
+    if (String(current._updatedAt ?? '') !== String(input.expectedUpdatedAt ?? '')) {
+      throw new Error(
+        'Este registro fue modificado por otro usuario. Recarga la información antes de guardar.',
+      )
+    }
 
     const changes = copyRow(input.changes)
     const now = this.#now()

@@ -42,7 +42,12 @@ export function RecordFormPage() {
 
   const save = async (values: RowData) => {
     const saved = editing && rowUuid
-      ? await repository.update({ table: table.name, rowUuid, changes: values })
+      ? await repository.update({
+          table: table.name,
+          rowUuid,
+          changes: values,
+          expectedUpdatedAt: typeof row.data?._updatedAt === 'string' ? row.data._updatedAt : null,
+        })
       : await repository.create({ table: table.name, values })
     queryClient.setQueryData<readonly RowData[]>(
       ['table', table.name],

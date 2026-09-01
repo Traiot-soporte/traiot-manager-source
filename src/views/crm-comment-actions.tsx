@@ -24,11 +24,16 @@ export function RowCrmCommentButton({ labelled = false, row }: RowCrmCommentButt
       table: 'Gestion Clientes',
       rowUuid,
       changes: { Comentarios: comment.trim() },
+      expectedUpdatedAt: typeof row._updatedAt === 'string' ? row._updatedAt : null,
     }),
     onSuccess: async (saved) => {
       queryClient.setQueryData<readonly RowData[]>(
         ['table', 'Gestion Clientes'],
         (rows) => upsertMutationResult(rows, saved),
+      )
+      queryClient.setQueryData(
+        ['row', 'Gestion Clientes', rowUuid],
+        saved,
       )
       setComment('')
       setOpen(false)

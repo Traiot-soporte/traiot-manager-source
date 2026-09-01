@@ -89,7 +89,14 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   });
 }
 
-function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId) {
+function updateApiRow_(
+  user,
+  schemaTable,
+  rowUuid,
+  submittedChanges,
+  mutationId,
+  expectedUpdatedAt
+) {
   assertApiTableWriteAccess_(user, schemaTable);
   if (schemaTable.name === 'Usuarios') {
     ensureMeetingUserPhoneColumn_(openConfiguredSpreadsheet_());
@@ -123,6 +130,7 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
       throw new Error('El registro solicitado no existe o fue eliminado.');
     }
 
+    assertApiRecordVersion_(snapshot.record, expectedUpdatedAt);
     assertCrmCalendarMutationAccess_(user, schemaTable, snapshot.record);
 
     var now = new Date().toISOString();
@@ -184,6 +192,29 @@ function updateApiRow_(user, schemaTable, rowUuid, submittedChanges, mutationId)
 
     return getApiRowFromSpreadsheet_(spreadsheet, schemaTable, rowUuid);
   });
+}
+
+function assertApiRecordVersion_(record, expectedUpdatedAt) {
+  var currentVersion = normalizeApiRecordVersion_(record && record._updatedAt);
+  var expectedVersion = normalizeApiRecordVersion_(expectedUpdatedAt);
+
+  if (currentVersion === expectedVersion) return;
+
+  throw new Error(
+    'Este registro fue modificado por otro usuario. Recarga la informacion antes de guardar.'
+  );
+}
+
+function normalizeApiRecordVersion_(value) {
+  if (Object.prototype.toString.call(value) === '[object Date]') {
+    return String(value.getTime());
+  }
+
+  var normalized = normalizeCell_(value);
+  if (!normalized) return '';
+
+  var timestamp = new Date(normalized).getTime();
+  return isFinite(timestamp) ? String(timestamp) : normalized;
 }
 
 function isApiCrmCommentOnlyMutation_(schemaTable, submittedChanges) {

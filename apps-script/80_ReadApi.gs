@@ -196,7 +196,8 @@ function apiRequest(request) {
       updateTable,
       String(safeRequest.rowUuid || ''),
       safeRequest.changes,
-      safeRequest.mutationId
+      safeRequest.mutationId,
+      safeRequest.expectedUpdatedAt
     );
   }
 

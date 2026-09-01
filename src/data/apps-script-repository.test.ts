@@ -71,6 +71,32 @@ describe('AppsScriptRepository', () => {
     })
   })
 
+  it('envia la version leida al actualizar para detectar conflictos', async () => {
+    const saved = {
+      _uuid: '11111111-1111-4111-8111-111111111111',
+      _updatedAt: '2026-09-01T18:00:00.000Z',
+      NOMBRE: 'Equipo actualizado',
+    }
+    const call = vi.fn(() => Promise.resolve(saved))
+    const mutationId = '22222222-2222-4222-8222-222222222222'
+    const repository = new AppsScriptRepository(call, () => mutationId)
+
+    await expect(repository.update({
+      table: 'ALMACEN',
+      rowUuid: saved._uuid,
+      changes: { NOMBRE: 'Equipo actualizado' },
+      expectedUpdatedAt: '2026-09-01T17:00:00.000Z',
+    })).resolves.toEqual(saved)
+    expect(call).toHaveBeenCalledWith({
+      action: 'update',
+      table: 'ALMACEN',
+      rowUuid: saved._uuid,
+      changes: { NOMBRE: 'Equipo actualizado' },
+      expectedUpdatedAt: '2026-09-01T17:00:00.000Z',
+      mutationId,
+    })
+  })
+
   it('crea reuniones empresariales e invitaciones con mutacion idempotente', async () => {
     const result = { meeting: { meetingUuid: 'meeting-1' }, emailInvitations: 1, emailRecipients: 5, whatsappInvitations: 2 }
     const call = vi.fn(() => Promise.resolve(result))

@@ -100,6 +100,10 @@ interface CrudSandbox {
     table: CrudTable,
     changes: Readonly<Record<string, unknown>>,
   ) => boolean
+  readonly assertApiRecordVersion_: (
+    record: Readonly<Record<string, unknown>>,
+    expectedUpdatedAt: unknown,
+  ) => void
   readonly repairCrmContactCreatedFields_: (
     row: unknown[],
     headers: string[],
@@ -181,6 +185,18 @@ function column(overrides: Partial<CrudColumn> = {}): CrudColumn {
 }
 
 describe('CRUD de Apps Script', () => {
+  it('detecta ediciones construidas sobre una version anterior', () => {
+    const { assertApiRecordVersion_ } = loadCrudSandbox()
+    const current = { _updatedAt: '2026-09-01T18:00:00.000Z' }
+
+    expect(() => assertApiRecordVersion_(current, '2026-09-01T18:00:00.000Z'))
+      .not.toThrow()
+    expect(() => assertApiRecordVersion_(current, new Date('2026-09-01T18:00:00.000Z')))
+      .not.toThrow()
+    expect(() => assertApiRecordVersion_(current, '2026-09-01T17:59:59.000Z'))
+      .toThrow('modificado por otro usuario')
+  })
+
   it('reserva la administracion de usuarios y perfiles para administradores', () => {
     const { assertApiTableWriteAccess_ } = loadCrudSandbox()
     const support = { role: 'SOPORTE', permissions: ['Usuarios', 'Perfiles'] }
