@@ -5,6 +5,13 @@ const distDirectory = resolve('dist')
 const sourcePath = resolve(distDirectory, 'index.html')
 const targetPath = resolve('apps-script', 'Index.html')
 let html = readFileSync(sourcePath, 'utf8')
+const favicon = readFileSync(resolve(distDirectory, 'favicon.svg'), 'utf8')
+const faviconDataUri = `data:image/svg+xml,${encodeURIComponent(favicon)}`
+
+html = html.replace(
+  /href="[^"]*favicon\.svg"/g,
+  `href="${faviconDataUri}"`,
+)
 
 html = html.replace(
   /<link rel="stylesheet" crossorigin href="([^"]+)">/g,
