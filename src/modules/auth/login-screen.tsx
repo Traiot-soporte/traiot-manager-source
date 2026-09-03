@@ -11,6 +11,7 @@ import {
 import { type FormEvent, useState } from 'react'
 
 import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
+import { PwaInstallButton } from '@/components/pwa-provider'
 import logoUrl from '../../../logo.jpeg'
 
 interface LoginScreenProps {
@@ -60,11 +61,14 @@ export function LoginScreen({
         <div className="absolute inset-0 opacity-[0.055] [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:56px_56px]" />
       </div>
 
-      <ThemeToggle
-        className="absolute right-5 top-5 z-20 w-auto border-white/10 bg-white/5 px-4 text-white shadow-xl backdrop-blur hover:bg-white/10 sm:right-8 sm:top-8"
-        onToggle={onToggleTheme}
-        theme={theme}
-      />
+      <div className="absolute right-5 top-5 z-20 flex items-center gap-2 sm:right-8 sm:top-8">
+        <PwaInstallButton dark />
+        <ThemeToggle
+          className="w-auto border-white/10 bg-white/5 px-4 text-white shadow-xl backdrop-blur hover:bg-white/10"
+          onToggle={onToggleTheme}
+          theme={theme}
+        />
+      </div>
 
       <div className="relative z-10 mx-auto grid min-h-screen max-w-[1500px] lg:grid-cols-[1.15fr_.85fr]">
         <section className="hidden flex-col justify-between px-12 py-12 lg:flex xl:px-20 xl:py-16">

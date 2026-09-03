@@ -85,15 +85,21 @@ export function AuthLoading() {
 }
 
 export function AuthUnavailable() {
+  const offline = !window.navigator.onLine
+
   return (
     <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
       <section className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl">
         <span className="mx-auto grid size-14 place-items-center overflow-hidden rounded-2xl bg-[#191919]">
           <img alt="" aria-hidden="true" className="size-full scale-[1.5] object-cover" src={logoUrl} />
         </span>
-        <h1 className="mt-5 text-2xl font-black">Acceso no disponible</h1>
+        <h1 className="mt-5 text-2xl font-black">
+          {offline ? 'Sin conexión a internet' : 'Acceso no disponible'}
+        </h1>
         <p className="mt-3 text-sm leading-6 text-white/50">
-          La aplicación está protegida o en mantenimiento. Intenta nuevamente en unos minutos.
+          {offline
+            ? 'La aplicación puede abrir su interfaz, pero necesita internet para validar tu sesión y consultar datos reales.'
+            : 'La aplicación está protegida o en mantenimiento. Intenta nuevamente en unos minutos.'}
         </p>
         <button
           className="mt-6 min-h-12 rounded-xl bg-brand-400 px-5 text-sm font-black text-[#191919]"

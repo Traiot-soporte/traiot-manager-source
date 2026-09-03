@@ -9,10 +9,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:apps-script": "tsc -b && vite build --mode apps-script",
     "gas:login": "clasp login",
     "gas:generate-schema": "vite-node scripts/generate-apps-script-schema.ts",
     "gas:generate-bcrypt": "vite-node scripts/generate-apps-script-bcrypt.ts",
-    "gas:generate-html": "vite-node scripts/generate-apps-script-html.ts",
+    "gas:generate-html": "npm run build:apps-script && vite-node scripts/generate-apps-script-html.ts",
     "gas:open": "clasp open-script",
     "gas:push": "clasp push",
     "gas:status": "clasp status",
@@ -55,6 +56,8 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.67.0",
     "vite": "6.4.3",
-    "vitest": "3.2.7"
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "3.2.7",
+    "workbox-window": "^7.4.1"
   }
 }

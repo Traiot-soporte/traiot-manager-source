@@ -27,6 +27,7 @@ import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-route
 import { SyncStatus } from '@/components/sync-status'
 import { CommunicationReminderButton } from '@/components/communication-reminder-button'
 import { MeetingSchedulerButton } from '@/components/meeting-scheduler-button'
+import { PwaInstallButton } from '@/components/pwa-provider'
 import { TableIcon } from '@/components/table-icon'
 import { ThemeToggle, type ThemeMode } from '@/components/theme-toggle'
 import { useRepository } from '@/data/use-repository'
@@ -484,6 +485,7 @@ export function AppShell() {
             <p className="text-xs capitalize text-ink-800/60">{formatOperationDate(new Date())}</p>
           </div>
           <div className="flex items-center gap-2">
+            <PwaInstallButton />
             <MeetingSchedulerButton />
             <CommunicationReminderButton />
             <SyncStatus />

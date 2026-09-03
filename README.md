@@ -19,6 +19,8 @@ Fase 2 completada y Fase 3 iniciada:
 - navegación contraíble, tema claro/oscuro persistente y flujo demostrativo de sesión.
 - proyecto independiente `TRAIOT Manager Backend` creado en Google Apps Script;
 - conexión privada de solo lectura preparada para inventariar Google Sheets en Drive.
+- PWA instalable en la publicación web, con iconos TRAIOT, atajos, aviso de conexión y
+  actualizaciones controladas; los datos reales continúan siendo exclusivamente en línea.
 
 No existe un backend local. El MockRepository solo permite desarrollar y revisar la interfaz en `localhost`. La ruta principal del Web App de Google Apps Script entrega la interfaz conectada, que consulta y modifica los registros reales mediante `google.script.run`, con validacion y borrado logico en el servidor.
 

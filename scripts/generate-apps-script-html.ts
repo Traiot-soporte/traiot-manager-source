@@ -7,10 +7,17 @@ const targetPath = resolve('apps-script', 'Index.html')
 let html = readFileSync(sourcePath, 'utf8')
 const favicon = readFileSync(resolve(distDirectory, 'favicon.svg'), 'utf8')
 const faviconDataUri = `data:image/svg+xml,${encodeURIComponent(favicon)}`
+const appleTouchIcon = readFileSync(resolve(distDirectory, 'apple-touch-icon.png'))
+const appleTouchIconDataUri = `data:image/png;base64,${appleTouchIcon.toString('base64')}`
 
 html = html.replace(
   /href="[^"]*favicon\.svg"/g,
   `href="${faviconDataUri}"`,
+)
+
+html = html.replace(
+  /href="[^"]*apple-touch-icon\.png"/g,
+  `href="${appleTouchIconDataUri}"`,
 )
 
 html = html.replace(

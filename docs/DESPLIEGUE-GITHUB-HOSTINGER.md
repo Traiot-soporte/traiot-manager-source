@@ -37,6 +37,21 @@ válida y los permisos del usuario. La variable de Actions
 Para habilitar el primer despliegue, un administrador del repositorio debe abrir
 `Settings > Pages` y seleccionar `GitHub Actions` en `Build and deployment > Source`.
 
+## Instalación como aplicación (PWA)
+
+La publicación web es instalable desde Chrome o Edge mediante el botón
+`INSTALAR APP` que aparece cuando el navegador confirma que cumple los requisitos. En
+móviles también puede instalarse desde la opción `Agregar a pantalla de inicio` del
+navegador.
+
+La PWA conserva en caché únicamente la interfaz, fuentes e iconos. Las consultas, sesiones,
+imágenes privadas y operaciones del backend no se guardan en el service worker. Sin
+internet la aplicación puede abrir su estructura y muestra un aviso, pero consultar o
+modificar datos reales requiere recuperar la conexión.
+
+Cuando se publica una versión nueva, la aplicación muestra un aviso de actualización. Al
+aceptarlo se activa la versión nueva y se recarga la interfaz.
+
 ## Repositorio fuente en GitHub
 
 Se recomienda crear un repositorio privado llamado `traiot-manager-source`.

@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router'
 
 import { App } from '@/App'
+import { PwaProvider } from '@/components/pwa-provider'
 import { isAppsScriptRuntime } from '@/data/apps-script-bridge'
 import { AppsScriptRepository, appsScriptRepository } from '@/data/apps-script-repository'
 import { createExternalAppsScriptCaller } from '@/data/external-apps-script-bridge'
@@ -42,9 +43,11 @@ createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <RepositoryProvider repository={repository}>
-        <HashRouter>
-          <App />
-        </HashRouter>
+        <PwaProvider>
+          <HashRouter>
+            <App />
+          </HashRouter>
+        </PwaProvider>
       </RepositoryProvider>
     </QueryClientProvider>
   </StrictMode>,
