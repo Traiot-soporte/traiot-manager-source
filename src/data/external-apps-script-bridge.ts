@@ -100,8 +100,18 @@ class ExternalAppsScriptBridge {
       const iframe = document.createElement('iframe')
       iframe.src = this.#bridgeUrl
       iframe.title = 'Conexión segura con el servidor'
-      iframe.hidden = true
+      iframe.tabIndex = -1
       iframe.setAttribute('aria-hidden', 'true')
+      iframe.style.cssText = [
+        'position:fixed',
+        'left:-10000px',
+        'top:0',
+        'width:1px',
+        'height:1px',
+        'border:0',
+        'opacity:0',
+        'pointer-events:none',
+      ].join(';')
       document.body.appendChild(iframe)
     })
   }
