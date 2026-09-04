@@ -229,16 +229,16 @@ export function AppShell() {
     void navigate('/login', { replace: true })
   }
 
+  if (!sessionAvailable) {
+    return <Navigate replace to="/login" />
+  }
+
   if (authStatus.isPending) {
     return <AuthLoading />
   }
 
   if (authStatus.isError) {
     return <AuthUnavailable />
-  }
-
-  if (passwordLoginActive && !sessionAvailable) {
-    return <Navigate replace to="/login" />
   }
 
   if (currentUser.isPending) {

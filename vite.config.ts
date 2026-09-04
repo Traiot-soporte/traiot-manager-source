@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         disable: isAppsScriptBuild,
         injectRegister: null,
-        registerType: 'prompt',
+        registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
         manifest: {
           id: base,
@@ -89,7 +89,7 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           navigateFallback: 'index.html',
           runtimeCaching: [],
-          skipWaiting: false,
+          skipWaiting: true,
         },
       }),
     ],

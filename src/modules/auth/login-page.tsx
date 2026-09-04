@@ -41,7 +41,15 @@ export function LoginPage() {
     void navigate(user.mustChangePassword ? '/cambiar-contrasena' : '/', { replace: true })
   }
 
-  if (authStatus.isPending) return <AuthLoading />
+  if (authStatus.isPending) {
+    return (
+      <LoginScreen
+        onLogin={login}
+        onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
+        theme={theme}
+      />
+    )
+  }
   if (authStatus.isError) {
     return (
       <LoginScreen
@@ -78,7 +86,7 @@ export function AuthLoading() {
     <main className="grid min-h-screen place-items-center bg-[#191919] px-6 text-white">
       <div className="text-center">
         <span className="mx-auto block size-10 animate-spin rounded-full border-4 border-white/15 border-t-brand-400" />
-        <p className="mt-4 text-sm font-bold text-white/60">Protegiendo tu sesión…</p>
+        <p className="mt-4 text-sm font-bold text-white/60">Conectando con el servidor…</p>
       </div>
     </main>
   )
@@ -94,12 +102,12 @@ export function AuthUnavailable() {
           <img alt="" aria-hidden="true" className="size-full scale-[1.5] object-cover" src={logoUrl} />
         </span>
         <h1 className="mt-5 text-2xl font-black">
-          {offline ? 'Sin conexión a internet' : 'Acceso no disponible'}
+          {offline ? 'Sin conexión a internet' : 'Sin conexión con el servidor'}
         </h1>
         <p className="mt-3 text-sm leading-6 text-white/50">
           {offline
             ? 'La aplicación puede abrir su interfaz, pero necesita internet para validar tu sesión y consultar datos reales.'
-            : 'La aplicación está protegida o en mantenimiento. Intenta nuevamente en unos minutos.'}
+            : 'La interfaz abrió, pero no recibió respuesta del servidor de datos. Esto ocurre antes de validar usuario y contraseña.'}
         </p>
         <button
           className="mt-6 min-h-12 rounded-xl bg-brand-400 px-5 text-sm font-black text-[#191919]"
