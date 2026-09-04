@@ -50,6 +50,7 @@ function doPost(event) {
 
 function handleHttpRequest_(event, payload) {
   var requestId = Utilities.getUuid();
+  var isApiPost = payload !== null && typeof payload === 'object';
 
   try {
     var query = event && event.parameter ? event.parameter : {};
@@ -58,6 +59,8 @@ function handleHttpRequest_(event, payload) {
 
     if (action === 'health') {
       data = buildHealth_();
+    } else if (isApiPost) {
+      data = apiRequest(payload);
     } else {
       throw createApiError_('INVALID_ACTION', 'La accion solicitada no existe.', false);
     }
@@ -70,6 +73,13 @@ function handleHttpRequest_(event, payload) {
     });
   } catch (error) {
     var apiError = normalizeApiError_(error);
+
+    // apiRequest historically runs through google.script.run, where validation
+    // and authentication messages are returned to the client. Preserve those
+    // safe messages for the equivalent authenticated HTTP API.
+    if (isApiPost && error && !error.apiCode && error.message) {
+      apiError.message = String(error.message).slice(0, 500);
+    }
 
     console.error(JSON.stringify({
       requestId: requestId,
