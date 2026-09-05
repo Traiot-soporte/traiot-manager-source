@@ -8,6 +8,7 @@ import { useRepository } from '@/data/use-repository'
 import { upsertMutationResult } from '@/modules/tables/mutation-cache'
 import { getMutationAffectedTables } from '@/modules/tables/mutation-invalidation'
 import { canManageAllCrmRecords } from '@/modules/tables/crm-access'
+import { OutboundBatchForm } from '@/modules/inventory/outbound-batch-form'
 import { PurchaseBatchForm } from '@/modules/inventory/purchase-batch-form'
 import { getTableDefinition, getTableDisplayName } from '@/schema'
 import type { RowData } from '@/schema'
@@ -29,7 +30,12 @@ export function RecordFormPage() {
   const warehouse = useQuery({
     queryKey: ['table', 'ALMACEN'],
     queryFn: () => repository.list('ALMACEN'),
-    enabled: tableName === 'COMPRAS' && !rowUuid,
+    enabled: (tableName === 'COMPRAS' || tableName === 'PEDIDOS') && !rowUuid,
+  })
+  const clients = useQuery({
+    queryKey: ['table', 'CLIENTES'],
+    queryFn: () => repository.list('CLIENTES'),
+    enabled: tableName === 'PEDIDOS' && !rowUuid,
   })
 
   if (!table) return <FormMessage text="Tabla no encontrada" to="/" />
@@ -68,8 +74,10 @@ export function RecordFormPage() {
     void navigate(basePath + '/' + encodeURIComponent(String(saved._uuid)))
   }
 
-  const savePurchaseBatch = async (rows: readonly RowData[]) => {
+  const saveInventoryBatch = async (rows: readonly RowData[]) => {
     let completed = 0
+    const singular = table.name === 'COMPRAS' ? 'compra' : 'salida'
+    const plural = table.name === 'COMPRAS' ? 'compras' : 'salidas'
     try {
       for (const values of rows) {
         const saved = await repository.create({ table: table.name, values })
@@ -83,8 +91,8 @@ export function RecordFormPage() {
       await invalidateMutationTables(queryClient, table.name)
       const detail = error instanceof Error ? error.message : 'Error desconocido.'
       throw new Error(completed > 0
-        ? 'Se registraron ' + completed + ' de ' + rows.length + ' compras. La siguiente línea falló: ' + detail
-        : 'No fue posible registrar la compra: ' + detail)
+        ? 'Se registraron ' + completed + ' de ' + rows.length + ' ' + plural + '. La siguiente línea falló: ' + detail
+        : 'No fue posible registrar la ' + singular + ': ' + detail)
     }
     await invalidateMutationTables(queryClient, table.name)
     void navigate(basePath)
@@ -137,7 +145,16 @@ export function RecordFormPage() {
       {table.name === 'COMPRAS' && !editing ? (
         <PurchaseBatchForm
           cancelTo={cancelTo}
-          onSubmit={savePurchaseBatch}
+          onSubmit={saveInventoryBatch}
+          products={warehouse.data ?? []}
+          productsLoading={warehouse.isPending}
+        />
+      ) : table.name === 'PEDIDOS' && !editing ? (
+        <OutboundBatchForm
+          cancelTo={cancelTo}
+          clients={clients.data ?? []}
+          clientsLoading={clients.isPending}
+          onSubmit={saveInventoryBatch}
           products={warehouse.data ?? []}
           productsLoading={warehouse.isPending}
         />

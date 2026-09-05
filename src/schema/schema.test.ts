@@ -150,6 +150,24 @@ describe('registro de metadata', () => {
     }
   })
 
+  it('muestra la auditoría de usuario y fecha en cada compra y salida', () => {
+    for (const tableName of ['COMPRAS', 'PEDIDOS']) {
+      const table = tableDefinitions.find((candidate) => candidate.name === tableName)
+      for (const columnName of [
+        'REGISTRADO POR',
+        'FECHA DE REGISTRO',
+        'MODIFICADO POR',
+        'FECHA DE MODIFICACION',
+      ]) {
+        expect(table?.columns.find((column) => column.name === columnName), tableName).toMatchObject({
+          origin: 'migration',
+          readOnly: true,
+          section: 'Historial del registro',
+        })
+      }
+    }
+  })
+
   it('agrega las columnas de sincronización a todas las tablas', () => {
     for (const table of tableDefinitions) {
       expect(table.key).toBe('_uuid')

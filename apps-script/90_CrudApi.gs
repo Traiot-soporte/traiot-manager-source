@@ -15,6 +15,7 @@ function createApiRow_(user, schemaTable, submittedValues, mutationId) {
   }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
+    ensureInventoryMovementAuditStorage_(openConfiguredSpreadsheet_(), false);
   }
   if (isInventoryApiTable_(schemaTable.name)) {
     ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
@@ -104,6 +105,7 @@ function updateApiRow_(
   }
   if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
     ensureProductCategoryStorage_(openConfiguredSpreadsheet_(), false);
+    ensureInventoryMovementAuditStorage_(openConfiguredSpreadsheet_(), false);
   }
   if (isInventoryApiTable_(schemaTable.name)) {
     ensureInventoryStorage_(openConfiguredSpreadsheet_(), false);
@@ -391,6 +393,8 @@ function prepareApiMutationRecord_(
 
   applyCrmCalendarOwnership_(user, schemaTable, record, isCreate);
 
+  applyInventoryMovementAudit_(schemaTable, record, currentRecord, isCreate, now, user);
+
   applyApiRoleRules_(schemaTable, record);
 
   applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now);
@@ -670,6 +674,78 @@ function canonicalApiProductCategory_(value) {
   return category ? category.slice(0, 60) : '';
 }
 
+var TRAIOT_INVENTORY_MOVEMENT_AUDIT_PROPERTY = 'TRAIOT_INVENTORY_MOVEMENT_AUDIT_V1';
+var TRAIOT_INVENTORY_MOVEMENT_AUDIT_HEADERS = [
+  'REGISTRADO POR',
+  'FECHA DE REGISTRO',
+  'MODIFICADO POR',
+  'FECHA DE MODIFICACION'
+];
+
+function ensureInventoryMovementAuditStorage_(spreadsheet, force) {
+  var properties = PropertiesService.getScriptProperties();
+  var targetNames = ['COMPRAS', 'PEDIDOS'];
+  var storageReady = targetNames.every(function (tableName) {
+    var schemaTable = requireApiTable_(tableName);
+    var sheet = requireApiSheet_(spreadsheet, schemaTable);
+    var headers = readApiHeaders_(sheet);
+    return TRAIOT_INVENTORY_MOVEMENT_AUDIT_HEADERS.every(function (header) {
+      return headers.indexOf(header) >= 0;
+    });
+  });
+
+  if (!force && storageReady &&
+      properties.getProperty(TRAIOT_INVENTORY_MOVEMENT_AUDIT_PROPERTY) === 'true') {
+    return { ready: true, addedHeaders: [] };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    var addedHeaders = [];
+    targetNames.forEach(function (tableName) {
+      var schemaTable = requireApiTable_(tableName);
+      var sheet = requireApiSheet_(spreadsheet, schemaTable);
+      var headers = readApiHeaders_(sheet);
+
+      TRAIOT_INVENTORY_MOVEMENT_AUDIT_HEADERS.forEach(function (header) {
+        if (headers.indexOf(header) >= 0) return;
+        sheet.getRange(1, headers.length + 1).setValue(header);
+        headers.push(header);
+        addedHeaders.push(tableName + '.' + header);
+      });
+    });
+
+    SpreadsheetApp.flush();
+    properties.setProperty(TRAIOT_INVENTORY_MOVEMENT_AUDIT_PROPERTY, 'true');
+    return { ready: true, addedHeaders: addedHeaders };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function applyInventoryMovementAudit_(schemaTable, record, currentRecord, isCreate, now, user) {
+  if (schemaTable.name !== 'COMPRAS' && schemaTable.name !== 'PEDIDOS') return;
+
+  var name = normalizeCell_(user && user.name);
+  var email = normalizeApiEmail_(user && user.email);
+  var userLabel = name && email ? name + ' · ' + email : name || email || 'Usuario autenticado';
+
+  if (isCreate) {
+    record['REGISTRADO POR'] = userLabel;
+    record['FECHA DE REGISTRO'] = now;
+  } else {
+    record['REGISTRADO POR'] = record['REGISTRADO POR'] ||
+      (currentRecord && currentRecord['REGISTRADO POR']) || '';
+    record['FECHA DE REGISTRO'] = record['FECHA DE REGISTRO'] ||
+      (currentRecord && currentRecord['FECHA DE REGISTRO']) || '';
+  }
+
+  record['MODIFICADO POR'] = userLabel;
+  record['FECHA DE MODIFICACION'] = now;
+}
+
 function applyApiBusinessFormulas_(spreadsheet, schemaTable, record, now) {
   if (schemaTable.name === 'ALMACEN') {
     record.CATEGORIA = canonicalApiProductCategory_(record.CATEGORIA);
@@ -851,6 +927,12 @@ function collectApiMutationColumns_(schemaTable, submittedChanges) {
     columnNames.push('COMPRAS');
     columnNames.push('PEDIDOS');
     columnNames.push('ESTATUS');
+  }
+
+  if (schemaTable.name === 'COMPRAS' || schemaTable.name === 'PEDIDOS') {
+    TRAIOT_INVENTORY_MOVEMENT_AUDIT_HEADERS.forEach(function (columnName) {
+      columnNames.push(columnName);
+    });
   }
 
   return columnNames.filter(function (columnName, index, values) {

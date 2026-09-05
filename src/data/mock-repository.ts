@@ -395,6 +395,14 @@ export class MockRepository implements Repository {
         mockUser.email,
       )
     }
+    if (isInventoryMovementTable(input.table)) {
+      const timestamp = now.toISOString()
+      const userLabel = movementAuditUserLabel(mockUser)
+      submitted['REGISTRADO POR'] = userLabel
+      submitted['FECHA DE REGISTRO'] = timestamp
+      submitted['MODIFICADO POR'] = userLabel
+      submitted['FECHA DE MODIFICACION'] = timestamp
+    }
     const row = this.#applyFormulas(input.table, {
       ...submitted,
       _uuid: rowUuid,
@@ -426,6 +434,12 @@ export class MockRepository implements Repository {
         now,
         mockUser.email,
       )
+    }
+    if (isInventoryMovementTable(input.table)) {
+      changes['REGISTRADO POR'] = current['REGISTRADO POR']
+      changes['FECHA DE REGISTRO'] = current['FECHA DE REGISTRO']
+      changes['MODIFICADO POR'] = movementAuditUserLabel(mockUser)
+      changes['FECHA DE MODIFICACION'] = now.toISOString()
     }
     const row = this.#applyFormulas(input.table, {
       ...current,
@@ -499,6 +513,16 @@ export class MockRepository implements Repository {
 
     return calculated
   }
+}
+
+function isInventoryMovementTable(tableName: string): boolean {
+  return tableName === 'COMPRAS' || tableName === 'PEDIDOS'
+}
+
+function movementAuditUserLabel(user: UserContext): string {
+  const name = user.name?.trim() ?? ''
+  const email = user.email.trim()
+  return name && email ? name + ' · ' + email : name || email || 'Usuario autenticado'
 }
 
 export const mockRepository = new MockRepository()

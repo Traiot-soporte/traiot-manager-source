@@ -32,6 +32,12 @@ describe('MockRepository', () => {
     expect(order.SUBTOTAL).toBe(2700)
     expect(order.IVA).toBe(432)
     expect(order.TOTAL).toBe(3132)
+    expect(order).toMatchObject({
+      'REGISTRADO POR': 'manuel@traiot.mx',
+      'FECHA DE REGISTRO': '2026-08-22T00:00:00.000Z',
+      'MODIFICADO POR': 'manuel@traiot.mx',
+      'FECHA DE MODIFICACION': '2026-08-22T00:00:00.000Z',
+    })
   })
 
   it('rechaza tablas que no forman parte del esquema', async () => {

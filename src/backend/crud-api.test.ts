@@ -90,6 +90,14 @@ interface CrudSandbox {
     now: string,
     user: Readonly<Record<string, unknown>>,
   ) => void
+  readonly applyInventoryMovementAudit_: (
+    table: CrudTable,
+    record: Record<string, unknown>,
+    currentRecord: Readonly<Record<string, unknown>> | null,
+    isCreate: boolean,
+    now: string,
+    user: Readonly<Record<string, unknown>>,
+  ) => void
   readonly appendCrmCommentHistory_: (
     previousValue: unknown,
     submittedValue: unknown,
@@ -555,5 +563,42 @@ describe('CRUD de Apps Script', () => {
       { name: 'Usuarios' },
       { UserRole: 'Invitado' },
     )).toThrow('UserRole')
+  })
+
+  it('registra quién creó y quién modificó compras y salidas', () => {
+    const { applyInventoryMovementAudit_ } = loadCrudSandbox()
+    const created: Record<string, unknown> = {}
+    const purchaseTable = { name: 'COMPRAS', columns: [] }
+
+    applyInventoryMovementAudit_(
+      purchaseTable,
+      created,
+      null,
+      true,
+      '2026-09-04T12:00:00.000Z',
+      { name: 'Manuel Soto', email: 'soporte@traiot.com.mx' },
+    )
+
+    expect(created).toMatchObject({
+      'REGISTRADO POR': 'Manuel Soto · soporte@traiot.com.mx',
+      'FECHA DE REGISTRO': '2026-09-04T12:00:00.000Z',
+      'MODIFICADO POR': 'Manuel Soto · soporte@traiot.com.mx',
+      'FECHA DE MODIFICACION': '2026-09-04T12:00:00.000Z',
+    })
+
+    const modified = { ...created }
+    applyInventoryMovementAudit_(
+      { name: 'PEDIDOS', columns: [] },
+      modified,
+      created,
+      false,
+      '2026-09-04T13:00:00.000Z',
+      { name: 'Luis Baca', email: 'luis@traiot.com.mx' },
+    )
+
+    expect(modified['REGISTRADO POR']).toBe('Manuel Soto · soporte@traiot.com.mx')
+    expect(modified['FECHA DE REGISTRO']).toBe('2026-09-04T12:00:00.000Z')
+    expect(modified['MODIFICADO POR']).toBe('Luis Baca · luis@traiot.com.mx')
+    expect(modified['FECHA DE MODIFICACION']).toBe('2026-09-04T13:00:00.000Z')
   })
 })
