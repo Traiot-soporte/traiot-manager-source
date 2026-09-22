@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, CalendarClock, Check, Mail, UserRound, X } from 'lucide-react'
+import { AlertTriangle, CalendarClock, Check, Copy, Mail, MapPin, Phone, UserRound, X } from 'lucide-react'
 
 import { WhatsAppIcon } from '@/components/whatsapp-icon'
 import { useRepository } from '@/data/use-repository'
 import type { ScheduledCommunication } from '@/data/repository'
-import { emailHref, whatsappHref } from '@/views/communication-utils'
+import { callHref, emailHref, visitHref, whatsappHref } from '@/views/communication-utils'
 
 interface CommunicationListProps {
   readonly communications: readonly ScheduledCommunication[]
@@ -37,8 +37,9 @@ function CommunicationItem({ communication, compact, referenceTime }: {
   const queryClient = useQueryClient()
   const [cancelOpen, setCancelOpen] = useState(false)
   const [cancellationReason, setCancellationReason] = useState('')
+  const [copyStatus, setCopyStatus] = useState('')
   const updateStatus = useMutation({
-    mutationFn: ({ status, reason }: { readonly status: 'ABIERTO' | 'ENVIADO' | 'CANCELADO'; readonly reason?: string }) =>
+    mutationFn: ({ status, reason }: { readonly status: 'ABIERTO' | 'ENVIADO' | 'REALIZADO' | 'CANCELADO'; readonly reason?: string }) =>
       repository.updateCommunicationStatus(communication.communicationUuid, status, reason),
     onSuccess: async () => {
       setCancelOpen(false)
@@ -46,23 +47,26 @@ function CommunicationItem({ communication, compact, referenceTime }: {
       await queryClient.invalidateQueries({ queryKey: ['communications'] })
     },
   })
-  const isClosed = communication.status === 'ENVIADO' || communication.status === 'CANCELADO'
+  const isClosed = ['ENVIADO', 'REALIZADO', 'CANCELADO'].includes(communication.status)
+  const task = communication.channel === 'LLAMADA' || communication.channel === 'VISITA'
   const due = new Date(communication.scheduledAt).getTime() <= referenceTime
   const href = communication.channel === 'WHATSAPP'
     ? whatsappHref(communication.recipient, communication.message)
-    : emailHref(communication.recipient, {
+    : communication.channel === 'LLAMADA' ? callHref(communication.recipient)
+      : communication.channel === 'VISITA' ? visitHref(communication.recipient)
+        : emailHref(communication.recipient, {
       subject: communication.subject,
       body: communication.message,
     })
-  const ChannelIcon = communication.channel === 'WHATSAPP' ? WhatsAppIcon : Mail
-  const hasWhatsAppName = communication.channel === 'WHATSAPP' && Boolean(communication.recipientName)
+  const ChannelIcon = communication.channel === 'WHATSAPP' ? WhatsAppIcon : communication.channel === 'LLAMADA' ? Phone : communication.channel === 'VISITA' ? MapPin : Mail
+  const hasWhatsAppName = communication.channel !== 'EMAIL' && Boolean(communication.recipientName)
   const displayTitle = hasWhatsAppName
     ? communication.recipientName
     : communication.entityTitle || communication.recipient
 
   return (
     <article className={compact ? 'rounded-2xl border border-black/5 bg-white p-4' : 'rounded-3xl border border-black/5 bg-white p-5 shadow-sm'}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className={communication.channel === 'WHATSAPP'
@@ -72,39 +76,41 @@ function CommunicationItem({ communication, compact, referenceTime }: {
             </span>
             <span className="text-sm font-black text-ink-950">{displayTitle}</span>
             <StatusBadge due={due} status={communication.status} />
+            {task && <span className="text-[10px] font-bold text-brand-700">{communication.channel === 'LLAMADA' ? 'LLAMADA TELEFÓNICA' : 'VISITA'}</span>}
           </div>
           {hasWhatsAppName && communication.entityTitle && (
             <p className="mt-1 truncate text-xs font-bold text-ink-800/65">{communication.entityTitle}</p>
           )}
-          <p className="mt-2 truncate text-xs font-bold text-ink-800/55">{communication.recipient}</p>
+          <p className="mt-2 break-words text-xs font-bold text-ink-800/55">{communication.channel === 'VISITA' && href ? <a className="underline" href={href} rel="noopener noreferrer" target="_blank">{communication.recipient}</a> : communication.recipient}</p>
           <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-ink-800/55">
             <CalendarClock className="size-3.5" /> {formatScheduledAt(communication.scheduledAt)}
           </p>
-          {!compact && <p className="mt-3 line-clamp-3 whitespace-pre-line text-sm leading-relaxed text-ink-800/70">{communication.message}</p>}
+          {(!compact || task) && <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink-800/70">{communication.message}</p>}
+          {communication.completedAt && <p className="mt-2 text-xs font-bold text-emerald-700">Realizado el {formatScheduledAt(communication.completedAt)}</p>}
         </div>
         {!isClosed && (
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex max-w-full flex-wrap gap-2">
             {href && (
               <a
                 className={communication.channel === 'WHATSAPP'
                   ? 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#128c4a] px-4 text-xs font-black text-white transition hover:bg-[#0f773f]'
                   : 'inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-500 px-4 text-xs font-black text-[#191919] transition hover:bg-brand-400'}
                 href={href}
-                onClick={() => updateStatus.mutate({ status: 'ABIERTO' })}
+                onClick={(event) => { if (updateStatus.isPending) event.preventDefault(); else updateStatus.mutate({ status: 'ABIERTO' }) }}
                 rel="noopener noreferrer"
-                target={communication.channel === 'WHATSAPP' ? '_blank' : undefined}
+                target={communication.channel === 'WHATSAPP' || communication.channel === 'VISITA' ? '_blank' : undefined}
               >
-                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : 'PREPARAR CORREO'}
+                <ChannelIcon className="size-4" /> {communication.channel === 'WHATSAPP' ? 'ABRIR WHATSAPP' : communication.channel === 'LLAMADA' ? 'MARCAR TELÉFONO' : communication.channel === 'VISITA' ? 'VER UBICACIÓN' : 'PREPARAR CORREO'}
               </a>
             )}
             <button
-              aria-label="Confirmar que la comunicación ya fue enviada"
+              aria-label={task ? 'Confirmar que la actividad ya se realizó' : 'Confirmar que la comunicación ya fue enviada'}
               className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-200 px-3 text-xs font-black text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
               disabled={updateStatus.isPending}
-              onClick={() => updateStatus.mutate({ status: 'ENVIADO' })}
+              onClick={() => updateStatus.mutate({ status: task ? 'REALIZADO' : 'ENVIADO' })}
               type="button"
             >
-              <Check className="size-4" /> CONFIRMAR ENVÍO
+              <Check className="size-4" /> {task ? 'CONFIRMAR REALIZACIÓN' : 'CONFIRMAR ENVÍO'}
             </button>
             <button
               aria-label="Cancelar comunicación"
@@ -122,6 +128,17 @@ function CommunicationItem({ communication, compact, referenceTime }: {
           </div>
         )}
       </div>
+      {communication.channel === 'LLAMADA' && <div className="mt-3 text-xs text-ink-800/60">
+        <p>El marcador usa la app de llamadas configurada en tu dispositivo. Si no se abre en la PC, copia el número y marca desde tu teléfono.</p>
+        <button className="mt-2 inline-flex items-center gap-2 font-bold text-brand-700" onClick={() => {
+          if (!navigator.clipboard) { setCopyStatus('Selecciona el número mostrado arriba para copiarlo.'); return }
+          void navigator.clipboard.writeText(communication.recipient).then(
+            () => setCopyStatus('Número copiado.'),
+            () => setCopyStatus('No se pudo copiar. Selecciona el número mostrado arriba.'),
+          )
+        }} type="button"><Copy className="size-4" /> COPIAR NÚMERO</button>
+        <span className="ml-2" role="status">{copyStatus}</span>
+      </div>}
       {communication.status === 'CANCELADO' && <CancellationAudit communication={communication} />}
       {updateStatus.isError && !cancelOpen && <p className="mt-3 text-xs font-bold text-red-700">No fue posible actualizar la comunicación.</p>}
       {cancelOpen && (
@@ -243,7 +260,7 @@ function AuditField({ label, value }: { readonly label: string; readonly value: 
 }
 
 function StatusBadge({ due, status }: { readonly due: boolean; readonly status: ScheduledCommunication['status'] }) {
-  const styles = status === 'ENVIADO'
+  const styles = status === 'ENVIADO' || status === 'REALIZADO'
     ? 'bg-emerald-100 text-emerald-800'
     : status === 'CANCELADO'
       ? 'bg-red-100 text-red-700'

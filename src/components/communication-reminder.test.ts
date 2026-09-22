@@ -8,6 +8,7 @@ describe('recordatorio de comunicaciones', () => {
     const communications = [
       communication('future', 'PROGRAMADO', '2026-08-26T16:00:00.000Z'),
       communication('sent', 'ENVIADO', '2026-08-20T16:00:00.000Z'),
+      { ...communication('done', 'REALIZADO', '2026-08-20T16:00:00.000Z'), channel: 'VISITA' as const },
       communication('due', 'ABIERTO', '2026-08-24T16:00:00.000Z'),
       communication('next', 'PROGRAMADO', '2026-08-25T20:00:00.000Z'),
     ]

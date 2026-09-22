@@ -25,7 +25,8 @@ var TRAIOT_COMMUNICATION_HEADERS = Object.freeze([
   'CancellationReason',
   'CancelledByUuid',
   'CancelledByEmail',
-  'CancelledByName'
+  'CancelledByName',
+  'CompletedAt'
 ]);
 
 function listScheduledCommunications_(user) {
@@ -78,15 +79,15 @@ function createScheduledCommunication_(user, submitted, mutationId) {
   var scheduledDate = new Date(input.scheduledAt);
 
   if (!channel) {
-    throw new Error('Selecciona correo o WhatsApp.');
+    throw new Error('Selecciona correo, WhatsApp, llamada o visita.');
   }
   if (!isValidCommunicationRecipient_(channel, recipient)) {
     throw new Error(channel === 'EMAIL'
       ? 'El correo del destinatario no es valido.'
-      : 'El telefono del destinatario no es valido.');
+      : channel === 'VISITA' ? 'Captura una direccion o una liga HTTP/HTTPS valida.' : 'El telefono del destinatario no es valido.');
   }
   if (!message) {
-    throw new Error('Captura el mensaje que deseas preparar.');
+    throw new Error('Captura el mensaje o el objetivo de la actividad.');
   }
   if (isNaN(scheduledDate.getTime())) {
     throw new Error('La fecha programada no es valida.');
@@ -136,7 +137,7 @@ function updateScheduledCommunicationStatus_(user, communicationUuid, requestedS
   if (!isUuid_(normalizedUuid)) {
     throw new Error('La comunicacion programada no es valida.');
   }
-  if (['ABIERTO', 'ENVIADO', 'CANCELADO'].indexOf(status) < 0) {
+  if (['ABIERTO', 'ENVIADO', 'REALIZADO', 'CANCELADO'].indexOf(status) < 0) {
     throw new Error('El estado solicitado no es valido.');
   }
   if (status === 'CANCELADO' && !normalizedCancellationReason) {
@@ -161,8 +162,12 @@ function updateScheduledCommunicationStatus_(user, communicationUuid, requestedS
     if (!match || !isCommunicationOwnedBy_(match, user)) {
       throw new Error('La comunicacion programada no existe o pertenece a otra cuenta.');
     }
-    if (match.status === 'ENVIADO' || match.status === 'CANCELADO') {
+    if (['ENVIADO', 'REALIZADO', 'CANCELADO'].indexOf(match.status) >= 0) {
       throw new Error('La comunicacion ya se encuentra cerrada.');
+    }
+    var task = match.channel === 'LLAMADA' || match.channel === 'VISITA';
+    if ((status === 'ENVIADO' && task) || (status === 'REALIZADO' && !task)) {
+      throw new Error('El estado no corresponde al tipo de actividad.');
     }
 
     var now = new Date().toISOString();
@@ -170,6 +175,7 @@ function updateScheduledCommunicationStatus_(user, communicationUuid, requestedS
     writeCommunicationField_(sheet, match.rowNumber, headers, 'UpdatedAt', now);
     if (status === 'ABIERTO') writeCommunicationField_(sheet, match.rowNumber, headers, 'OpenedAt', now);
     if (status === 'ENVIADO') writeCommunicationField_(sheet, match.rowNumber, headers, 'SentAt', now);
+    if (status === 'REALIZADO') writeCommunicationField_(sheet, match.rowNumber, headers, 'CompletedAt', now);
     if (status === 'CANCELADO') {
       writeCommunicationField_(sheet, match.rowNumber, headers, 'CancelledAt', now);
       writeCommunicationField_(sheet, match.rowNumber, headers, 'CancellationReason', normalizedCancellationReason);
@@ -236,6 +242,7 @@ function mapCommunicationRecord_(headers, row, rowNumber) {
   record.createdAt = normalizeCell_(record.CreatedAt);
   record.openedAt = normalizeCell_(record.OpenedAt);
   record.sentAt = normalizeCell_(record.SentAt);
+  record.completedAt = normalizeCell_(record.CompletedAt);
   record.cancelledAt = normalizeCell_(record.CancelledAt);
   record.cancellationReason = normalizeCell_(record.CancellationReason);
   record.cancelledByName = normalizeCell_(record.CancelledByName);
@@ -259,6 +266,7 @@ function serializeCommunicationRecord_(record) {
     createdAt: normalizeCell_(record.createdAt || record.CreatedAt),
     openedAt: normalizeCell_(record.openedAt || record.OpenedAt),
     sentAt: normalizeCell_(record.sentAt || record.SentAt),
+    completedAt: normalizeCell_(record.completedAt || record.CompletedAt),
     cancelledAt: normalizeCell_(record.cancelledAt || record.CancelledAt),
     cancellationReason: normalizeCell_(record.cancellationReason || record.CancellationReason),
     cancelledByName: normalizeCell_(record.cancelledByName || record.CancelledByName),
@@ -308,10 +316,19 @@ function normalizeCommunicationChannel_(value) {
   var normalized = normalizeLookupValue_(value);
   if (normalized === 'EMAIL' || normalized === 'CORREO') return 'EMAIL';
   if (normalized === 'WHATSAPP') return 'WHATSAPP';
+  if (normalized === 'LLAMADA' || normalized === 'VISITA') return normalized;
   return '';
 }
 
 function isValidCommunicationRecipient_(channel, recipient) {
+  var raw = String(recipient || '').trim();
+  if (channel === 'VISITA') {
+    if (raw.length < 5 || raw.length > 2000) return false;
+    if (/^https?:\/\//i.test(raw)) return /^https?:\/\/[^\s/@?#]+(?:[/?#][^\s]*)?$/i.test(raw);
+    return !/^[a-z][a-z\d+.-]*:/i.test(raw) && !/^\/\//.test(raw)
+      && ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(raw)).length <= 2048;
+  }
+  if (channel === 'LLAMADA') return /^\+?[\d\s().-]+$/.test(raw) && raw.replace(/\D/g, '').length >= 10 && raw.replace(/\D/g, '').length <= 15;
   if (channel === 'EMAIL') {
     var emails = String(recipient || '').split(/[,;\n]+/).map(function (email) {
       return normalizeCell_(email);
@@ -320,7 +337,7 @@ function isValidCommunicationRecipient_(channel, recipient) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     });
   }
-  return String(recipient || '').replace(/\D/g, '').length >= 10;
+  return channel === 'WHATSAPP' && raw.replace(/\D/g, '').length >= 10;
 }
 
 function communicationEntityTitle_(schemaTable, entity) {

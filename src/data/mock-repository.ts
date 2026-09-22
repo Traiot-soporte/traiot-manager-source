@@ -225,12 +225,15 @@ export class MockRepository implements Repository {
 
   async updateCommunicationStatus(
     communicationUuid: string,
-    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'REALIZADO' | 'CANCELADO'>,
     cancellationReason?: string,
   ): Promise<ScheduledCommunication> {
     const current = this.#communications.get(communicationUuid)
     if (!current) throw new Error('No se encontrÃ³ la comunicaciÃ³n programada.')
     const normalizedReason = cancellationReason?.trim() ?? ''
+    if (['ENVIADO', 'REALIZADO', 'CANCELADO'].includes(current.status)) throw new Error('La comunicación ya está cerrada.')
+    const task = current.channel === 'LLAMADA' || current.channel === 'VISITA'
+    if ((status === 'ENVIADO' && task) || (status === 'REALIZADO' && !task)) throw new Error('Estado incompatible con la actividad.')
     if (status === 'CANCELADO' && !normalizedReason) {
       throw new Error('Captura el motivo de la cancelaciÃ³n.')
     }
@@ -240,6 +243,7 @@ export class MockRepository implements Repository {
       status,
       openedAt: status === 'ABIERTO' ? timestamp : current.openedAt,
       sentAt: status === 'ENVIADO' ? timestamp : current.sentAt,
+      completedAt: status === 'REALIZADO' ? timestamp : current.completedAt ?? '',
       cancelledAt: status === 'CANCELADO' ? timestamp : current.cancelledAt,
       cancellationReason: status === 'CANCELADO' ? normalizedReason : current.cancellationReason ?? '',
       cancelledByName: status === 'CANCELADO' ? mockUser.name ?? mockUser.email : current.cancelledByName ?? '',

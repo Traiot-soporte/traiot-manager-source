@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { BellRing, CalendarClock, ChevronRight, Mail } from 'lucide-react'
+import { BellRing, CalendarClock, ChevronRight, Mail, MapPin, Phone } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router'
@@ -67,13 +67,13 @@ export function CommunicationReminderButton() {
         aria-controls="communication-reminder-panel"
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={pending ? `${pending} comunicaciones pendientes de enviar` : 'Consultar comunicaciones'}
+        aria-label={pending ? `${pending} actividades pendientes` : 'Consultar comunicaciones'}
         className={pending
           ? 'relative grid min-h-11 min-w-11 place-items-center rounded-full border border-amber-300 bg-amber-100 text-amber-800 transition hover:bg-amber-200'
           : 'relative grid min-h-11 min-w-11 place-items-center rounded-full border border-black/10 bg-white text-ink-800/55 transition hover:border-brand-300 hover:text-brand-600'}
         onClick={toggle}
         ref={buttonRef}
-        title={pending ? `${pending} pendientes de enviar` : 'Comunicaciones'}
+        title={pending ? `${pending} actividades pendientes` : 'Comunicaciones'}
         type="button"
       >
         <BellRing className="size-4" />
@@ -92,7 +92,7 @@ export function CommunicationReminderButton() {
           <header className="flex items-start justify-between gap-4 bg-ink-950 px-4 py-3.5 text-white">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-300">Comunicaciones</p>
-              <h2 className="mt-1 text-base font-black">{pending ? `${pending} pendientes de enviar` : 'Todo está al día'}</h2>
+              <h2 className="mt-1 text-base font-black">{pending ? `${pending} actividades pendientes` : 'Todo está al día'}</h2>
             </div>
             {summary.due > 0 && (
               <span className="rounded-full bg-amber-300 px-2.5 py-1 text-[9px] font-black text-amber-950">
@@ -105,7 +105,7 @@ export function CommunicationReminderButton() {
             {communications.isPending && <ReminderStatus text="Consultando pendientes…" />}
             {communications.isError && <ReminderStatus error text="No fue posible consultar las comunicaciones." />}
             {!communications.isPending && !communications.isError && summary.preview.length === 0 && (
-              <ReminderStatus text="No tienes mensajes pendientes. Desde el módulo de Comunicaciones puedes consultar el historial completo." />
+              <ReminderStatus text="No tienes actividades pendientes. Desde el módulo de Comunicaciones puedes consultar el historial completo." />
             )}
             {summary.preview.map((communication) => (
               <ReminderItem
@@ -145,7 +145,7 @@ function ReminderItem({ communication, referenceTime }: {
   readonly referenceTime: number
 }) {
   const due = new Date(communication.scheduledAt).getTime() <= referenceTime
-  const ChannelIcon = communication.channel === 'WHATSAPP' ? WhatsAppIcon : Mail
+  const ChannelIcon = communication.channel === 'WHATSAPP' ? WhatsAppIcon : communication.channel === 'LLAMADA' ? Phone : communication.channel === 'VISITA' ? MapPin : Mail
 
   return (
     <article className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-brand-50">

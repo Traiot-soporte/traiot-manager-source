@@ -197,7 +197,7 @@ export class AppsScriptRepository implements Repository {
 
   async updateCommunicationStatus(
     communicationUuid: string,
-    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'REALIZADO' | 'CANCELADO'>,
     cancellationReason?: string,
   ): Promise<ScheduledCommunication> {
     return await this.#authenticatedCall({

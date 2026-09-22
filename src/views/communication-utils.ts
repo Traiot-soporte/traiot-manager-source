@@ -5,6 +5,28 @@ interface EmailHrefOptions {
   readonly body?: string
 }
 
+export function callHref(value: string): string | undefined {
+  const raw = value.trim()
+  if (!/^\+?[\d\s().-]+$/.test(raw)) return undefined
+  const digits = raw.replace(/\D/g, '')
+  if (digits.length < 10 || digits.length > 15) return undefined
+  return 'tel:' + (raw.startsWith('+') ? '+' : '') + digits
+}
+
+export function visitHref(value: string): string | undefined {
+  const address = value.trim()
+  if (address.length < 5 || address.length > 2000) return undefined
+  if (/^https?:\/\//i.test(address)) {
+    try {
+      const url = new URL(address)
+      return url.username || url.password ? undefined : url.href
+    } catch { return undefined }
+  }
+  if (/^[a-z][a-z\d+.-]*:/i.test(address) || /^\/\//.test(address)) return undefined
+  const href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address)
+  return href.length <= 2048 ? href : undefined
+}
+
 export function emailHref(value: CellValue | undefined, options: EmailHrefOptions = {}): string | undefined {
   const emails = [...new Set(String(value ?? '')
     .split(/[,;\n]+/)

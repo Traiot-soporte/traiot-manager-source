@@ -73,9 +73,9 @@ export interface RolePermissionSyncResult {
   readonly invalidUsers: readonly string[]
 }
 
-export type CommunicationChannel = 'EMAIL' | 'WHATSAPP'
+export type CommunicationChannel = 'EMAIL' | 'WHATSAPP' | 'LLAMADA' | 'VISITA'
 export type CommunicationEntityTable = 'CLIENTES' | 'Gestion Clientes' | 'Reuniones'
-export type CommunicationStatus = 'PROGRAMADO' | 'ABIERTO' | 'ENVIADO' | 'CANCELADO'
+export type CommunicationStatus = 'PROGRAMADO' | 'ABIERTO' | 'ENVIADO' | 'REALIZADO' | 'CANCELADO'
 
 export interface ScheduledCommunication {
   readonly communicationUuid: string
@@ -92,6 +92,7 @@ export interface ScheduledCommunication {
   readonly createdAt: string
   readonly openedAt: string
   readonly sentAt: string
+  readonly completedAt?: string
   readonly cancelledAt: string
   readonly cancellationReason?: string
   readonly cancelledByName?: string
@@ -218,7 +219,7 @@ export interface Repository {
   createCommunication(input: CreateCommunicationInput): Promise<ScheduledCommunication>
   updateCommunicationStatus(
     communicationUuid: string,
-    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'CANCELADO'>,
+    status: Extract<CommunicationStatus, 'ABIERTO' | 'ENVIADO' | 'REALIZADO' | 'CANCELADO'>,
     cancellationReason?: string,
   ): Promise<ScheduledCommunication>
   getCurrentUser(): Promise<UserContext>

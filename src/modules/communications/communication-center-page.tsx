@@ -25,16 +25,16 @@ export function CommunicationCenterPage() {
 
   const active = (communications.data ?? []).filter((item) => item.status === 'PROGRAMADO' || item.status === 'ABIERTO')
   const history = (communications.data ?? [])
-    .filter((item) => item.status === 'ENVIADO' || item.status === 'CANCELADO')
+    .filter((item) => item.status === 'ENVIADO' || item.status === 'REALIZADO' || item.status === 'CANCELADO')
     .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt))
   const dueCount = active.filter((item) => new Date(item.scheduledAt).getTime() <= communications.dataUpdatedAt).length
 
   return (
     <div className="space-y-5">
       <ModuleHeader
-        description="Mensajes preparados para abrir, confirmar y registrar desde tu cuenta."
+        description="Mensajes, llamadas y visitas: agenda, realiza y conserva el historial de cada actividad."
         eyebrow="CRM"
-        footer={<span>{active.length} pendientes de enviar · {dueCount} por atender</span>}
+        footer={<span>{active.length} actividades pendientes · {dueCount} por atender</span>}
         icon={<CalendarClock className="size-5" />}
         title="Comunicaciones"
         tone="light"
@@ -54,7 +54,7 @@ export function CommunicationCenterPage() {
         </section>
         <section>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-ink-800/40">Historial</p>
-          <h2 className="mb-3 mt-1 text-xl font-black text-ink-950">Enviadas y canceladas</h2>
+          <h2 className="mb-3 mt-1 text-xl font-black text-ink-950">Enviadas, realizadas y canceladas</h2>
           <CommunicationList communications={history} compact emptyText="Todavía no hay comunicaciones cerradas." referenceTime={communications.dataUpdatedAt} />
         </section>
       </>}
